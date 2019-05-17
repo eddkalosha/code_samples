@@ -20,9 +20,16 @@ BPSystem.initialize();
 const ver = React.version;
 const {userName,nodeId} =BPSystem;
 const userData = {id:nodeId,name:userName};
-const nettingGroup = "'SAM123'";  
+const nettingGroup = "SAM123"; 
+let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
+let CURRENT_DATE =  new BPUI.ReferenceObject();
 
-const queryBuy = "SELECT  "+
+const queryMain = (account={
+    					acountType:'BUYER',
+    					accountID:-1,
+    					nettingGroup:'SAM123'},
+                   offsetRows=0, 
+                   countRows=10) => { var q = ("SELECT  "+
 "i1.DueDate as NetDate, "+
 "a1.id AS AccountId, "+
 "a1.AccountNumber AS Account, "+
@@ -41,34 +48,14 @@ const queryBuy = "SELECT  "+
 "JOIN account a1 ON bp1.accountid = a1.id "+
 "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
 "WHERE 1=1 "+
-"AND a1.nettinggroup = "+nettingGroup+" "+
-"AND a1.AccountType = 'BUYER' "+
+"AND a1.nettinggroup = '"+account.nettingGroup+"' "+
+"AND a1.AccountType = '"+account.acountType+"' "+
 "AND i1.status = 'CLOSED' "+
-"ORDER BY i1.id ASC"   ;
+"ORDER BY i1.id ASC OFFSET "+offsetRows+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
+        console.log(q);
+return q;  
+  };
 
-const querySell = "select  "+
-"i1.DueDate as NetDate, "+
-"a1.id AS AccountId,"+
-"a1.AccountNumber AS Account,"+
-"a1.Name AS AccountName,"+
-"i1.id AS InvoiceID,"+
-"i1.status AS Status,"+
-"-i1.GrandTotalAmount AS InvoiceCharges,"+
-"i1.PaymentAmount AS Payments, "+
-"i1.CreditAmount AS Adjustments, "+
-"(-i1.GrandTotalAmount-i1.CreditAmount+i1.PaymentAmount) AS OutstandingAmount, "+
-"n1.netting_statement AS Statement, "+
-"a1.nettinggroup,  "+
- "(bp1.PaymentTermDays || ' days') as  PaymentTermDays "+   
-"from invoice i1 "+
-"JOIN billing_profile bp1 ON i1.billingprofileid = bp1.id "+
-"JOIN account a1 ON bp1.accountid = a1.id "+
-"LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
-"WHERE 1=1 "+
-"AND a1.nettinggroup = "+nettingGroup+" "+
-"AND a1.AccountType = 'SELLER' "+
-"AND i1.status = 'CLOSED' "+
-"ORDER BY  i1.id  ASC";
 
 const columns__ = [	
 {field:'InvoiceID', label:'Invoice ID'},	
@@ -85,7 +72,7 @@ const columns__ = [
 {field:'PaymentTermDays',label:'Pay terms', width:'100'}
     
 ];
-console.log('-------queries = ', queryBuy,querySell);
+
 
 const utils = {
     replaceIfNegativeNumber:num=>/^-[0-9]\d*(\.\d+)?$/.test(num)? '('+(num*-1)+')':num,
@@ -179,15 +166,14 @@ const Netting = React.createClass({
     console.log('[render] Netting');
     console.log('[NettingComponent] props',this.props);
         const {twoColView} = this.state;
-    	const {userData,currencySymbol} = this.props;
-        const netting = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting))
+    	const {userData,currencySymbol,netDate} = this.props;
         const {detailedData,offsets,totals,selectedRowIndexBuy,selectedRowIndexSell} = this.props.data;
         const totalsToHTML = Object.values(totals).map(el=><div className="row pt-4"><div className="col-sm-3 text-right">{el.title}</div><div className="col-sm-2 text-right">{currencySymbol}{utils.replaceIfNegativeNumber(el.value)}</div></div>)
 		return(<div className="pt-3">
      		<div className="container-fluid">  
             <div className="row">
             	<div className="col-sm-3 pt-2">Net As Of Date</div><div className="col-sm-3">
-                <BPUI.InputField key="1112" className="dateselector" variable={new BPUI.ReferenceObject()} placeholder="Click for select..." layout="plain" type="DATE_SELECTOR" onUpdate={(date,val2,val3)=>{this.props.onDateChange(date)}}/>                                    
+              		<BPUI.InputField key="1112" className="dateselector" variable={CURRENT_DATE} placeholder="Click for select..." layout="plain" type="DATE_SELECTOR" onUpdate={(date,val2,val3)=>{this.props.onDateChange(date)}}/>                                    
                 </div>
             </div>
                {/*<div className="row pt-4">
@@ -198,7 +184,7 @@ const Netting = React.createClass({
                 	Select company
                 </div>
              	<div className="col-sm-3">
-                    <BPUI.InputField variable={netting}   field="account_id" onUpdate={(id,type,object)=>{this.props.onChangeAccount(id)}} layout="plain" />
+                    <BPUI.InputField variable={NETTING} className="input nnn"  placeholder="Click for select..."field="account_id" onUpdate={(id,type,object)=>{this.props.onChangeAccount(id)}} layout="plain" />
                 </div>
             </div>
                <div className="row pt-4">
@@ -206,7 +192,7 @@ const Netting = React.createClass({
                 	Select Netting Group
                 </div>
              	<div className="col-sm-3">
-                	<BPUI.InputField  variable={netting} field="netting_group" onUpdate={(id,type,object)=>{this.props.onChangeGroup(id)}}  layout="plain" />
+                	<BPUI.InputField  variable={NETTING} field="netting_group" onUpdate={(id,type,object)=>{this.props.onChangeGroup(id)}}  layout="plain" />
                 </div>
             </div>
             <div className="row ">
@@ -218,8 +204,9 @@ const Netting = React.createClass({
                  <button className="">Net</button>
                  <button disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 } className="ml-1" onClick={()=>this.props.onSelectionReset()}>Reset</button>
                 </BPUI.Divider>
-            </div>   
-            <div className="row pt-4">
+            </div> 
+             
+             <div className="row pt-4">
               <div className="col-sm-12"><label className="switch"><input checked={twoColView} onChange={()=>this.setState({twoColView:!twoColView})} type="checkbox"/><span className="slider round"></span></label> </div>
             <div className="col-sm-12" style={{opacity:0.6}}>{twoColView?'Switch to 1-column view':'Switch to 2-column view'}</div>
                 <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center`}>
@@ -278,10 +265,10 @@ const NettingContainer = React.createClass({
             }
         }
     },
-    shouldComponentUpdate(nextProps, nextState){
+     shouldComponentUpdate(nextProps, nextState){
     	console.log('should update',this.state, nextState);
         if ((this.state.nettingAccount !== nextState.nettingAccount) ||
-         	(this.state.nettingGroup !== nextState.nettingGroup) ||
+         	(this.state.nettingGroup !== nextState.nettingGroup)||
             (this.state.netDate !== nextState.netDate))
         {
         	return false
@@ -294,32 +281,32 @@ const NettingContainer = React.createClass({
             step:newStep<0?0:newStep
         });
     },
-    async onDateChange(date){
-        const that = this;
-        this.setState({netDate:date, isWaiting:true}, 
-         ()=>  this.getDataBuySell(null,null,null) 
-                     )
+    onDateChange(date){
+        this.setState({netDate:date},()=>this.getDataBuySell())
     },
     onAccChange(id){
         console.log('acc id changed',+id);
-        this.setState({nettingAccount:id},
-           ()=>  this.getDataBuySell(null,null,null)          
-                     )
+        this.setState({nettingAccount:id},()=>this.getDataBuySell())
     },
     onGroupChange(id){
         console.log('group changed',id)
-            this.setState({nettingGroup:id},
-               ()=> this.getDataBuySell(null,null,null))
+    	this.setState({nettingGroup:id},()=>this.getDataBuySell())
     },
-    async getDataBuySell(date=null,accountID = null, nettingGroup = null){
-        if (date===null && accountID === null && nettingGroup === null){
-        console.log('----call get data');
-        }
+    async getDataBuySell(accountID = null, nettingGroup = null){
+        this.setState({isWaiting:true})
         try{
-            this.setState({isWaiting:true});
+            const accountBuy={
+    					acountType:'BUYER',
+    					accountID:-1,
+    					nettingGroup:'SAM123'}, 
+                  accountSell={
+    					acountType:'SELLER',
+    					accountID:-1,
+    					nettingGroup:'SAM123'} ; //get from this.state
+            
             const [collectionBuy,collectionSell] = await Promise.all([
-                BPConnection.BrmAggregate.queryAsync(queryBuy).collection(),
-                BPConnection.BrmAggregate.queryAsync(querySell).collection(),
+                BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy)).collection(),
+                BPConnection.BrmAggregate.queryAsync(queryMain(accountSell)).collection(),
               ]);
            	console.error('[Container]:::COLLECTIONS:::');
             console.log(collectionBuy,collectionSell);
@@ -332,18 +319,16 @@ const NettingContainer = React.createClass({
            }catch(e){
             	console.error(e,e.responseText);
             	return false;    
-         }finally{
-           this.setState({isWaiting:false}); 
+                }finally{
+                this.setState({isWaiting:false})     
                 }
-                
     },
     async componentDidMount(){
 	   const detailedData = await this.getDataBuySell();
         if (detailedData){  //if received and correct       
              this.setState({ 
                 			detailedData,
-                       		userData,
-                            isWaiting:false});
+                       		userData});
        console.log('[didmounted] NettingContainer');
       }
     },
@@ -442,8 +427,11 @@ const NettingContainer = React.createClass({
     saveCalcData(){
         
     },
+    undo_saveCalcData(){
+        
+    },
     render(){
-    const {userData,totals,detailedData,isWaiting,selectedRowIndexBuy,selectedRowIndexSell,offsets} = this.state;
+    const {userData,totals,detailedData,isWaiting,selectedRowIndexBuy,selectedRowIndexSell,netDate,offsets} = this.state;
     console.log('[render] NettingContainer');
     const preLoader = (<div className="spinner">
               <div className="bounce1"></div>
@@ -458,6 +446,7 @@ const NettingContainer = React.createClass({
               />
              {isWaiting? preLoader:
               <Netting
+                netDate = {netDate}
                 onDateChange = {(date)=>this.onDateChange(date)}           
                 onPrevStep={()=>this.prevStep()}
                 onSelectionReset = {()=>this.selectionReset()} 
