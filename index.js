@@ -91,7 +91,7 @@ const columns__ = [
 
 
 const utils = {
-    replaceIfNegativeNumber:num=>/^-[0-9]\d*(\.\d+)?$/.test(num)? '('+(num*-1)+')':num,
+    replaceIfNegativeNumber:num=>/^-[0-9]\d*(\.\d+)?$/.test(+num)? '('+(num*-1)+')':num,
     formatDate:dateString=>{
     	try{ 
             const date_ = new Date(Date.parse(dateString)); 
