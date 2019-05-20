@@ -210,7 +210,7 @@ const Netting = React.createClass({
              </div> */}
             <div className="row pt-4">
                  <div className="col-sm-3 pt-2">
-                	Select company
+                	Company
                 </div>
              	<div className="col-sm-3">
                     <BPUI.InputField variable={NETTING} className="input nnn"  placeholder="Click for select..."field="account_id" onUpdate={(id,type,object)=>{this.props.onChangeAccount(id)}} layout="plain" />
@@ -218,7 +218,7 @@ const Netting = React.createClass({
             </div>
                <div className="row pt-4">
                  <div className="col-sm-3 pt-2">
-                	Select Netting Group
+                	Netting Group Code
                 </div>
              	<div className="col-sm-3">
                 	<BPUI.InputField  variable={NETTING} field="netting_group" onUpdate={(id,type,object)=>{this.props.onChangeGroup(id)}}  layout="plain" />
