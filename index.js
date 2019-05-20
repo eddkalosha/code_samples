@@ -2,7 +2,6 @@
 
 inprove renders (shouldComponentUpdate)
 editable field 'offset'
-paging tables
 
 wiget presents next structure:
 
@@ -208,7 +207,7 @@ const Netting = React.createClass({
                {/*<div className="row pt-4">
                 <div className="col-sm-3">Client</div><div className="col-sm-3">{userData.name}</div>
              </div> */}
-            <div className="row pt-4">
+            <div className={`row pt-4 ${netDate===-1?'disabled':''}`}>
                  <div className="col-sm-3 pt-2">
                 	Company
                 </div>
@@ -216,12 +215,12 @@ const Netting = React.createClass({
                     <BPUI.InputField variable={NETTING} className="input nnn"  placeholder="Click for select..."field="account_id" onUpdate={(id,type,object)=>{this.props.onChangeAccount(id)}} layout="plain" />
                 </div>
             </div>
-               <div className="row pt-4">
+               <div className={`row pt-4 ${ (netDate===-1) ?'disabled':''}`}>
                  <div className="col-sm-3 pt-2">
                 	Netting Group Code
                 </div>
              	<div className="col-sm-3">
-                	<BPUI.InputField  variable={NETTING} field="netting_group" onUpdate={(id,type,object)=>{this.props.onChangeGroup(id)}}  layout="plain" />
+                	<BPUI.InputField  type="SELECT1" style={{width:'100%'}} variable={NETTING} field="netting_group" onUpdate={(id,type,object)=>{this.props.onChangeGroup(id)}}  layout="plain" />
                 </div>
             </div>
             {noData? haveNoData:  isWaiting? preLoader:
@@ -294,7 +293,7 @@ const NettingContainer = React.createClass({
     		 acountType:'SELLER',
     		 accountID:-1,
     		 nettingGroup:'SAM123'},
-         netDate:new Date(),
+         netDate:-1,
          nettingAccount:-1,
          nettingGroup:-1,
     	 userData:{},
@@ -411,7 +410,7 @@ const NettingContainer = React.createClass({
        console.log('[didmounted] NettingContainer');
     },
     async selectRowSell(row){            
-        const {selectedRowIndexSell} =  this.state    
+        const {selectedRowIndexSell} =this.state;   
         const listRows = selectedRowIndexSell.includes(row)?selectedRowIndexSell.filter(i=>i!== row):[row,...selectedRowIndexSell];
         await this.setState({
         	selectedRowIndexSell:listRows});
