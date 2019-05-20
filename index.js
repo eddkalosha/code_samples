@@ -1,6 +1,5 @@
 /**to do : 
 
-default props 4 destructuring assignment
 inprove renders (shouldComponentUpdate)
 editable field 'offset'
 paging tables
@@ -24,13 +23,14 @@ const userData = {id:nodeId,name:userName};
 const nettingGroup = "SAM123"; 
 let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
 let CURRENT_DATE =  new BPUI.ReferenceObject();
+let TABLE_PAGE_COUNT = 10;
 
 const queryMain = (account={
     					acountType:'BUYER',
     					accountID:-1,
     					nettingGroup:'SAM123'},
                    offsetRows=0, 
-                   countRows=10) =>
+                   countRows=TABLE_PAGE_COUNT) =>
     ("SELECT  "+
     "i1.DueDate as NetDate, "+
     "a1.id AS AccountId, "+
@@ -50,10 +50,27 @@ const queryMain = (account={
     "JOIN account a1 ON bp1.accountid = a1.id "+
     "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
     "WHERE 1=1 "+
-    "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
+   // "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
     "AND a1.AccountType = '"+account.acountType+"' "+
-    "AND i1.status = 'CLOSED' "+
-    "ORDER BY i1.id ASC OFFSET "+offsetRows+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
+   // "AND i1.status = 'CLOSED' "+
+    "ORDER BY i1.id ASC OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
+
+const queryMainRowCount = (account={
+    					acountType:'BUYER',
+    					accountID:-1,
+    					nettingGroup:'SAM123'}) =>
+   ("SELECT COUNT(i1.id) as rowCount "+
+    "FROM invoice i1 "+
+    "JOIN billing_profile bp1 ON i1.billingprofileid = bp1.id "+
+    "JOIN account a1 ON bp1.accountid = a1.id "+
+    "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
+    "WHERE 1=1 "+
+  //  "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
+    "AND a1.AccountType = '"+account.acountType+"' "/*+
+    "AND i1.status = 'CLOSED' "*/
+   );
+
+
 
 
 const columns__ = [	
@@ -144,11 +161,14 @@ const NettingDetailsTable_ = React.createClass({
               {dateToHTML_}  
              </tbody>
          </table>
-        </div>
+        </div>       
         <div className="row p-2">
-                   <div className="col-sm-6 text-right">Page {currentPage+1} of {maxPagesCount+1 || '1'}</div>
-         <div className="col-sm-6 text-right"><span  onClick={()=>onSetStep(currentPage-1<0?0:currentPage-1)} className="px-3 btn">&#9001;</span><span onClick={()=>onSetStep(currentPage+1>maxPagesCount?maxPagesCount:currentPage+1)} className=" btn">&#9002;</span></div> 
-        </div>
+          <div className="col-sm-6 text-right mt-2">Page {currentPage+1} of {maxPagesCount+1 || '1'}</div>
+          <div className="col-sm-6 text-right">
+            <span onClick={()=>onSetStep(currentPage-1<0?0:currentPage-1)} className={`px-3 btn ${+currentPage===0?'disabled':''}`}>&#9001;</span>
+            <span onClick={()=>onSetStep(currentPage+1>maxPagesCount?maxPagesCount:currentPage+1)} className={` btn  ${+currentPage===+maxPagesCount?'disabled':''}`}>&#9002;</span>
+           </div> 
+       </div>
          </div>
         </div> 
        )
@@ -224,8 +244,8 @@ const Netting = React.createClass({
                 <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center`}>
                 <NettingDetailsTable_ 
                    type={0}
-                   maxPagesCount={padgingTables.maxSell}
-                   currentPage={padgingTables.currentSell}
+                   maxPagesCount={padgingTables.maxBuy}
+                   currentPage={padgingTables.currentBuy}
                    keyFieldName={'InvoiceID'}
                    data={detailedData.buy}
                    offsets={offsets.buy}
@@ -240,8 +260,8 @@ const Netting = React.createClass({
                <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center`}>
                 <NettingDetailsTable_ 
                    type={1}
-                   maxPagesCount={padgingTables.maxBuy}
-                   currentPage={padgingTables.currentBuy}
+                   maxPagesCount={padgingTables.maxSell}
+                   currentPage={padgingTables.currentSell}
                    keyFieldName={'InvoiceID'}
                    data={detailedData.sell}
                    offsets={offsets.sell}
@@ -266,6 +286,14 @@ const Netting = React.createClass({
 const NettingContainer = React.createClass({  
     getInitialState() {
     return {
+         accountBuy:{
+    		 acountType:'BUYER',
+    			 accountID:-1,
+    			 nettingGroup:'SAM123'}, 
+           accountSell:{
+    		 acountType:'SELLER',
+    		 accountID:-1,
+    		 nettingGroup:'SAM123'},
          netDate:new Date(),
          nettingAccount:-1,
          nettingGroup:-1,
@@ -275,8 +303,8 @@ const NettingContainer = React.createClass({
          padgingTables:{
              currentBuy:0,
              currentSell:0,
-             maxBuy:10,
-             maxSell:10
+             maxBuy:0,
+             maxSell:0
          },
     	 detailedData:{buy:[],sell:[]},
     	 selectedRowIndexBuy:[],selectedRowIndexSell:[],
@@ -319,75 +347,90 @@ const NettingContainer = React.createClass({
         console.log('group changed',id)
     	this.setState({nettingGroup:id},()=>this.getDataBuySell())
     },
-    setStep(page,type){
+    async setPage(page,type){
      //type 0 - buy, 1 - sell
        console.log('set step',[page,type]);
-      this.setState({
-          padgingTables: type===0?  {...this.state.padgingTables,currentBuy:page}:{...this.state.padgingTables,currentSell:page}
-      })  
+      const {accountBuy,accountSell} = this.state;
+        
+      await this.setState({
+          padgingTables: type===0?
+          {...this.state.padgingTables,currentBuy:page}:
+          {...this.state.padgingTables,currentSell:page}
+         });
+
+       const [res] = await Promise.all([
+           BPConnection.BrmAggregate.queryAsync(queryMain(type===0?accountBuy:accountSell,page)).collection()
+       ]);
+        
+       let dataRef = new BPUI.ReferenceObject(res).get().list();
+        if (type===0){
+            this.setState({detailedData: {...this.state.detailedData,buy:dataRef}});
+        }else
+        {
+            this.setState({detailedData: {...this.state.detailedData,sell:dataRef}})
+        }
     },
-    async getDataBuySell(accountID = null, nettingGroup = null){
+    async getDataBuySell(date=null,accountID = null, nettingGroup = null){
         this.setState({isWaiting:true, noData:false})
         try{
-            const accountBuy={
-    					acountType:'BUYER',
-    					accountID:-1,
-    					nettingGroup:'SAM123'}, 
-                  accountSell={
-    					acountType:'SELLER',
-    					accountID:-1,
-    					nettingGroup:'SAM123'} ; //get from this.state
-            
-            const [collectionBuy,collectionSell] = await Promise.all([
+            const {accountBuy,accountSell} = this.state;
+            //can be called count queries first, then main queries 
+            const [collectionBuy,collectionSell, buyCount, sellCount] = await Promise.all([
                 BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy)).collection(),
                 BPConnection.BrmAggregate.queryAsync(queryMain(accountSell)).collection(),
+                BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountBuy)).single(),
+                BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountSell)).single()
               ]);
            	console.error('[Container]:::COLLECTIONS:::');
-            console.log(collectionBuy,collectionSell);
+            console.log(collectionBuy,collectionSell,buyCount,sellCount);
             let buyDataRef = new BPUI.ReferenceObject(collectionBuy).get().list();
             let sellDataRef = new BPUI.ReferenceObject(collectionSell).get().list();
-            return({
-               buy:buyDataRef,
-               sell:sellDataRef
+            this.setState({
+                detailedData :{
+                    buy:buyDataRef,
+                    sell:sellDataRef
+                              },
+                 padgingTables:{
+                    currentBuy:0,
+                    currentSell:0,
+                    maxBuy: Math.ceil(+buyCount.rowCount/TABLE_PAGE_COUNT)-1,
+                    maxSell:Math.ceil(+sellCount.rowCount/TABLE_PAGE_COUNT)-1 
+                }     
              });
            }catch(e){
                 this.setState({noData:true});
             	console.error(e,e.responseText);
             	return false;    
-                }finally{
+          }finally{
                 this.setState({isWaiting:false})     
                 }
     },
-    async componentDidMount(){
-	   const detailedData = await this.getDataBuySell();
-        if (detailedData){  //if received and correct       
-             this.setState({ 
-                			detailedData,
-                       		userData});
+    componentDidMount(){
+	  this.getDataBuySell();      
+      this.setState({userData});
        console.log('[didmounted] NettingContainer');
-      }
     },
-    selectRowSell(row){            
+    async selectRowSell(row){            
         const {selectedRowIndexSell} =  this.state    
         const listRows = selectedRowIndexSell.includes(row)?selectedRowIndexSell.filter(i=>i!== row):[row,...selectedRowIndexSell];
-        this.setState({
-        	selectedRowIndexSell:listRows
-    	},()=>this.calcOutputData());	  
+        await this.setState({
+        	selectedRowIndexSell:listRows});
+        this.calcOutputData();	  
     },
-    selectRowBuy(row){
+    async selectRowBuy(row){
         const {selectedRowIndexBuy} =  this.state    
         const listRows = selectedRowIndexBuy.includes(row)?selectedRowIndexBuy.filter(i=>i!== row):[row,...selectedRowIndexBuy];
-        this.setState({
-        	selectedRowIndexBuy:listRows
-    	},()=>this.calcOutputData());		
+        await this.setState({
+        	selectedRowIndexBuy:listRows});
+        this.calcOutputData();		
     },
-    selectionReset(){
+    async selectionReset(){
       if (window.confirm('Are you sure want to reset all offsets to default calculation?')) {
-      this.setState({
+      await this.setState({
       	selectedRowIndexBuy:[],
-      	selectedRowIndexSell:[]   
-            },()=>this.calcOutputData())   
-          }
+      	selectedRowIndexSell:[]});
+      this.calcOutputData();
+      }
     }, 
     calcOutputData(){
         let {selectedRowIndexBuy,selectedRowIndexSell,detailedData, totals} = this.state; 
@@ -465,7 +508,6 @@ const NettingContainer = React.createClass({
     render(){
     const {userData,totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,selectedRowIndexSell,netDate,offsets,noData} = this.state;
     console.log('[render] NettingContainer');
-        
     	return(
              <div>
              <NavToolBar
@@ -481,8 +523,8 @@ const NettingContainer = React.createClass({
                 onSelectRowSell = {rowIndex=>this.selectRowSell(rowIndex)}
                 onChangeAccount = {id=>this.onAccChange(id)}
                 onChangeGroup = {id=>this.onGroupChange(id)}
-                onSetPageSell = {step=>this.setStep(step,0)}
-                onSetPageBuy = {step=>this.setStep(step,1)}
+                onSetPageBuy = {step=>this.setPage(step,0)}
+                onSetPageSell = {step=>this.setPage(step,1)}
                 noData={noData}
                 isWaiting={isWaiting}
                 data={{detailedData,
