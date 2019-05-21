@@ -2,6 +2,7 @@
 
 inprove renders (shouldComponentUpdate)
 editable field 'offset'
+paging tables
 
 wiget presents next structure:
 
@@ -69,7 +70,9 @@ const queryMainRowCount = (account={
     "AND i1.status = 'CLOSED' "*/
    );
 
-
+const queryNettGroups = (accountID = -1) =>( 
+"SELECT distinct(NettingGroup) from Account where Account.ParentAccountId= "+accountID+""
+);
 
 
 const columns__ = [	
@@ -97,8 +100,7 @@ const utils = {
             return ('0' + date_.getDate()).slice(-2) + '/'
              + ('0' + (date_.getMonth()+1)).slice(-2) + '/'
              + date_.getFullYear()
-    }catch(e){ console.error('Error date parsing :',e); return dateString}}/*,
-    formatField:item=>this.replaceIfNegativeNumber(item)*/
+    }catch(e){ console.error('Error date parsing :',e); return dateString}}
 };
 
 const NavToolBar = React.createClass({
@@ -194,30 +196,29 @@ const Netting = React.createClass({
                <small>Check input parameters and try again</small>            
             </div>);
            
-        const {userData,currencySymbol,padgingTables,netDate,isWaiting,noData} = this.props;
+        const {userData,currencySymbol,padgingTables,step,isWaiting,noData} = this.props;
         const {detailedData,offsets,totals,selectedRowIndexBuy,selectedRowIndexSell} = this.props.data;
         const totalsToHTML = Object.values(totals).map(el=><div className="row pt-4"><div className="col-sm-3 text-right">{el.title}</div><div className="col-sm-2 text-right">{currencySymbol}{utils.replaceIfNegativeNumber(el.value)}</div></div>)
 		return(<div className="pt-3">
      		<div className="container-fluid">  
             <div className="row">
-            	<div className="col-sm-3 pt-2">Net As Of Date</div><div className="col-sm-3">
+            	<div className="col-sm-3 pt-2"><img alt="" src="images/required.png"/>Net As Of Date</div><div className="col-sm-3">
               		<BPUI.InputField key="1112" className="dateselector" variable={CURRENT_DATE} placeholder="Click for select..." layout="plain" type="DATE_SELECTOR" onUpdate={(date,val2,val3)=>{this.props.onDateChange(date)}}/>                                    
                 </div>
             </div>
-               {/*<div className="row pt-4">
-                <div className="col-sm-3">Client</div><div className="col-sm-3">{userData.name}</div>
-             </div> */}
-            <div className={`row pt-4 ${netDate===-1?'disabled':''}`}>
+            <div className={`row pt-4 ${step<1?'disabled':''}`}>
                  <div className="col-sm-3 pt-2">
-                	Company
+                	<img alt="" src="images/required.png"/> 
+                    <span>Company</span>
                 </div>
              	<div className="col-sm-3">
                     <BPUI.InputField variable={NETTING} className="input nnn"  placeholder="Click for select..."field="account_id" onUpdate={(id,type,object)=>{this.props.onChangeAccount(id)}} layout="plain" />
                 </div>
             </div>
-               <div className={`row pt-4 ${ (netDate===-1) ?'disabled':''}`}>
+               <div className={`row pt-4 ${ (step<2) ?'disabled':''}`}>
                  <div className="col-sm-3 pt-2">
-                	Netting Group Code
+                	<img alt="" src="images/required.png"/>
+                    <span>Netting Group Code</span>     
                 </div>
              	<div className="col-sm-3">
                 	<BPUI.InputField  type="SELECT1" style={{width:'100%'}} variable={NETTING} field="netting_group" onUpdate={(id,type,object)=>{this.props.onChangeGroup(id)}}  layout="plain" />
@@ -349,7 +350,7 @@ const NettingContainer = React.createClass({
     async setPage(page,type){
      //type 0 - buy, 1 - sell
        console.log('set step',[page,type]);
-      const {accountBuy,accountSell} = this.state;
+      const {accountBuy,accountSell,nettingAccount} = this.state;
         
       await this.setState({
           padgingTables: type===0?
@@ -357,11 +358,14 @@ const NettingContainer = React.createClass({
           {...this.state.padgingTables,currentSell:page}
          });
 
-       const [res] = await Promise.all([
-           BPConnection.BrmAggregate.queryAsync(queryMain(type===0?accountBuy:accountSell,page)).collection()
+       const [res, res2] = await Promise.all([
+           BPConnection.BrmAggregate.queryAsync(queryMain(type===0?accountBuy:accountSell,page)).collection(),
+           BPConnection.BrmAggregate.queryAsync(queryNettGroups(nettingAccount)).collection()
        ]);
         
        let dataRef = new BPUI.ReferenceObject(res).get().list();
+        let dataRef2 = new BPUI.ReferenceObject(res2).get().list();
+        console.log(dataRef2);
         if (type===0){
             this.setState({detailedData: {...this.state.detailedData,buy:dataRef}});
         }else
@@ -505,15 +509,16 @@ const NettingContainer = React.createClass({
         
     },
     render(){
-    const {userData,totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,selectedRowIndexSell,netDate,offsets,noData} = this.state;
+    const {userData,totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData} = this.state;
     console.log('[render] NettingContainer');
+        const nettingStep = (netDate === -1)? 0: (nettingAccount===-1)? 1:2; 
     	return(
              <div>
              <NavToolBar
                onPrevStep={()=>this.prevStep()}
               />
               <Netting
-                netDate = {netDate}
+                step={nettingStep}
                 padgingTables = {padgingTables}
                 onDateChange = {(date)=>this.onDateChange(date)}           
                 onPrevStep={()=>this.prevStep()}
