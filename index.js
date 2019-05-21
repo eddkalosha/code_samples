@@ -227,7 +227,7 @@ const Netting = React.createClass({
             {noData? haveNoData:  isWaiting? preLoader:
             <div>
             <div className="row ">
-               <div className="divider"><div className="dividerText">Netting</div> </div>                    
+               <div className="divider"><div className="dividerText">Netting</div> </div> 
             </div>
             
             {totalsToHTML}
@@ -238,8 +238,13 @@ const Netting = React.createClass({
                  </div> 
                </div>                    
             </div> 
-             <div className="row pt-4">
-              <div className="col-sm-12"><label className="switch"><input checked={twoColView} onChange={()=>this.setState({twoColView:!twoColView})} type="checkbox"/><span className="slider round"></span></label> </div>
+             <div className="row">
+              <div className="col-sm-12 formInfo text-blue">1.Select lines of Buy and Sell tables for netting calculation
+                                   <br/><br/>2. Click 'Net' button for save Netting results
+                                   </div>
+             
+                                   .
+              <div className="col-sm-12 mt-3"><label className="switch"><input checked={twoColView} onChange={()=>this.setState({twoColView:!twoColView})} type="checkbox"/><span className="slider round"></span></label> </div>    
             <div className="col-sm-12" style={{opacity:0.6}}>{twoColView?'Switch to 1-column view':'Switch to 2-column view'}</div>
                 <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center`}>
                 <NettingDetailsTable_ 
@@ -350,7 +355,7 @@ const NettingContainer = React.createClass({
     async setPage(page,type){
      //type 0 - buy, 1 - sell
        console.log('set step',[page,type]);
-      const {accountBuy,accountSell,nettingAccount} = this.state;
+      const {accountBuy,accountSell} = this.state;
         
       await this.setState({
           padgingTables: type===0?
@@ -358,14 +363,11 @@ const NettingContainer = React.createClass({
           {...this.state.padgingTables,currentSell:page}
          });
 
-       const [res, res2] = await Promise.all([
-           BPConnection.BrmAggregate.queryAsync(queryMain(type===0?accountBuy:accountSell,page)).collection(),
-           BPConnection.BrmAggregate.queryAsync(queryNettGroups(nettingAccount)).collection()
+       const [res] = await Promise.all([
+           BPConnection.BrmAggregate.queryAsync(queryMain(type===0?accountBuy:accountSell,page)).collection()
        ]);
         
        let dataRef = new BPUI.ReferenceObject(res).get().list();
-        let dataRef2 = new BPUI.ReferenceObject(res2).get().list();
-        console.log(dataRef2);
         if (type===0){
             this.setState({detailedData: {...this.state.detailedData,buy:dataRef}});
         }else
@@ -376,9 +378,9 @@ const NettingContainer = React.createClass({
     async getDataBuySell(date=null,accountID = null, nettingGroup = null){
         this.setState({isWaiting:true, noData:false})
         try{
-            const {accountBuy,accountSell} = this.state;
+            const {accountBuy,accountSell,nettingAccount} = this.state;
             //can be called count queries first, then main queries 
-            const [collectionBuy,collectionSell, buyCount, sellCount] = await Promise.all([
+            const [collectionBuy,collectionSell, buyCount, sellCount, accId] = await Promise.all([
                 BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy)).collection(),
                 BPConnection.BrmAggregate.queryAsync(queryMain(accountSell)).collection(),
                 BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountBuy)).single(),
@@ -387,7 +389,7 @@ const NettingContainer = React.createClass({
            	console.error('[Container]:::COLLECTIONS:::');
             console.log(collectionBuy,collectionSell,buyCount,sellCount);
             let buyDataRef = new BPUI.ReferenceObject(collectionBuy).get().list();
-            let sellDataRef = new BPUI.ReferenceObject(collectionSell).get().list();
+            let sellDataRef = new BPUI.ReferenceObject(collectionSell).get().list(); 
             this.setState({
                 detailedData :{
                     buy:buyDataRef,
