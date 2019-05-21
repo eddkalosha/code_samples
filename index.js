@@ -1,8 +1,8 @@
 /**to do : 
 
-inprove renders (shouldComponentUpdate)
+inprove renders
 editable field 'offset'
-paging tables
+
 
 wiget presents next structure:
 
@@ -233,9 +233,9 @@ const Netting = React.createClass({
             {totalsToHTML}
              <div className="row pt-2">
                <div className="divider"><div className="dividerText">
-                <button className="">Net</button>
-                 <button disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 } className="ml-1" onClick={()=>this.props.onSelectionReset()}>Reset</button>                
-                 </div> 
+                 <button disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}>Reset</button>                
+                 <button className="ml-1 px-5">Net</button>
+               </div> 
                </div>                    
             </div> 
              <div className="row">
