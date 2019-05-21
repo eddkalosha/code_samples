@@ -908,8 +908,10 @@ button[disabled]{
 .input-transparent{
     background: initial !important;
 }
-
 .disabled{
     pointer-events:none;
     opacity:0.5;
+}
+.text-blue{
+    color: #5cc3ff !important;
 }
