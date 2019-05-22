@@ -371,7 +371,7 @@ const NettingContainer = React.createClass({
           {...this.state.padgingTables,currentBuy:page}:
           {...this.state.padgingTables,currentSell:page}
          });
-       const res = await Promise.all([
+       const [res] = await Promise.all([
            BPConnection.BrmAggregate.queryAsync(queryMain(type===0?accountBuy:accountSell,page)).collection()
        ]);
         
