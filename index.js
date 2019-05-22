@@ -1,11 +1,7 @@
 /**to do : 
-
 inprove renders
 editable field 'offset'
-
-
 wiget presents next structure:
-
     <NettingContainer>
         <NavToolBar>
         <Netting>
@@ -38,10 +34,10 @@ const queryMain = (account={
     "a1.Name AS AccountName, "+
     "i1.id AS InvoiceID, "+
     "i1.status AS Status, "+
-    "-i1.GrandTotalAmount AS InvoiceCharges, "+
+    "i1.GrandTotalAmount AS InvoiceCharges, "+
     "i1.PaymentAmount AS Payments,  "+
     "i1.CreditAmount AS Adjustments, "+
-    "(-i1.GrandTotalAmount-i1.CreditAmount+i1.PaymentAmount) AS OutstandingAmount, "+
+    "(i1.GrandTotalAmount-i1.CreditAmount+i1.PaymentAmount) AS OutstandingAmount, "+
     "n1.netting_statement AS Statement, "+
     "a1.nettinggroup, "+
     "(bp1.PaymentTermDays || ' days') as  PaymentTermDays "+   
@@ -71,7 +67,7 @@ const queryMainRowCount = (account={
    );
 
 const queryNettGroups = (accountID = -1) =>( 
-"SELECT distinct(NettingGroup) from Account where Account.ParentAccountId= "+accountID+""
+"SELECT DISTINCT(a.NettingGroup) as NettingGroup FROM Account a WHERE 1=1"
 );
 
 
@@ -285,8 +281,6 @@ const Netting = React.createClass({
     </div>)
 	}
 });
-
-
 //data cotainer                                         
 const NettingContainer = React.createClass({  
     getInitialState() {
@@ -362,7 +356,6 @@ const NettingContainer = React.createClass({
           {...this.state.padgingTables,currentBuy:page}:
           {...this.state.padgingTables,currentSell:page}
          });
-
        const [res] = await Promise.all([
            BPConnection.BrmAggregate.queryAsync(queryMain(type===0?accountBuy:accountSell,page)).collection()
        ]);
@@ -384,7 +377,9 @@ const NettingContainer = React.createClass({
                 BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy)).collection(),
                 BPConnection.BrmAggregate.queryAsync(queryMain(accountSell)).collection(),
                 BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountBuy)).single(),
-                BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountSell)).single()
+                BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountSell)).single(),
+                BPConnection.BrmAggregate.queryAsync(queryNettGroups(1)).collection(),
+                
               ]);
            	console.error('[Container]:::COLLECTIONS:::');
             console.log(collectionBuy,collectionSell,buyCount,sellCount);
@@ -488,7 +483,6 @@ const NettingContainer = React.createClass({
         	buyInvoiceTotal_tmp-=offsetSell;
         });
         //end offset calc
-
         console.log('---------selected data [B,S] = ',selectedDataBuy,selectedDataSell);
 		console.log('---------offsetts data [B,S] = ',buyOffsets,sellOffsets);
              
