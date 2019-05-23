@@ -20,6 +20,8 @@ const userData = {id:nodeId,name:userName};
 const nettingGroup = "SAM123"; 
 let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
 let CURRENT_DATE =  new BPUI.ReferenceObject();
+let NETTING_GROUPS =  new BPUI.ReferenceObject();
+
 let TABLE_PAGE_COUNT = 10;
 
 const queryMain = (account={
@@ -47,9 +49,9 @@ const queryMain = (account={
     "JOIN account a1 ON bp1.accountid = a1.id "+
     "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
     "WHERE 1=1 "+
-   // "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
+    "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
     "AND a1.AccountType = '"+account.acountType+"' "+
-   // "AND i1.status = 'CLOSED' "+
+    "AND i1.status = 'CLOSED' "+
     "ORDER BY i1.id ASC OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
 
 const queryMainRowCount = (account={
@@ -62,21 +64,21 @@ const queryMainRowCount = (account={
     "JOIN account a1 ON bp1.accountid = a1.id "+
     "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
     "WHERE 1=1 "+
-  //  "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
-    "AND a1.AccountType = '"+account.acountType+"' "/*+
-    "AND i1.status = 'CLOSED' "*/
+    "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
+    "AND a1.AccountType = '"+account.acountType+"' "+
+    "AND i1.status = 'CLOSED' "
    );
 
 const queryNettGroups = (accountID = -1) =>( 
-"SELECT DISTINCT(a.NettingGroup) as NettingGroup FROM Account a WHERE 1=1"
+"SELECT DISTINCT(a.NettingGroup) as NettingGroup FROM Account a WHERE 1=1 AND a.ParentAccountId="+accountID+" AND a.NettingGroup IS NOT NULL"
 );
 
 const queryTypes = {
-    GET_INVOICES_BUY: Symbol('GET_INVOICES_BUY'),
-    GET_INVOICES_SELL: Symbol('GET_INVOICES_SELL'),
-    GET_PAGESCOUNT_BUY: Symbol('GET_PAGESCOUNT_BUY'),
-    GET_PAGESCOUNT_SELL: Symbol('GET_PAGESCOUNT_SELL'),
-    GET_NETTING_GROUPS: Symbol('GET_NETTING_GROUPS'),
+    GET_INVOICES_BUY: String('GET_INVOICES_BUY'),
+    GET_INVOICES_SELL: String('GET_INVOICES_SELL'),
+    GET_PAGESCOUNT_BUY: String('GET_PAGESCOUNT_BUY'),
+    GET_PAGESCOUNT_SELL: String('GET_PAGESCOUNT_SELL'),
+    GET_NETTING_GROUPS: String('GET_NETTING_GROUPS'),
 };
 
 const columns__ = [	
@@ -352,15 +354,29 @@ const NettingContainer = React.createClass({
             step:newStep<0?0:newStep
         });
     },
-    onDateChange(date){
-        this.setState({netDate:date},()=>this.getDataBuySell())
+    async onDateChange(date){
+      await  this.setState({netDate:date});
+      this.checkParams__then(this.getDataInvoices)
     },
-    onAccChange(id){
-        this.setState({nettingAccount:id},()=>this.getDataBuySell())
+    async onAccChange(id){
+       //dont call data load here, cause groupID depends on accountID
+      await this.setState({nettingAccount:id});
+      this.getData(queryTypes.GET_NETTING_GROUPS,{id})
     },
-    onGroupChange(id){
-    	this.setState({nettingGroup:id},()=>this.getDataBuySell())
+    async onGroupChange(id){
+      await this.setState({nettingGroup:id});
+      this.checkParams__then(this.getDataInvoices)
     },
+    checkParams__then(callback){
+        //check state parameters for know when to load all data with params
+        const {netDate,nettingAccount,nettingGroup} = this.state;
+        if (netDate===-1 || nettingAccount===-1 ) {
+           console.warn('params are not ready');
+        }else{
+        callback()
+        }
+    },
+        
     async setPage(page,type){
      //type 0 - buy, 1 - sell
        console.log('set step',[page,type]);
@@ -384,91 +400,70 @@ const NettingContainer = React.createClass({
         }
     },
         
-    async getData(type='',params={},offsetRows=0, countRows=0){
-        const {accountBuy,accountSell,nettingAccount,detailedData,padgingTables} = this.state;
+    async getData(type='',params={},offsetRows=0, countRows=TABLE_PAGE_COUNT){
+        console.log('getData() call',type);
+        const {accountBuy,accountSell} = this.state;
         switch(type){
-          case [queryTypes.GET_INVOICES_BUY]:{
-          	  const res = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy)).collection()]);
+          case queryTypes.GET_INVOICES_BUY:{
+          	  const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy)).collection()]);
               const resList = new BPUI.ReferenceObject(res).get().list();
-              await this.setState({detailedData:{...detailedData,buy:resList}});
+              await this.setState({detailedData:{...this.state.detailedData,buy:resList}});
+              return true;
             break;}
-          case [queryTypes.GET_INVOICES_SELL]:{
-              const res = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountSell)).collection()]);
+          case queryTypes.GET_INVOICES_SELL:{
+              const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountSell)).collection()]);
               const resList = new BPUI.ReferenceObject(res).get().list();
-              await this.setState({detailedData:{...detailedData,sell:resList}});
+              await this.setState({detailedData:{...this.state.detailedData,sell:resList}});
+              return true;
               break;}
-          case [queryTypes.GET_PAGESCOUNT_BUY]:{ 
-              const res = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountBuy)).single()]);
-              await this.setState({padgingTables:{...padgingTables,maxBuy: Math.ceil(+res.rowCount/TABLE_PAGE_COUNT)-1}});
+          case queryTypes.GET_PAGESCOUNT_BUY:{ 
+              const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountBuy)).single()]);
+              await this.setState({padgingTables:{...this.state.padgingTables,maxBuy: Math.ceil(+res.rowCount/TABLE_PAGE_COUNT)-1}});
+              return true;
               break;}
-          case [queryTypes.GET_PAGESCOUNT_SELL]:{
-              const res = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountSell)).single()]);
-              await this.setState({padgingTables:{...padgingTables,maxSell: Math.ceil(+res.rowCount/TABLE_PAGE_COUNT)-1}});
+          case queryTypes.GET_PAGESCOUNT_SELL:{
+              const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountSell)).single()]);
+              await this.setState({padgingTables:{...this.state.padgingTables,maxSell: Math.ceil(+res.rowCount/TABLE_PAGE_COUNT)-1}});
+              return true;
               break;}
-          case [queryTypes.GET_NETTING_GROUPS]:{ 
-              const res = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryNettGroups(1)).collection()]);
+          case queryTypes.GET_NETTING_GROUPS:{ 
+              const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryNettGroups(params.id)).collection()]);
               const resList = new BPUI.ReferenceObject(res).get().list();
-              await this.setState({nettingGroups:resList});
+              await this.setState({nettingGroupList:resList});
+              return true;
               break;}
           default : return false;
-          return true;
+          
         }
-    },
-            
-    async getDataBuySell(date=null,accountID = null, nettingGroup = null){
-        this.setState({isWaiting:true, noData:false})
-        try{
-            const {accountBuy,accountSell,nettingAccount} = this.state;
-            //can be called count queries first, then main queries 
-            const [collectionBuy,collectionSell, buyCount, sellCount, accId] = await Promise.all([
-                BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy)).collection(),
-                BPConnection.BrmAggregate.queryAsync(queryMain(accountSell)).collection(),
-                BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountBuy)).single(),
-                BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountSell)).single(),
-                BPConnection.BrmAggregate.queryAsync(queryNettGroups(1)).collection(),
-                
-              ]);
-           	console.error('[Container]:::COLLECTIONS:::');
-            console.log(collectionBuy,collectionSell,buyCount,sellCount);
-            let buyDataRef = new BPUI.ReferenceObject(collectionBuy).get().list();
-            let sellDataRef = new BPUI.ReferenceObject(collectionSell).get().list(); 
-            this.setState({
-                detailedData :{
-                    buy:buyDataRef,
-                    sell:sellDataRef
-                              },
-                 padgingTables:{
-                    currentBuy:0,
-                    currentSell:0,
-                    maxBuy: Math.ceil(+buyCount.rowCount/TABLE_PAGE_COUNT)-1,
-                    maxSell:Math.ceil(+sellCount.rowCount/TABLE_PAGE_COUNT)-1 
-                }     
-             });
-           }catch(e){
-                this.setState({noData:true});
-            	console.error(e,e.responseText);
-            	return false;    
-          }finally{
-                this.setState({isWaiting:false})     
-                }
-    },
+    }, 
+    async getDataInvoices(){
+      //aggregate results of data Buy and Sell with pagesCounts for detailed tables
+      await this.setState({isWaiting:true, noData:false});
+      const [buyInv,sellInv, buyCount, sellCount] = await Promise.all([
+                this.getData(queryTypes.GET_INVOICES_BUY),
+                this.getData(queryTypes.GET_INVOICES_SELL),
+                this.getData(queryTypes.GET_PAGESCOUNT_BUY),
+                this.getData(queryTypes.GET_PAGESCOUNT_SELL)
+      ]);          
+      this.setState({
+          isWaiting:false, 
+          noData:!(buyInv&&sellInv&&buyCount&&sellCount),
+          userData});
+    },       
     componentDidMount(){
-	  this.getDataBuySell();      
-      this.setState({userData});
-       console.log('[didmounted] NettingContainer');
+      this.getDataInvoices()
+      console.log('[didmounted] NettingContainer');
     },
     async selectRowSell(row){            
         const {selectedRowIndexSell} =this.state;   
         const listRows = selectedRowIndexSell.includes(row)?selectedRowIndexSell.filter(i=>i!== row):[row,...selectedRowIndexSell];
-        await this.setState({
-        	selectedRowIndexSell:listRows});
+        await this.setState({selectedRowIndexSell:listRows});
         this.calcOutputData();	  
     },
     async selectRowBuy(row){
         const {selectedRowIndexBuy} =  this.state    
         const listRows = selectedRowIndexBuy.includes(row)?selectedRowIndexBuy.filter(i=>i!== row):[row,...selectedRowIndexBuy];
-        await this.setState({
-        	selectedRowIndexBuy:listRows});
+        await this.setState({selectedRowIndexBuy:listRows});
         this.calcOutputData();		
     },
     async selectionReset(){
@@ -548,7 +543,22 @@ const NettingContainer = React.createClass({
         });          
     },
     saveCalcData(){
-        
+        /*
+    account_id	+
+    company	+ accountName ?
+    due_date	+
+    netting_group	+
+    buy_total	+
+    sell_total	+
+    sell_pay_term	+ 
+    buy_pay_term	+
+    netted_amount	+ Calc
+    netted_as_of_date	+ Calc
+    reversal_date	-
+    netted_status	+Calc &#8216;processed&#8217;
+    netting_statement	- 
+		*/
+   
     },
     render(){
     const {userData,totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData} = this.state;
