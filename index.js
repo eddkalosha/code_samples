@@ -22,7 +22,7 @@ let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Nett
 let CURRENT_DATE =  new BPUI.ReferenceObject();
 let NETTING_GROUPS =  new BPUI.ReferenceObject();
 
-let TABLE_PAGE_COUNT = 10;
+let TABLE_PAGE_COUNT = 100;
 
 const queryMain = (account={
     					acountType:'BUYER',
@@ -70,7 +70,7 @@ const queryMainRowCount = (account={
    );
 
 const queryNettGroups = (accountID = -1) =>( 
-"SELECT DISTINCT(a.NettingGroup) as NettingGroup FROM Account a WHERE 1=1 AND a.ParentAccountId="+accountID+" AND a.NettingGroup IS NOT NULL"
+"SELECT DISTINCT(a.NettingGroup) as NettingGroup FROM Account a WHERE 1=1 AND a.NettingGroup IS NOT NULL"
 );
 
 const queryTypes = {
@@ -227,8 +227,9 @@ const Netting = React.createClass({
            
         let {userData,currencySymbol,padgingTables,step,isWaiting,noData,data} = this.props ;
         padgingTables = padgingTables || {padgingTables:{maxBuy:0,currentBuy:0,maxSell:0,currentSell:0}};
-        const {detailedData,offsets,totals,selectedRowIndexBuy,selectedRowIndexSell} = data || {selectedRowIndexBuy:[],selectedRowIndexSell:[],detailedData:{buy:[],sell:[]},offsets:{buy:[],sell:[]}};
-        const totalsToHTML = Object.values(totals || []).map(el=><div className="row pt-4"><div className="col-sm-3 text-right">{el.title}</div><div className="col-sm-2 text-right">{currencySymbol}{utils.replaceIfNegativeNumber(el.value)}</div></div>)
+        const {nettingGroups,detailedData,offsets,totals,selectedRowIndexBuy,selectedRowIndexSell} = data || {selectedRowIndexBuy:[],selectedRowIndexSell:[],detailedData:{buy:[],sell:[]},offsets:{buy:[],sell:[]}};
+        const totalsToHTML = Object.values(totals || []).map(el=><div className="row pt-4"><div className="col-sm-3 text-right">{el.title}</div><div className="col-sm-2 text-right">{currencySymbol}{utils.replaceIfNegativeNumber(el.value)}</div></div>);
+        const nettingGroupsToHTML = (nettingGroups || []).map((el,i)=><option key={i} value={el.NettingGroup}>{el.NettingGroup}</option>);
 		return(<div className="pt-3">
      		<div className="container-fluid">  
             <div className="row">
@@ -250,8 +251,10 @@ const Netting = React.createClass({
                 	<img alt="" src="images/required.png"/>
                     <span>{[labels.groupCode]}</span>     
                 </div>
-             	<div className="col-sm-3">
-                	<BPUI.InputField  type="SELECT1" style={{width:'100%'}} variable={NETTING} field="netting_group" onUpdate={(id,type,object)=>{this.props.onChangeGroup(id)}}  layout="plain" />
+             	<div className="col-sm-3 no-span">
+                     <select className="w-100" onChange={(e)=>{this.props.onChangeGroup(e.target.value)}}>
+                         {nettingGroupsToHTML}
+                    </select>
                 </div>
             </div>
             {noData? haveNoData:  isWaiting? preLoader:
@@ -325,6 +328,7 @@ const NettingContainer = React.createClass({
          netDate:-1,
          nettingAccount:-1,
          nettingGroup:-1,
+         nettingGroups:[],
     	 userData:{},
     	 isWaiting:true,
          noData:true,
@@ -429,7 +433,7 @@ const NettingContainer = React.createClass({
           case queryTypes.GET_NETTING_GROUPS:{ 
               const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryNettGroups(params.id)).collection()]);
               const resList = new BPUI.ReferenceObject(res).get().list();
-              await this.setState({nettingGroupList:resList});
+              await this.setState({nettingGroups:resList});
               return true;
               break;}
           default : return false;
@@ -445,13 +449,14 @@ const NettingContainer = React.createClass({
                 this.getData(queryTypes.GET_PAGESCOUNT_BUY),
                 this.getData(queryTypes.GET_PAGESCOUNT_SELL)
       ]);          
-      this.setState({
+      await this.setState({
           isWaiting:false, 
           noData:!(buyInv&&sellInv&&buyCount&&sellCount),
           userData});
+      this.selectAllData();
     },       
     componentDidMount(){
-      this.getDataInvoices()
+     // this.getDataInvoices()
       console.log('[didmounted] NettingContainer');
     },
     async selectRowSell(row){            
@@ -466,6 +471,17 @@ const NettingContainer = React.createClass({
         await this.setState({selectedRowIndexBuy:listRows});
         this.calcOutputData();		
     },
+    async selectAllData(){
+    //select all data for calculations by default
+        const {detailedData} = this.state;
+      	const dataBuy = detailedData.buy.map(el=>(+el.InvoiceID));
+        const dataSell = detailedData.sell.map(el=>(+el.InvoiceID)); 
+        await this.setState({
+            selectedRowIndexBuy:dataBuy,
+            selectedRowIndexSell:dataSell,
+        });
+        this.calcOutputData();
+    },     
     async selectionReset(){
       if (window.confirm([settings.labels.resetDlg])) {
       await this.setState({
@@ -561,8 +577,8 @@ const NettingContainer = React.createClass({
    
     },
     render(){
-    const {userData,totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData} = this.state;
-    console.log('[render] NettingContainer');
+    const {userData,totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData,nettingGroups} = this.state;
+    console.log('[render] NettingContainer',this.state);
         const nettingStep = (netDate === -1)? 0: (nettingAccount===-1)? 1:2; 
     	return(
              <div>
@@ -587,7 +603,8 @@ const NettingContainer = React.createClass({
                        totals,
                        offsets,
                        selectedRowIndexBuy,
-                       selectedRowIndexSell
+                       selectedRowIndexSell,
+                       nettingGroups
                       }}
                 userData={userData}
                 currencySymbol={"$"}
