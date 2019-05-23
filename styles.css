@@ -915,3 +915,7 @@ button[disabled]{
 .text-blue{
     color: #5cc3ff !important;
 }
+
+.no-span span{
+ display:none
+}
