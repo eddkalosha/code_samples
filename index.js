@@ -266,7 +266,7 @@ const Netting = React.createClass({
              <div className="row pt-2">
                <div className="divider"><div className="dividerText">
                  <button disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}>{[labels.resetBtn]}</button>                
-                 <button className="ml-1 px-5">{[labels.submitBtn]}</button>
+                 <button onClick={this.props.onSaveData()} className="ml-1 px-5">{[labels.submitBtn]}</button>
                </div> 
                </div>                    
             </div> 
@@ -381,41 +381,32 @@ const NettingContainer = React.createClass({
         }
     },
         
-    async setPage(page,type){
+    async setPage(page=0,type=0){
      //type 0 - buy, 1 - sell
-       console.log('set step',[page,type]);
-      const {accountBuy,accountSell} = this.state;
-        
-      await this.setState({
+      console.log('set step',[page,type]);
+      const {accountBuy,accountSell,padgingTables} = this.state;
+      const res = await this.getData(type===0?queryTypes.GET_INVOICES_BUY:queryTypes.GET_INVOICES_SELL,{},page);
+        if (res){ // if data have been received -> change page
+          this.setState({
           padgingTables: type===0?
-          {...this.state.padgingTables,currentBuy:page}:
-          {...this.state.padgingTables,currentSell:page}
+          {...padgingTables,currentBuy:page}:
+          {...padgingTables,currentSell:page}
          });
-       const [res] = await Promise.all([
-           BPConnection.BrmAggregate.queryAsync(queryMain(type===0?accountBuy:accountSell,page)).collection()
-       ]);
-        
-       let dataRef = new BPUI.ReferenceObject(res).get().list();
-        if (type===0){
-            this.setState({detailedData: {...this.state.detailedData,buy:dataRef}});
-        }else
-        {
-            this.setState({detailedData: {...this.state.detailedData,sell:dataRef}})
         }
     },
         
     async getData(type='',params={},offsetRows=0, countRows=TABLE_PAGE_COUNT){
-        console.log('getData() call',type);
+        console.log('getData() call',type,offsetRows);
         const {accountBuy,accountSell} = this.state;
         switch(type){
           case queryTypes.GET_INVOICES_BUY:{
-          	  const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy)).collection()]);
+          	  const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy,offsetRows)).collection()]);
               const resList = new BPUI.ReferenceObject(res).get().list();
               await this.setState({detailedData:{...this.state.detailedData,buy:resList}});
               return true;
             break;}
           case queryTypes.GET_INVOICES_SELL:{
-              const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountSell)).collection()]);
+              const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountSell,offsetRows)).collection()]);
               const resList = new BPUI.ReferenceObject(res).get().list();
               await this.setState({detailedData:{...this.state.detailedData,sell:resList}});
               return true;
@@ -559,6 +550,7 @@ const NettingContainer = React.createClass({
         });          
     },
     saveCalcData(){
+        debugger;
         /*
     account_id	+
     company	+ accountName ?
@@ -589,7 +581,7 @@ const NettingContainer = React.createClass({
                 step={nettingStep}
                 padgingTables = {padgingTables}
                 onDateChange = {(date)=>this.onDateChange(date)}           
-                onPrevStep={()=>this.prevStep()}
+                onSaveData={()=>this.saveCalcData()}
                 onSelectionReset = {()=>this.selectionReset()} 
                 onSelectRowBuy = {rowIndex=>this.selectRowBuy(rowIndex)}
                 onSelectRowSell = {rowIndex=>this.selectRowSell(rowIndex)}
