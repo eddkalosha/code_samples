@@ -1,6 +1,5 @@
-
 /**to do : 
-inprove renders
+optimize renders
 editable field 'offset'
 wiget presents next structure:
     <NettingContainer>
@@ -252,7 +251,8 @@ const Netting = React.createClass({
                     <span>{[labels.groupCode]}</span>     
                 </div>
              	<div className="col-sm-3 no-span">
-                     <select className="w-100" onChange={(e)=>{this.props.onChangeGroup(e.target.value)}}>
+                     <select className="w-100" onChange={(e)=>{this.props.onChangeGroup(e.target.value)}}>
+                         <option value='-1'>- Not selected -</option>
                          {nettingGroupsToHTML}
                     </select>
                 </div>
@@ -374,7 +374,7 @@ const NettingContainer = React.createClass({
     checkParams__then(callback){
         //check state parameters for know when to load all data with params
         const {netDate,nettingAccount,nettingGroup} = this.state;
-        if (netDate===-1 || nettingAccount===-1 ) {
+        if (netDate===-1 || nettingAccount===-1 /*|| nettingGroup===-1*/) {
            console.warn('params are not ready');
         }else{
         callback()
