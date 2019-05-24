@@ -587,7 +587,14 @@ const NettingContainer = React.createClass({
       width: 390, 
       maxHeight: (window.innerHeight * 2 / 2), 
       dialogClass: 'dialog-lookup', 
-      maxWidth: 450
+      maxWidth: 450,
+      buttons: [{
+        text: "Ok",
+        "id": "btnOk",
+        click: function () {
+            window.BPActions.closeDialog("modalDlg")
+        }}]
+                                                   
 	});
     },
     render(){
