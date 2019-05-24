@@ -21,12 +21,14 @@ let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Nett
 let CURRENT_DATE =  new BPUI.ReferenceObject();
 let NETTING_GROUPS =  new BPUI.ReferenceObject();
 
-let TABLE_PAGE_COUNT = 100;
+const DOMAIN_URL = "https://ussandbox.billingplatform.com/xandr_dev/api/upsert",
+		ENTITY_NAME = "netting",
+		TABLE_PAGE_COUNT = 100;
 
 const queryMain = (account={
-    					acountType:'BUYER',
+    					accountType:'',
     					accountID:-1,
-    					nettingGroup:'SAM123'},
+    					nettingGroup:''},
                    offsetRows=0, 
                    countRows=TABLE_PAGE_COUNT) =>
     ("SELECT  "+
@@ -49,12 +51,12 @@ const queryMain = (account={
     "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
     "WHERE 1=1 "+
     "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
-    "AND a1.AccountType = '"+account.acountType+"' "+
+    "AND a1.AccountType = '"+account.accountType+"' "+
     "AND i1.status = 'CLOSED' "+
     "ORDER BY i1.id ASC OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
 
 const queryMainRowCount = (account={
-    					acountType:'BUYER',
+    					accountType:'BUYER',
     					accountID:-1,
     					nettingGroup:'SAM123'}) =>
    ("SELECT COUNT(i1.id) as rowCount "+
@@ -64,12 +66,18 @@ const queryMainRowCount = (account={
     "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
     "WHERE 1=1 "+
     "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
-    "AND a1.AccountType = '"+account.acountType+"' "+
+    "AND a1.AccountType = '"+account.accountType+"' "+
     "AND i1.status = 'CLOSED' "
    );
 
 const queryNettGroups = (accountID = -1) =>( 
-"SELECT DISTINCT(a.NettingGroup) as NettingGroup FROM Account a WHERE 1=1 AND a.NettingGroup IS NOT NULL"
+//"SELECT DISTINCT(a.NettingGroup) as NettingGroup FROM Account a WHERE 1=1 AND a.NettingGroup IS NOT NULL"
+"SELECT DISTINCT a1.nettinggroup as NettingGroup "+
+"FROM account a "+
+"JOIN account a1 ON a.id = a1.parentaccountid "+
+"WHERE 1=1 "+
+"AND a1.accounttypeid = 722 "+  
+"AND a.id = "+accountID+" AND a1.nettinggroup IS NOT NULL " 
 );
 
 const queryTypes = {
@@ -266,7 +274,7 @@ const Netting = React.createClass({
              <div className="row pt-2">
                <div className="divider"><div className="dividerText">
                  <button disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}>{[labels.resetBtn]}</button>                
-                 <button onClick={this.props.onSaveData()} className="ml-1 px-5">{[labels.submitBtn]}</button>
+                 <button onClick={()=>this.props.onSaveData()} className="ml-1 px-5">{[labels.submitBtn]}</button>
                </div> 
                </div>                    
             </div> 
@@ -317,14 +325,6 @@ const Netting = React.createClass({
 const NettingContainer = React.createClass({  
     getInitialState() {
     return {
-         accountBuy:{
-    		    acountType:'BUYER',
-    			 accountID:-1,
-    			 nettingGroup:'SAM123'}, 
-           accountSell:{
-    		 acountType:'SELLER',
-    		 accountID:-1,
-    		 nettingGroup:'SAM123'},
          netDate:-1,
          nettingAccount:-1,
          nettingGroup:-1,
@@ -384,7 +384,7 @@ const NettingContainer = React.createClass({
     async setPage(page=0,type=0){
      //type 0 - buy, 1 - sell
       console.log('set step',[page,type]);
-      const {accountBuy,accountSell,padgingTables} = this.state;
+      const {padgingTables} = this.state;
       const res = await this.getData(type===0?queryTypes.GET_INVOICES_BUY:queryTypes.GET_INVOICES_SELL,{},page);
         if (res){ // if data have been received -> change page
           this.setState({
@@ -397,17 +397,27 @@ const NettingContainer = React.createClass({
         
     async getData(type='',params={},offsetRows=0, countRows=TABLE_PAGE_COUNT){
         console.log('getData() call',type,offsetRows);
-        const {accountBuy,accountSell} = this.state;
+        const {netDate, nettingAccount, nettingGroup} = this.state;
+        const accountBuy ={
+            accountType:'BUYER',
+            accountID:nettingAccount,
+            nettingGroup
+        },accountSell = {
+            accountType:'SELLER',
+            accountID:nettingAccount,
+            nettingGroup
+        }
+        console.log('() accs',accountBuy,accountSell)
         switch(type){
           case queryTypes.GET_INVOICES_BUY:{
           	  const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy,offsetRows)).collection()]);
-              const resList = new BPUI.ReferenceObject(res).get().list();
+              const resList =  res.elements;
               await this.setState({detailedData:{...this.state.detailedData,buy:resList}});
               return true;
             break;}
           case queryTypes.GET_INVOICES_SELL:{
               const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountSell,offsetRows)).collection()]);
-              const resList = new BPUI.ReferenceObject(res).get().list();
+              const resList =  res.elements;
               await this.setState({detailedData:{...this.state.detailedData,sell:resList}});
               return true;
               break;}
@@ -423,7 +433,7 @@ const NettingContainer = React.createClass({
               break;}
           case queryTypes.GET_NETTING_GROUPS:{ 
               const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryNettGroups(params.id)).collection()]);
-              const resList = new BPUI.ReferenceObject(res).get().list();
+              const resList = res.elements;
               await this.setState({nettingGroups:resList});
               return true;
               break;}
@@ -549,24 +559,35 @@ const NettingContainer = React.createClass({
             }
         });          
     },
-    saveCalcData(){
+    async saveCalcData(){
         debugger;
-        /*
-    account_id	+
-    company	+ accountName ?
-    due_date	+
-    netting_group	+
-    buy_total	+
-    sell_total	+
-    sell_pay_term	+ 
-    buy_pay_term	+
-    netted_amount	+ Calc
-    netted_as_of_date	+ Calc
-    reversal_date	-
-    netted_status	+Calc &#8216;processed&#8217;
-    netting_statement	- 
-		*/
-   
+ 	const nettingResults  = {
+        account_id: this.state.nettingAccount,
+        company:'test company name',
+        due_date:this.state.netDate,
+        netting_group:this.state.nettingGroup,
+        buy_total:this.state.totals.buyInvoiceTotal.value,
+        sell_total:this.state.totals.sellInvoiceTotal.value,
+        sell_pay_term:60,
+        buy_pay_term:30,
+        netted_amount:this.state.totals.netAmount.value,
+        netted_as_of_date:this.state.netDate,
+        reversal_date:null,
+        netted_status: 'processed',
+        netting_statement: null
+     };
+	const res = await BPConnection.netting.create({nettingResults});
+	const resData = await res.json();
+	BPActions.showDialog("modalDlg", {
+  resizable: false, 
+  draggable: true, 
+  title: "Popup with Billing Profile fields", 
+  modal: true, 
+  width: 390, 
+  maxHeight: (window.innerHeight * 2 / 2), 
+  dialogClass: 'dialog-lookup', 
+  maxWidth: 450
+});
     },
     render(){
     const {userData,totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData,nettingGroups} = this.state;
@@ -577,6 +598,7 @@ const NettingContainer = React.createClass({
              <NavToolBar
                onPrevStep={()=>this.prevStep()}
               />
+              <BPUI.Dialog name="modalDlg"> Data was saved successfully </BPUI.Dialog>
               <Netting
                 step={nettingStep}
                 padgingTables = {padgingTables}
