@@ -21,7 +21,7 @@ let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Nett
 let CURRENT_DATE =  new BPUI.ReferenceObject();
 let NETTING_GROUPS =  new BPUI.ReferenceObject();
 
-const DOMAIN_URL = "https://ussandbox.billingplatform.com/xandr_dev/api/upsert",
+const DOMAIN_URL = "https://ussandbox.billingplatform.com/xandr_dev/api/insert",
 		ENTITY_NAME = "netting",
 		TABLE_PAGE_COUNT = 100;
 
@@ -577,17 +577,18 @@ const NettingContainer = React.createClass({
         netting_statement: null
      };
 	const res = await BPConnection.netting.create({nettingResults});
-	const resData = await res.json();
-	BPActions.showDialog("modalDlg", {
-  resizable: false, 
-  draggable: true, 
-  title: "Popup with Billing Profile fields", 
-  modal: true, 
-  width: 390, 
-  maxHeight: (window.innerHeight * 2 / 2), 
-  dialogClass: 'dialog-lookup', 
-  maxWidth: 450
-});
+    console.log(res,'data sended');
+	//const resData = await res.json();
+	window.BPActions.showDialog("modalDlg", {
+      resizable: false, 
+      draggable: true, 
+      title: "Netting data was send", 
+      modal: true, 
+      width: 390, 
+      maxHeight: (window.innerHeight * 2 / 2), 
+      dialogClass: 'dialog-lookup', 
+      maxWidth: 450
+	});
     },
     render(){
     const {userData,totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData,nettingGroups} = this.state;
@@ -598,7 +599,7 @@ const NettingContainer = React.createClass({
              <NavToolBar
                onPrevStep={()=>this.prevStep()}
               />
-              <BPUI.Dialog name="modalDlg"> Data was saved successfully </BPUI.Dialog>
+              
               <Netting
                 step={nettingStep}
                 padgingTables = {padgingTables}
