@@ -272,8 +272,8 @@ const Netting = React.createClass({
             {totalsToHTML}
              <div className="row pt-2">
                <div className="divider"><div className="dividerText">
-                 <button className="btn-outline-blue" disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}><i className="fa fa-undo"></i> {[labels.resetBtn]}</button>                
-                 <button onClick={()=>this.props.onSaveData()} className="ml-1"><i className="fa fa-cloud-upload"></i> {[labels.submitBtn]}</button>
+                 <button className="btn btn-outline-blue " disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}><i className="fa fa-undo"></i> {[labels.resetBtn]}</button>                
+                 <button onClick={()=>this.props.onSaveData()} className="btn ml-1"><i className="fa fa-cloud-upload"></i> {[labels.submitBtn]}</button>
                </div> 
                </div>                    
             </div> 
