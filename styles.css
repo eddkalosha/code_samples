@@ -919,3 +919,10 @@ button[disabled]{
 .no-span span{
  display:none
 }
+
+.btn-outline-blue,.btn-outline-blue[disabled]{
+	background: #5cc3ff;
+    color: #5cc3ff;
+    background: white;
+    background: transparent;
+}
