@@ -130,7 +130,7 @@ const settings = {
         company:('Company'),
         groupCode:('Netting Group Code'),
         nettingTotals:('Netting'),
-        submitBtn:('NET'),
+        submitBtn:('Save netting'),
         resetBtn:('Reset'),
         resetDlg:('Are you sure want to reset all offsets to default calculation?'),
         helpText:('1.Select lines of Buy and Sell tables for netting calculation 2. Click Net button for save Netting results')
@@ -201,8 +201,8 @@ const NettingDetailsTable_ = React.createClass({
         <div className="row p-2">
           <div className="col-sm-6 text-right mt-2">Page {currentPage+1} of {maxPagesCount+1 || '1'}</div>
           <div className="col-sm-6 text-right">
-            <span onClick={()=>onSetStep(currentPage-1<0?0:currentPage-1)} className={`px-3 btn ${+currentPage===0?'disabled':''}`}>&#9001;</span>
-            <span onClick={()=>onSetStep(currentPage+1>maxPagesCount?maxPagesCount:currentPage+1)} className={` btn  ${+currentPage===+maxPagesCount?'disabled':''}`}>&#9002;</span>
+            <span onClick={()=>onSetStep(currentPage-1<0?0:currentPage-1)} className={`px-3 btn ${+currentPage===0?'disabled':''}`}><i className="fa fa-chevron-left"></i></span>
+            <span onClick={()=>onSetStep(currentPage+1>maxPagesCount?maxPagesCount:currentPage+1)} className={` btn  ${+currentPage===+maxPagesCount?'disabled':''}`}><i className="fa fa-chevron-right"></i> </span>
            </div> 
        </div>
          </div>
@@ -272,8 +272,8 @@ const Netting = React.createClass({
             {totalsToHTML}
              <div className="row pt-2">
                <div className="divider"><div className="dividerText">
-                 <button disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}>{[labels.resetBtn]}</button>                
-                 <button onClick={()=>this.props.onSaveData()} className="ml-1 px-5">{[labels.submitBtn]}</button>
+                 <button className="btn-outline-blue" disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}><i className="fa fa-undo"></i> {[labels.resetBtn]}</button>                
+                 <button onClick={()=>this.props.onSaveData()} className="ml-1"><i className="fa fa-cloud-upload"></i> {[labels.submitBtn]}</button>
                </div> 
                </div>                    
             </div> 
