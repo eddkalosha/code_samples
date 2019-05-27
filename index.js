@@ -50,7 +50,7 @@ const queryMain = (account={
     "JOIN account a1 ON bp1.accountid = a1.id "+
     "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
     "WHERE 1=1 "+
-    "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
+   // "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
     "AND a1.AccountType = '"+account.accountType+"' "+
     "AND i1.status = 'CLOSED' "+
     "ORDER BY i1.id ASC OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
@@ -65,14 +65,13 @@ const queryMainRowCount = (account={
     "JOIN account a1 ON bp1.accountid = a1.id "+
     "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
     "WHERE 1=1 "+
-    "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
+  //  "AND a1.nettinggroup = '"+account.nettingGroup+"' "+
     "AND a1.AccountType = '"+account.accountType+"' "+
     "AND i1.status = 'CLOSED' "
    );
 
 const queryNettGroups = (accountID = -1) =>( 
-//"SELECT DISTINCT(a.NettingGroup) as NettingGroup FROM Account a WHERE 1=1 AND a.NettingGroup IS NOT NULL"
-"SELECT DISTINCT a1.nettinggroup as NettingGroup "+
+"SELECT DISTINCT a1.nettinggroup as NettingGroup, a.id as GroupID "+
 "FROM account a "+
 "JOIN account a1 ON a.id = a1.parentaccountid "+
 "WHERE 1=1 "+
@@ -236,7 +235,7 @@ const Netting = React.createClass({
         padgingTables = padgingTables || {padgingTables:{maxBuy:0,currentBuy:0,maxSell:0,currentSell:0}};
         const {nettingGroups,detailedData,offsets,totals,selectedRowIndexBuy,selectedRowIndexSell} = data || {selectedRowIndexBuy:[],selectedRowIndexSell:[],detailedData:{buy:[],sell:[]},offsets:{buy:[],sell:[]}};
         const totalsToHTML = Object.values(totals || []).map(el=><div className="row pt-4"><div className="col-sm-3 text-right">{el.title}</div><div className="col-sm-2 text-right">{currencySymbol}{utils.replaceIfNegativeNumber(el.value)}</div></div>);
-        const nettingGroupsToHTML = (nettingGroups || []).map((el,i)=><option key={i} value={el.NettingGroup}>{el.NettingGroup}</option>);
+        const nettingGroupsToHTML = (nettingGroups || []).map((el,i)=><option key={i} value={el.GroupID}>{el.NettingGroup}</option>);
 		return(<div className="pt-3">
      		<div className="container-fluid">  
             <div className="row">
@@ -249,7 +248,7 @@ const Netting = React.createClass({
                 	<img alt="" src="images/required.png"/> 
                     <span>{[labels.company]}</span>
                 </div>
-             	<div className="col-sm-3">
+             	<div className="col-sm-3 lookup23__">
                     <BPUI.InputField variable={NETTING} className="input nnn"  placeholder="Click for select..."field="account_id" onUpdate={(id,type,object)=>{this.props.onChangeAccount(id)}} layout="plain" />
                 </div>
             </div>
@@ -326,7 +325,7 @@ const NettingContainer = React.createClass({
     getInitialState() {
     return {
          netDate:-1,
-         nettingAccount:-1,
+         nettingAccount:-1,             
          nettingGroup:-1,
          nettingGroups:[],
     	 userData:{},
@@ -560,26 +559,27 @@ const NettingContainer = React.createClass({
         });          
     },
     async saveCalcData(){
-        debugger;
+    const lookupText = document.querySelector('.lookup23__ input[type="text"]');
+    const companyLabel  = lookupText? lookupText.value : '';    
  	const nettingResults  = {
         account_id: this.state.nettingAccount,
-        company:'test company name',
-        due_date:this.state.netDate,
+        company:companyLabel,
+        due_date:moment(this.state.netDate).format('YYYY-MM-DD'),
         netting_group:this.state.nettingGroup,
         buy_total:this.state.totals.buyInvoiceTotal.value,
         sell_total:this.state.totals.sellInvoiceTotal.value,
         sell_pay_term:60,
         buy_pay_term:30,
         netted_amount:this.state.totals.netAmount.value,
-        netted_as_of_date:this.state.netDate,
+        netted_as_of_date:moment(this.state.netDate).format('YYYY-MM-DD'),
         reversal_date:null,
-        netted_status: 'processed',
+        netted_status: 'PROCESSED',
         netting_statement: null
      };
-	const res = await BPConnection.netting.create({nettingResults});
-    console.log(res,'data sended');
+	const res = await BPConnection.netting.create(nettingResults);
+   // console.log(res,'data sended');
 	//const resData = await res.json();
-	window.BPActions.showDialog("modalDlg", {
+	window.BPActions.showDialog("modalDlg_success", {
       resizable: false, 
       draggable: true, 
       title: "Netting data was send", 
@@ -592,7 +592,7 @@ const NettingContainer = React.createClass({
         text: "Ok",
         "id": "btnOk",
         click: function () {
-            window.BPActions.closeDialog("modalDlg")
+            window.BPActions.closeDialog("modalDlg_success")
         }}]
                                                    
 	});
@@ -633,4 +633,4 @@ const NettingContainer = React.createClass({
                />
              </div>)
 	}
-});
+}); 
