@@ -133,7 +133,9 @@ const settings = {
         submitBtn:('Save netting'),
         resetBtn:('Reset'),
         resetDlg:('Are you sure want to reset all offsets to default calculation?'),
-        helpText:('1.Select lines of Buy and Sell tables for netting calculation 2. Click Net button for save Netting results')
+        helpText:('1.Select lines of Buy and Sell tables for netting calculation 2. Click Net button for save Netting results'),
+        toSeller:('to the Seller'),
+        toBuyer:('to the Buyer')
     }
 };
 
@@ -141,7 +143,7 @@ const NavToolBar = React.createClass({
   shouldComponentUpdate(){ return false},
   render() {
     const {onPrevStep} = this.props;
-    return (<div className="container">
+    return (<div className="container-fluid">
     		<BPUI.NavToolBar>
     				 <div align="left" className="returnToList pr-4">
                           <a 
@@ -270,6 +272,12 @@ const Netting = React.createClass({
                <div className="divider"><div className="dividerText">{[labels.nettingTotals]}</div> </div> 
             </div>
             {totalsToHTML}
+            {
+                +totals.offsetAmount.value===0?'':
+                    <div className="row pt-4 text-center">
+                        <div className="col-sm-3"/><div className="col-sm-2 text-right"><h3>{ +totals.offsetAmount.value>0?[labels.toSeller]:[labels.toBuyer] }</h3></div>
+                    </div>
+            }
              <div className="row pt-2">
                <div className="divider"><div className="dividerText">
                  <button className="btn btn-outline-blue " disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}><i className="fa fa-undo"></i> {[labels.resetBtn]}</button>                
