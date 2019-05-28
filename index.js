@@ -174,9 +174,10 @@ const NettingDetailsTable_ = React.createClass({
           }
           <td>
             {
+            	//calculation of offset field
                 (()=>{
             	 const index_ = offsets.findIndex(offsetEl=>+offsetEl.invoiceId===+el[keyFieldName]); 
-                 return index_>-1? offsets[index_].offset:[labels.haventOffset]
+                 return index_>-1? utils.replaceIfNegativeNumber(offsets[index_].offset):[labels.haventOffset]
             	})()
             }
               
@@ -298,7 +299,7 @@ const Netting = React.createClass({
                    data={detailedData.buy}
                    offsets={offsets.buy}
                    formatDateColumnIndex={[1]}
-                   formatNegativeNColumnIndex={[5,6,7,8,9]}
+                   formatNegativeNColumnIndex={[5,6,7,8,9,13]}
                    columns={columns__}
                    onSelectRow={(rowIndex)=>this.props.onSelectRowBuy(rowIndex)}
                    selectedRowIndex={selectedRowIndexBuy}
@@ -314,7 +315,7 @@ const Netting = React.createClass({
                    data={detailedData.sell}
                    offsets={offsets.sell}
                    formatDateColumnIndex={[1]}
-                   formatNegativeNColumnIndex={[5,6,7,8,9]}
+                   formatNegativeNColumnIndex={[5,6,7,8,9,13]}
                    columns={columns__}
                    onSelectRow={(rowIndex)=>this.props.onSelectRowSell(rowIndex)}      
                    selectedRowIndex={selectedRowIndexSell}
@@ -523,12 +524,12 @@ const NettingContainer = React.createClass({
             	offsetBuy =sellInvoiceTotal_tmp ===0?0: Math.abs(+sellInvoiceTotal_tmp)
         	}
             else{
-        		offsetBuy = Math.abs(+el.OutstandingAmount);
+        		offsetBuy = Math.abs(+el.OutstandingAmount); 
         	}
                   
             buyOffsets.push({
             	invoiceId:el.InvoiceID,
-            	offset:offsetBuy
+            	offset:-offsetBuy //add with negative sign (buy side)
         	});
         
         	sellInvoiceTotal_tmp-=offsetBuy;     
@@ -544,7 +545,7 @@ const NettingContainer = React.createClass({
         	}
             sellOffsets.push({
             	invoiceId:el.InvoiceID,
-            	offset:offsetSell
+            	offset:offsetSell //add with positive sign (sell side)
         	});
             
         	buyInvoiceTotal_tmp-=offsetSell;
