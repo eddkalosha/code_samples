@@ -19,15 +19,14 @@ const {userName,nodeId} =BPSystem;
 let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
 let CURRENT_DATE =  new BPUI.ReferenceObject();
 let NETTING_GROUPS =  new BPUI.ReferenceObject();
-
 const  TABLE_PAGE_COUNT = 100;
 
 const queryMain = (account={
-    					accountType:'',
-    					accountID:-1,
-    					nettingGroup:''},
-                   offsetRows=0, 
-                   countRows=TABLE_PAGE_COUNT) =>
+    				accountType:'',
+    				accountID:-1,
+   					nettingGroup:''},
+                    offsetRows=0, 
+                    countRows=TABLE_PAGE_COUNT) =>
     ("SELECT  "+
     "i1.DueDate as NetDate, "+
     "a1.id AS AccountId, "+
@@ -53,9 +52,9 @@ const queryMain = (account={
     "ORDER BY i1.id ASC OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
 
 const queryMainRowCount = (account={
-    					accountType:'',
-    					accountID:-1,
-    					nettingGroup:''}) =>
+    						accountType:'',
+    						accountID:-1,
+    						nettingGroup:''}) =>
    ("SELECT COUNT(i1.id) as rowCount "+
     "FROM invoice i1 "+
     "JOIN billing_profile bp1 ON i1.billingprofileid = bp1.id "+
@@ -84,7 +83,8 @@ const queryTypes = {
     GET_NETTING_GROUPS: String('GET_NETTING_GROUPS'),
 };
 
-const columns__ = [	
+const columns__ = [
+	   
 {field:'InvoiceID', label:'Invoice ID'},	
 {field:'NetDate', label:'Net Date', width:'100'},	
 {field:'AccountId', label:'Account Id', width:'100'},	
@@ -93,32 +93,21 @@ const columns__ = [
 {field:'Status', label:'Status', width:'100'},	
 {field:'InvoiceCharges', label:'Invoice Charges', width:'100'},	
 {field:'Payments', label:'Payments', width:'100'},	
-{field:'Adjustments', label:'Adjustments', width:'100'},	
-{field:'OutstandingAmount', label:'Outstanding Amount', width:'100'},	
-{field:'Statement', label:'Statement', width:'100'},
-{field:'PaymentTermDays',label:'Pay terms', width:'100'}
+{field:'Adjustments', label:'Adjustments', width:'100'},
+{field:'Offset', label:'Offset', width:'100'},
+{field:'OutstandingAmount', label:'Outstanding Amount', width:'100'},
+{field:'OutstandingAmountTotal', label:'Total Outstanding Amount', width:'100'},	
+{field:'PaymentTermDays',label:'Pay terms', width:'100'},
+{field:'Statement', label:'Statement', width:'100'}
 ];
 
-
-const utils = {
-    replaceIfNegativeNumber:num=>/^-[0-9]\d*(\.\d+)?$/.test(+num)? '('+(num*-1)+')':num,
-    formatDate:dateString=>{
-    	try{ 
-            const date_ = new Date(Date.parse(dateString)); 
-            return ('0' + date_.getDate()).slice(-2) + '/'
-             + ('0' + (date_.getMonth()+1)).slice(-2) + '/'
-             + date_.getFullYear()
-    }catch(e){ console.error(e); return dateString}}
-};
-
-Array.prototype.insert = function (index,item) {
+Array.prototype.insert = function (index,item){
     this.splice( index, 0, item );
 };
-
-String.prototype.formatNumber = function(n,x){
+String.prototype.formatNumber = function(n = 2,x = 3){
     if (Number.isNaN(+this)) { return (this || "").toString()}
     const this_ = +this; 
-    const re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : "$") + ')';
+    const re = '\\d(?=(\\d{' + (x) + '})+' + (n > 0 ? '\\.' : "$") + ')';
     return this_.toFixed(Math.max(0, ~~n)).replace(new RegExp(re,'g'),"$"+'&,');
 }
 String.prototype.formatDate = function(){
@@ -129,8 +118,12 @@ String.prototype.formatDate = function(){
              + date_.getFullYear()
     }catch(e){ console.error(e); return dateString}
 };
-String.prototype.replaceIfNegativeNumber = function(){return /^-/.test(this)? '('+(this.replace('-',''))+')':this.toString()};
-Number.prototype.replaceIfNegativeNumber = function(){return /^-[0-9]\d*(\.\d+)?$/.test(+this)? '('+(this*-1)+')':this.toString()};
+String.prototype.replaceIfNegativeNumber = function(){
+    return /^-/.test(this)? '('+(this.replace('-',''))+')':this.toString()
+};
+Number.prototype.replaceIfNegativeNumber = function(){
+    return /^-[0-9]\d*(\.\d+)?$/.test(+this)? '('+(this*-1)+')':this.toString()
+};
 
 const settings = {
     labels:{
@@ -173,30 +166,38 @@ const NavToolBar = React.createClass({
 const NettingDetailsTable_ = React.createClass({
     render() { 
     console.log('[render] NettingDetailsTable_',this.props);
-    const {type,data,offsets,maxPagesCount,keyFieldName,columns,onSetStep,currentPage,selectedRowIndex,formatDateColumnIndex : FDC, formatNegativeNColumnIndex : FNI} = this.props;
+    const {type,data,offsets,maxPagesCount,keyFieldName,columns,onSetStep,currentPage,
+    	selectedRowIndex,formatDateColumnIndex : FDC, formatNegativeNColumnIndex : FNI
+	    } = this.props;
     const {labels} = settings;
     const labelType = [[labels.tableTypeBuy],[labels.tableTypeSell]];
     const columnsToHTML = columns.map((column,index)=><th className="py-4" scope="col" key={index}><div style={{width:column.width? column.width+'px':'100px'}}>{column.label}</div></th>);
-    const dateToHTML_ =  data.length>0? data.map((el,index)=>
-       <tr onClick={()=>this.props.onSelectRow(+el[keyFieldName])} className={`${selectedRowIndex.includes(+el[keyFieldName])?'bg-success':''}`}>
-          <td><input type="checkbox" readOnly checked={selectedRowIndex.includes(+el[keyFieldName])} /></td>
-          {
-           columns.map((column,index)=>
-             <td>
-               {  FDC.includes(index)? String(el[column.field]).formatDate(): FNI.includes(index)? String(el[column.field]).formatNumber().replaceIfNegativeNumber():el[column.field]}
-             </td>)
-          }
-          <td>
-            {
-            	//calculation of offset field
-                (()=>{
-            	 const index_ = offsets.findIndex(offsetEl=>+offsetEl.invoiceId===+el[keyFieldName]); 
-                 return index_>-1? String(offsets[index_].offset).formatNumber().replaceIfNegativeNumber():[labels.haventOffset]
-            	})()
-            }
-              
-          </td>
-        </tr>):null   
+	const dataTmp = data.length>0? [...data].map(el=> {
+        //calculation of offset field
+        const index_ = offsets.findIndex(offsetEl=>+offsetEl.invoiceId===+el[keyFieldName]);
+        const offsetValue =  index_>-1? offsets[index_].offset:0;
+        const totalAmountValue = index_>-1? offsets[index_].OutstandingAmountTotal:el.OutstandingAmount ;
+            return ({...el, 
+                Offset:offsetValue,
+                OutstandingAmountTotal:totalAmountValue
+            })})
+        :[];
+
+    const dataToHTML_ =  dataTmp.map((el,index)=>
+        {
+           return (
+                  <tr className={`${selectedRowIndex.includes(+el[keyFieldName])?'bg-success':''}`}>
+                      	<td onClick={()=>this.props.onSelectRow(+el[keyFieldName])}><input type="checkbox" readOnly checked={selectedRowIndex.includes(+el[keyFieldName])} /></td>
+                          {
+                           columns.map((column,index)=>
+                             <td>
+                               {  FDC.includes(index)? String(el[column.field]).formatDate()
+                                   : FNI.includes(index)? String(el[column.field]).formatNumber().replaceIfNegativeNumber()
+                                    :el[column.field]}
+                             </td>)
+                          }
+                   </tr>)
+            })   
     return(
         <div className="">
          <h4 align="center">{labelType[type] || null}</h4>                                                                            
@@ -207,11 +208,10 @@ const NettingDetailsTable_ = React.createClass({
                <tr>
                  <th>{[labels.netSelectColumnName]}</th>
         		 {columnsToHTML}
-        		 <th>{[labels.OffsetColumnName]}</th>
                </tr>
              </thead>
              <tbody>
-              {dateToHTML_}  
+              {dataToHTML_}  
              </tbody>
          </table>
         </div>       
@@ -313,7 +313,9 @@ const Netting = React.createClass({
                    data={detailedData.buy}
                    offsets={offsets.buy}
                    formatDateColumnIndex={[1]}
-                   formatNegativeNColumnIndex={[5,6,7,8,9,13]}
+                   offsetColumnIndex = {13}
+                   netColumnIndex = {0}
+                   formatNegativeNColumnIndex={[6,7,8,9,10,11]}
                    columns={columns__}
                    onSelectRow={(rowIndex)=>this.props.onSelectRowBuy(rowIndex)}
                    selectedRowIndex={selectedRowIndexBuy}
@@ -329,7 +331,9 @@ const Netting = React.createClass({
                    data={detailedData.sell}
                    offsets={offsets.sell}
                    formatDateColumnIndex={[1]}
-                   formatNegativeNColumnIndex={[5,6,7,8,9,13]}
+                   offsetColumnIndex = {13}
+                   netColumnIndex = {0}
+                   formatNegativeNColumnIndex={[6,7,8,9,10,11,12]}
                    columns={columns__}
                    onSelectRow={(rowIndex)=>this.props.onSelectRowSell(rowIndex)}      
                    selectedRowIndex={selectedRowIndexSell}
@@ -523,9 +527,9 @@ const NettingContainer = React.createClass({
         const buyInvoiceTotal_ = selectedDataBuy.reduce((acc,el,arr)=>acc+=+el.OutstandingAmount,0);
         const sellInvoiceTotal_ = selectedDataSell.reduce((acc,el,arr)=>acc+=+el.OutstandingAmount,0);
  		//sell offset max total  = sell offset
-        let sellInvoiceTotal_tmp = Math.abs(sellInvoiceTotal_);
+        let sellInvoiceTotal_tmp = Math.abs(+sellInvoiceTotal_);
         //buy offset max total  = MIN(sell offset, buy offset)
-        const netAmount_ = Math.min(Math.abs(sellInvoiceTotal_),Math.abs(buyInvoiceTotal_))
+        const netAmount_ = Math.min(Math.abs(+sellInvoiceTotal_),Math.abs(+buyInvoiceTotal_))
         let buyInvoiceTotal_tmp = netAmount_;
         let buyOffsets = [];
         let sellOffsets = [];
@@ -533,7 +537,7 @@ const NettingContainer = React.createClass({
         //buy section
         selectedDataBuy.map(el=>{
             let offsetBuy = 0;  
-            if (Math.abs(el.OutstandingAmount)>Math.abs(sellInvoiceTotal_tmp)){
+            if (Math.abs(+el.OutstandingAmount)>Math.abs(+sellInvoiceTotal_tmp)){
             	offsetBuy =sellInvoiceTotal_tmp ===0?0: Math.abs(+sellInvoiceTotal_tmp)
         	}
             else{
@@ -542,6 +546,7 @@ const NettingContainer = React.createClass({
                   
             buyOffsets.push({
             	invoiceId:el.InvoiceID,
+                OutstandingAmountTotal:(+el.OutstandingAmount - +offsetBuy),
             	offset:-offsetBuy //add with negative sign (buy side)
         	});
         
@@ -558,6 +563,7 @@ const NettingContainer = React.createClass({
         	}
             sellOffsets.push({
             	invoiceId:el.InvoiceID,
+            	OutstandingAmountTotal:(+el.OutstandingAmount + +offsetSell),
             	offset:offsetSell //add with positive sign (sell side)
         	});
             
