@@ -15,15 +15,12 @@ wiget presents next structure:
 BPSystem.initialize();
 const ver = React.version;
 const {userName,nodeId} =BPSystem;
-const userData = {id:nodeId,name:userName};
-const nettingGroup = "SAM123"; 
+
 let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
 let CURRENT_DATE =  new BPUI.ReferenceObject();
 let NETTING_GROUPS =  new BPUI.ReferenceObject();
 
-const DOMAIN_URL = "https://ussandbox.billingplatform.com/xandr_dev/api/insert",
-		ENTITY_NAME = "netting",
-		TABLE_PAGE_COUNT = 100;
+const  TABLE_PAGE_COUNT = 100;
 
 const queryMain = (account={
     					accountType:'',
@@ -56,9 +53,9 @@ const queryMain = (account={
     "ORDER BY i1.id ASC OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
 
 const queryMainRowCount = (account={
-    					accountType:'BUYER',
+    					accountType:'',
     					accountID:-1,
-    					nettingGroup:'SAM123'}) =>
+    					nettingGroup:''}) =>
    ("SELECT COUNT(i1.id) as rowCount "+
     "FROM invoice i1 "+
     "JOIN billing_profile bp1 ON i1.billingprofileid = bp1.id "+
@@ -100,7 +97,6 @@ const columns__ = [
 {field:'OutstandingAmount', label:'Outstanding Amount', width:'100'},	
 {field:'Statement', label:'Statement', width:'100'},
 {field:'PaymentTermDays',label:'Pay terms', width:'100'}
-    
 ];
 
 
@@ -115,7 +111,26 @@ const utils = {
     }catch(e){ console.error(e); return dateString}}
 };
 
+Array.prototype.insert = function (index,item) {
+    this.splice( index, 0, item );
+};
 
+String.prototype.formatNumber = function(n,x){
+    if (Number.isNaN(+this)) { return (this || "").toString()}
+    const this_ = +this; 
+    const re = '\\d(?=(\\d{' + (x || 3) + '})+' + (n > 0 ? '\\.' : "$") + ')';
+    return this_.toFixed(Math.max(0, ~~n)).replace(new RegExp(re,'g'),"$"+'&,');
+}
+String.prototype.formatDate = function(){
+    	try{ 
+            const date_ = new Date(Date.parse(this)); 
+            return ('0' + date_.getDate()).slice(-2) + '/'
+             + ('0' + (date_.getMonth()+1)).slice(-2) + '/'
+             + date_.getFullYear()
+    }catch(e){ console.error(e); return dateString}
+};
+String.prototype.replaceIfNegativeNumber = function(){return /^-/.test(this)? '('+(this.replace('-',''))+')':this.toString()};
+Number.prototype.replaceIfNegativeNumber = function(){return /^-[0-9]\d*(\.\d+)?$/.test(+this)? '('+(this*-1)+')':this.toString()};
 
 const settings = {
     labels:{
@@ -124,9 +139,9 @@ const settings = {
         haventOffset:('-'),
         netSelectColumnName:('NET'),
         OffsetColumnName:('Offset'),
-        noDataPrimary:('HAVEN\'T DATA FOR NETTING'),
-        noDataSecondary:('Check input parameters and try again'),
-        netDate:('Net As Of Date'),
+        noDataPrimary:('Select Account and Netting Group Code'),
+        noDataSecondary:('to see buy and sell side invoices'),
+        netDate:('System Date'),
         company:('Company'),
         groupCode:('Netting Group Code'),
         nettingTotals:('Netting'),
@@ -142,7 +157,6 @@ const settings = {
 const NavToolBar = React.createClass({
   shouldComponentUpdate(){ return false},
   render() {
-    const {onPrevStep} = this.props;
     return (<div className="container-fluid">
     		<BPUI.NavToolBar>
     				 <div align="left" className="returnToList pr-4">
@@ -169,7 +183,7 @@ const NettingDetailsTable_ = React.createClass({
           {
            columns.map((column,index)=>
              <td>
-               {  FDC.includes(index)? utils.formatDate(el[column.field]): FNI.includes(index)? utils.replaceIfNegativeNumber(el[column.field]):el[column.field]}
+               {  FDC.includes(index)? String(el[column.field]).formatDate(): FNI.includes(index)? String(el[column.field]).formatNumber().replaceIfNegativeNumber():el[column.field]}
              </td>)
           }
           <td>
@@ -177,7 +191,7 @@ const NettingDetailsTable_ = React.createClass({
             	//calculation of offset field
                 (()=>{
             	 const index_ = offsets.findIndex(offsetEl=>+offsetEl.invoiceId===+el[keyFieldName]); 
-                 return index_>-1? utils.replaceIfNegativeNumber(offsets[index_].offset):[labels.haventOffset]
+                 return index_>-1? String(offsets[index_].offset).formatNumber().replaceIfNegativeNumber():[labels.haventOffset]
             	})()
             }
               
@@ -234,10 +248,10 @@ const Netting = React.createClass({
                <small>{[labels.noDataSecondary]}</small>            
             </div>);
            
-        let {userData,currencySymbol,padgingTables,step,isWaiting,noData,data} = this.props ;
+        let {currencySymbol,padgingTables,step,isWaiting,noData,data} = this.props ;
         padgingTables = padgingTables || {padgingTables:{maxBuy:0,currentBuy:0,maxSell:0,currentSell:0}};
         const {nettingGroups,detailedData,offsets,totals,selectedRowIndexBuy,selectedRowIndexSell} = data || {selectedRowIndexBuy:[],selectedRowIndexSell:[],detailedData:{buy:[],sell:[]},offsets:{buy:[],sell:[]}};
-        const totalsToHTML = Object.values(totals || []).map(el=><div className="row pt-4"><div className="col-sm-3 text-right">{el.title}</div><div className="col-sm-2 text-right">{currencySymbol}{utils.replaceIfNegativeNumber(el.value)}</div></div>);
+        const totalsToHTML = Object.values(totals || []).map(el=><div className="row pt-4"><div className="col-sm-3 text-right">{el.title}</div><div className="col-sm-2 text-right">{currencySymbol}{String(el.value).formatNumber().replaceIfNegativeNumber().padStart(10)}</div></div>);
         const nettingGroupsToHTML = (nettingGroups || []).map((el,i)=><option key={i} value={el.GroupID}>{el.NettingGroup}</option>);
 		return(<div className="pt-3">
      		<div className="container-fluid">  
@@ -270,7 +284,7 @@ const Netting = React.createClass({
             {noData? haveNoData:  isWaiting? preLoader:
             <div>
             <div className="row ">
-               <div className="divider"><div className="dividerText">{[labels.nettingTotals]}</div> </div> 
+               <div className="divider"><div className="dividerText py-2">{[labels.nettingTotals]}</div> </div> 
             </div>
             {totalsToHTML}
             {
@@ -337,7 +351,6 @@ const NettingContainer = React.createClass({
          nettingAccount:-1,             
          nettingGroup:-1,
          nettingGroups:[],
-    	 userData:{},
     	 isWaiting:true,
          noData:true,
          padgingTables:{
@@ -462,8 +475,8 @@ const NettingContainer = React.createClass({
       ]);          
       await this.setState({
           isWaiting:false, 
-          noData:!(buyInv&&sellInv&&buyCount&&sellCount),
-          userData});
+          noData:!(buyInv&&sellInv&&buyCount&&sellCount)
+        });
       this.selectAllData();
     },       
     componentDidMount(){
@@ -614,7 +627,7 @@ const NettingContainer = React.createClass({
 	});
     },
     render(){
-    const {userData,totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData,nettingGroups} = this.state;
+    const {totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData,nettingGroups} = this.state;
     console.log('[render] NettingContainer',this.state);
         const nettingStep = (netDate === -1)? 0: (nettingAccount===-1)? 1:2; 
     	return(
@@ -641,7 +654,6 @@ const NettingContainer = React.createClass({
                        selectedRowIndexSell,
                        nettingGroups
                       }}
-                userData={userData}
                 currencySymbol={"$"}
                />
              </div>)
