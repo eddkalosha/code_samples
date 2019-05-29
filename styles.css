@@ -921,8 +921,25 @@ button[disabled]{
 }
 
 .btn-outline-blue,.btn-outline-blue[disabled]{
-	background: #5cc3ff;
+    background: #5cc3ff;
     color: #5cc3ff;
+    border: 1px solid #5cc3ff;
     background: white;
     background: transparent;
 }
+
+.block-border-blue{
+border:2px solid #5cc3ff;
+}
+
+.grey-block
+{
+background:#f7f7f7 !important;
+}
+.grey-block .divider{
+background:#f7f7f7 !important;
+}
+.grey-block .dividerText{
+background:#f7f7f7 !important;
+}
+
