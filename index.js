@@ -137,13 +137,14 @@ const settings = {
         netDate:('System Date'),
         company:('Company'),
         groupCode:('Netting Group Code'),
-        nettingTotals:('Netting'),
+        nettingTotals:('Netting Totals'),
         submitBtn:('Save netting'),
         resetBtn:('Reset'),
         resetDlg:('Are you sure want to reset all offsets to default calculation?'),
         helpText:('1.Select lines of Buy and Sell tables for netting calculation 2. Click Net button for save Netting results'),
         toSeller:('to the Seller'),
-        toBuyer:('to the Buyer')
+        toBuyer:('to the Buyer'),
+        userInput:('Input parameters')
     }
 };
 
@@ -243,7 +244,7 @@ const Netting = React.createClass({
               <div className="bounce2"></div>
       		  <div className="bounce2"></div>
             </div>);
-        const haveNoData = (<div className="row text-center py-5 my-5 alert-warning">
+        const haveNoData = (<div className="col-sm-12 text-center py-5 my-5 alert-warning">
                <div>{[labels.noDataPrimary]}</div>
                <small>{[labels.noDataSecondary]}</small>            
             </div>);
@@ -251,38 +252,44 @@ const Netting = React.createClass({
         let {currencySymbol,padgingTables,step,isWaiting,noData,data} = this.props ;
         padgingTables = padgingTables || {padgingTables:{maxBuy:0,currentBuy:0,maxSell:0,currentSell:0}};
         const {nettingGroups,detailedData,offsets,totals,selectedRowIndexBuy,selectedRowIndexSell} = data || {selectedRowIndexBuy:[],selectedRowIndexSell:[],detailedData:{buy:[],sell:[]},offsets:{buy:[],sell:[]}};
-        const totalsToHTML = Object.values(totals || []).map(el=><div className="row pt-4"><div className="col-sm-3 text-right">{el.title}</div><div className="col-sm-2 text-right">{currencySymbol}{String(el.value).formatNumber().replaceIfNegativeNumber().padStart(10)}</div></div>);
+        const totalsToHTML = Object.values(totals || []).map(el=><div className="row pt-4"><div className="col-sm-6 text-right">{el.title}</div><div className="col-sm-6 text-right">{currencySymbol}{String(el.value).formatNumber().replaceIfNegativeNumber().padStart(10)}</div></div>);
         const nettingGroupsToHTML = (nettingGroups || []).map((el,i)=><option key={i} value={el.GroupID}>{el.NettingGroup}</option>);
 		return(<div className="pt-3">
-     		<div className="container-fluid">  
-            <div className="row">
-            	<div className="col-sm-3 pt-2"><img alt="" src="images/required.png"/>{[labels.netDate]}</div><div className="col-sm-3">
-              		<BPUI.InputField key="1112" className="dateselector" variable={CURRENT_DATE} placeholder="Click for select..." layout="plain" type="DATE_SELECTOR" onUpdate={(date,val2,val3)=>{this.props.onDateChange(date)}}/>                                    
+     		<div className="row">
+            <section className="section-user-input col-sm-6 px-5"> 
+            <div className="row ">
+               <div className="divider"><div className="dividerText py-2">{[labels.userInput]}</div> </div> 
+            </div> 
+                <div className="row">
+                    <div className="col-sm-6 pt-2"><img alt="" src="images/required.png"/>{[labels.netDate]}</div>
+                    <div className="col-sm-6">
+                        <BPUI.InputField key="1112" className="dateselector" variable={CURRENT_DATE} placeholder="Click for select..." layout="plain" type="DATE_SELECTOR" onUpdate={(date,val2,val3)=>{this.props.onDateChange(date)}}/>                                    
+                    </div>
                 </div>
-            </div>
-            <div className={`row pt-4 ${step<1?'disabled':''}`}>
-                 <div className="col-sm-3 pt-2">
-                	<img alt="" src="images/required.png"/> 
-                    <span>{[labels.company]}</span>
+                <div className={`row pt-4 ${step<1?'disabled':''}`}>
+                    <div className="col-sm-6 pt-2">
+                        <img alt="" src="images/required.png"/> 
+                        <span>{[labels.company]}</span>
+                    </div>
+                    <div className="col-sm-6 lookup23__">
+                        <BPUI.InputField variable={NETTING} className="input nnn"  placeholder="Click for select..."field="account_id" onUpdate={(id,type,object)=>{this.props.onChangeAccount(id)}} layout="plain" />
+                    </div>
                 </div>
-             	<div className="col-sm-3 lookup23__">
-                    <BPUI.InputField variable={NETTING} className="input nnn"  placeholder="Click for select..."field="account_id" onUpdate={(id,type,object)=>{this.props.onChangeAccount(id)}} layout="plain" />
+                <div className={`row pt-4 ${ (step<2) ?'disabled':''}`}>
+                    <div className="col-sm-6 pt-2">
+                        <img alt="" src="images/required.png"/>
+                        <span>{[labels.groupCode]}</span>     
+                    </div>
+                    <div className="col-sm-6 no-span">
+                        <select className="w-100" onChange={(e)=>{this.props.onChangeGroup(e.target.value)}}>
+                            <option value='-1'>- Not selected -</option>
+                            {nettingGroupsToHTML}
+                        </select>
+                    </div>
                 </div>
-            </div>
-               <div className={`row pt-4 ${ (step<2) ?'disabled':''}`}>
-                 <div className="col-sm-3 pt-2">
-                	<img alt="" src="images/required.png"/>
-                    <span>{[labels.groupCode]}</span>     
-                </div>
-             	<div className="col-sm-3 no-span">
-                     <select className="w-100" onChange={(e)=>{this.props.onChangeGroup(e.target.value)}}>
-                         <option value='-1'>- Not selected -</option>
-                         {nettingGroupsToHTML}
-                    </select>
-                </div>
-            </div>
+            </section>
             {noData? haveNoData:  isWaiting? preLoader:
-            <div>
+            <section className="section-totals col-sm-6 px-5 grey-block pb-3">
             <div className="row ">
                <div className="divider"><div className="dividerText py-2">{[labels.nettingTotals]}</div> </div> 
             </div>
@@ -290,16 +297,20 @@ const Netting = React.createClass({
             {
                 +totals.offsetAmount.value===0?'':
                     <div className="row pt-4 text-center">
-                        <div className="col-sm-3"/><div className="col-sm-2 text-right"><h3>{ +totals.offsetAmount.value>0?[labels.toSeller]:[labels.toBuyer] }</h3></div>
+                        <div className="col-sm-6"/>
+                        <div className="col-sm-6 text-right"><h3>{ +totals.offsetAmount.value>0?[labels.toSeller]:[labels.toBuyer] }</h3></div>
                     </div>
             }
              <div className="row pt-2">
-               <div className="divider"><div className="dividerText">
+               <div className="col-sm-12 text-right"> 
                  <button className="btn btn-outline-blue " disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}><i className="fa fa-undo"></i> {[labels.resetBtn]}</button>                
                  <button onClick={()=>this.props.onSaveData()} className="btn ml-1"><i className="fa fa-cloud-upload"></i> {[labels.submitBtn]}</button>
-               </div> 
                </div>                    
-            </div> 
+            </div>
+            </section>
+            }
+            { noData? null:  isWaiting? null:    //replace nulls to something beauty
+            <section className="section-detail-tables  px-5"> 
              <div className="row">
               <div className="col-sm-12 formInfo text-blue">{[labels.helpText]} </div>
               <div className="col-sm-12 mt-3"><label className="switch"><input checked={twoColView} onChange={()=>this.setState({twoColView:!twoColView})} type="checkbox"/><span className="slider round"></span></label> </div>    
@@ -340,10 +351,11 @@ const Netting = React.createClass({
                    onSetStep = {page=>this.props.onSetPageSell(page)}      
                 />
                </div>                          
-             </div>    
-               </div>
-                  }          
-      	</div>
+             </div>
+            </section>  
+        }  
+                       
+      	    </div>
     </div>)
 	}
 });
