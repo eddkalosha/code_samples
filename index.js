@@ -17,8 +17,9 @@ const ver = React.version;
 const {userName,nodeId} =BPSystem;
 
 let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
-let CURRENT_DATE =  new BPUI.ReferenceObject();
+let CURRENT_DATE =  new BPUI.ReferenceObject(moment(new Date()).format('MM/DD/YYYY') );
 let NETTING_GROUPS =  new BPUI.ReferenceObject();
+const CURRENCY_SYMBOL = "EUR";
 const  TABLE_PAGE_COUNT = 100;
 
 const queryMain = (account={
@@ -46,7 +47,7 @@ const queryMain = (account={
     "JOIN account a1 ON bp1.accountid = a1.id "+
     "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
     "WHERE 1=1 "+
-   	"AND a1.nettinggroup = '"+account.nettingGroup+"' "+
+   	(account.nettingGroup =='Unassigned'?" AND a1.nettinggroup IS NULL ":" AND a1.nettinggroup = '"+account.nettingGroup+"' ")+
     "AND a1.AccountType = '"+account.accountType+"' "+
     "AND i1.status = 'CLOSED' "+
     "ORDER BY i1.id ASC OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
@@ -61,18 +62,18 @@ const queryMainRowCount = (account={
     "JOIN account a1 ON bp1.accountid = a1.id "+
     "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
     "WHERE 1=1 "+
-  	"AND a1.nettinggroup = '"+account.nettingGroup+"' "+
+    (account.nettingGroup =='Unassigned'?"":"AND a1.nettinggroup = '"+account.nettingGroup+"' ")+
     "AND a1.AccountType = '"+account.accountType+"' "+
     "AND i1.status = 'CLOSED' "
    );
 
 const queryNettGroups = (accountID = -1) =>( 
-"SELECT DISTINCT a1.nettinggroup as NettingGroup, a.id as GroupID "+
+"SELECT DISTINCT NVL(a1.nettinggroup,'Unassigned') as NettingGroup, a.id as GroupID "+
 "FROM account a "+
 "JOIN account a1 ON a.id = a1.parentaccountid "+
 "WHERE 1=1 "+
 "AND a1.accounttypeid = 722 "+  
-"AND a.id = "+accountID+" AND a1.nettinggroup IS NOT NULL " 
+"AND a.id = "+accountID+" " 
 );
 
 const queryTypes = {
@@ -95,8 +96,8 @@ const columns__ = [
 {field:'Payments', label:'Payments', width:'100'},	
 {field:'Adjustments', label:'Adjustments', width:'100'},
 {field:'Offset', label:'Offset', width:'100'},
-{field:'OutstandingAmount', label:'Outstanding Amount', width:'100'},
-{field:'OutstandingAmountTotal', label:'Total Outstanding Amount', width:'100'},	
+//{field:'OutstandingAmount', label:'Outstanding Amount', width:'100'},
+{field:'OutstandingAmountTotal', label:'Outstanding Amount', width:'100'},	
 {field:'PaymentTermDays',label:'Pay terms', width:'100'},
 {field:'Statement', label:'Statement', width:'100'}
 ];
@@ -134,17 +135,19 @@ const settings = {
         OffsetColumnName:('Offset'),
         noDataPrimary:('Select Account and Netting Group Code'),
         noDataSecondary:('to see buy and sell side invoices'),
-        netDate:('System Date'),
+        netDate:('Net As of Date'),
         company:('Company'),
         groupCode:('Netting Group Code'),
         nettingTotals:('Netting Totals'),
         submitBtn:('Save netting'),
         resetBtn:('Reset'),
         resetDlg:('Are you sure want to reset all offsets to default calculation?'),
-        helpText:('1.Select lines of Buy and Sell tables for netting calculation 2. Click Net button for save Netting results'),
+        helpText:('1.Select lines of Buy and Sell tables for netting calculation 2. Click [Save netting] button in Netting Totals section for save Netting results'),
         toSeller:('to the Seller'),
         toBuyer:('to the Buyer'),
-        userInput:('Input parameters')
+        userInput:('Input parameters'),
+        switchtoOne:('Switch to 1-column view'),
+        switchtoTwo:('Switch to 2-column view'),
     }
 };
 
@@ -168,7 +171,8 @@ const NettingDetailsTable_ = React.createClass({
     render() { 
     console.log('[render] NettingDetailsTable_',this.props);
     const {type,data,offsets,maxPagesCount,keyFieldName,columns,onSetStep,currentPage,
-    	selectedRowIndex,formatDateColumnIndex : FDC, formatNegativeNColumnIndex : FNI
+        selectedRowIndex,formatDateColumnIndex : FDC, formatNegativeNColumnIndex : FNI,
+        currencyColumnIndex, currencySymbol
 	    } = this.props;
     const {labels} = settings;
     const labelType = [[labels.tableTypeBuy],[labels.tableTypeSell]];
@@ -184,24 +188,32 @@ const NettingDetailsTable_ = React.createClass({
             })})
         :[];
 
-    const dataToHTML_ =  dataTmp.map((el,index)=>
-        {
-           return (
+    const dataToHTML_ =  dataTmp.map((el,index)=> (
                   <tr className={`${selectedRowIndex.includes(+el[keyFieldName])?'bg-success':''}`}>
                       	<td onClick={()=>this.props.onSelectRow(+el[keyFieldName])}><input type="checkbox" readOnly checked={selectedRowIndex.includes(+el[keyFieldName])} /></td>
                           {
                            columns.map((column,index)=>
                              <td>
-                               {  FDC.includes(index)? String(el[column.field]).formatDate()
-                                   : FNI.includes(index)? String(el[column.field]).formatNumber().replaceIfNegativeNumber()
-                                    :el[column.field]}
+                                 <div className={`${currencyColumnIndex.includes(index)? 'has-currency':'' } field`}>
+                                     {
+                                      currencyColumnIndex.includes(index)? <span className="currency">{currencySymbol}</span>:null   
+                                     }
+                                     <span className="value">
+                                    {  FDC.includes(index)? String(el[column.field]).formatDate()
+                                    : FNI.includes(index)? String(el[column.field]).formatNumber().replaceIfNegativeNumber()
+                                        :el[column.field]
+                                    }
+                                    </span>
+                                </div>
                              </td>)
                           }
                    </tr>)
-            })   
+     );   
     return(
-        <div className="">
-         <h4 align="center">{labelType[type] || null}</h4>                                                                            
+        <div className="detail-table">
+        <div className="row p-0 m-0">
+            <div className="divider"><div className="dividerText py-2">{labelType[type] || null}</div> </div> 
+        </div>                                                                           
         <div className="table-light-border">
     	 <div className="table-responsive">
          <table className="table" >
@@ -239,34 +251,39 @@ const Netting = React.createClass({
     console.log('[NettingComponent] props',this.props);
         const {twoColView} = this.state;
         const {labels} = settings;
-        const preLoader = (<div className="spinner py-5">
+        const preLoader = (<div className="col-sm-12">
+            <div className="spinner py-5">
               <div className="bounce1"></div>
               <div className="bounce2"></div>
       		  <div className="bounce2"></div>
-            </div>);
+            </div></div>);
         const haveNoData = (<div className="col-sm-12 text-center py-5 my-5 alert-warning">
                <div>{[labels.noDataPrimary]}</div>
                <small>{[labels.noDataSecondary]}</small>            
             </div>);
            
-        let {currencySymbol,padgingTables,step,isWaiting,noData,data} = this.props ;
+        let {padgingTables,step,isWaiting,noData,data,currencySymbol} = this.props ;
         padgingTables = padgingTables || {padgingTables:{maxBuy:0,currentBuy:0,maxSell:0,currentSell:0}};
         const {nettingGroups,detailedData,offsets,totals,selectedRowIndexBuy,selectedRowIndexSell} = data || {selectedRowIndexBuy:[],selectedRowIndexSell:[],detailedData:{buy:[],sell:[]},offsets:{buy:[],sell:[]}};
-        const totalsToHTML = Object.values(totals || []).map(el=><div className="row pt-4"><div className="col-sm-6 text-right">{el.title}</div><div className="col-sm-6 text-right">{currencySymbol}{String(el.value).formatNumber().replaceIfNegativeNumber().padStart(10)}</div></div>);
+        const totalsToHTML = Object.values(totals || []).map(el=>
+            <div className="row p-0 m-0 pt-4">
+                <div className="col-sm-6 text-right">{el.title}</div>
+                <div className="col-sm-6 has-currency"><span className="currency">{currencySymbol}</span><span className="value">{String(el.value).formatNumber().replaceIfNegativeNumber()}</span></div>
+            </div>);
         const nettingGroupsToHTML = (nettingGroups || []).map((el,i)=><option key={i} value={el.GroupID}>{el.NettingGroup}</option>);
 		return(<div className="pt-3">
      		<div className="row">
-            <section className="section-user-input col-sm-6 px-5"> 
-            <div className="row ">
+            <section className="section-user-input px-2 col-sm-6"> 
+            <div className="row p-0 m-0">
                <div className="divider"><div className="dividerText py-2">{[labels.userInput]}</div> </div> 
             </div> 
-                <div className="row">
+                <div className="row  p-0 m-0">
                     <div className="col-sm-6 pt-2"><img alt="" src="images/required.png"/>{[labels.netDate]}</div>
                     <div className="col-sm-6">
                         <BPUI.InputField key="1112" className="dateselector" variable={CURRENT_DATE} placeholder="Click for select..." layout="plain" type="DATE_SELECTOR" onUpdate={(date,val2,val3)=>{this.props.onDateChange(date)}}/>                                    
                     </div>
                 </div>
-                <div className={`row pt-4 ${step<1?'disabled':''}`}>
+                <div className={`row p-0 m-0 pt-4 ${step<1?'disabled':''}`}>
                     <div className="col-sm-6 pt-2">
                         <img alt="" src="images/required.png"/> 
                         <span>{[labels.company]}</span>
@@ -275,7 +292,7 @@ const Netting = React.createClass({
                         <BPUI.InputField variable={NETTING} className="input nnn"  placeholder="Click for select..."field="account_id" onUpdate={(id,type,object)=>{this.props.onChangeAccount(id)}} layout="plain" />
                     </div>
                 </div>
-                <div className={`row pt-4 ${ (step<2) ?'disabled':''}`}>
+                <div className={`row p-0 m-0 pt-4 ${ (step<2) ?'disabled':''}`}>
                     <div className="col-sm-6 pt-2">
                         <img alt="" src="images/required.png"/>
                         <span>{[labels.groupCode]}</span>     
@@ -289,33 +306,35 @@ const Netting = React.createClass({
                 </div>
             </section>
             {noData? haveNoData:  isWaiting? preLoader:
-            <section className="section-totals col-sm-6 px-5 grey-block pb-3">
-            <div className="row ">
-               <div className="divider"><div className="dividerText py-2">{[labels.nettingTotals]}</div> </div> 
-            </div>
-            {totalsToHTML}
-            {
-                +totals.offsetAmount.value===0?'':
-                    <div className="row pt-4 text-center">
-                        <div className="col-sm-6"/>
-                        <div className="col-sm-6 text-right"><h3>{ +totals.offsetAmount.value>0?[labels.toSeller]:[labels.toBuyer] }</h3></div>
+            <section className="section-totals col-sm-6 px-2">
+                <div className="grey-block  pb-3">
+                    <div className="row p-0 m-0">
+                    <div className="divider"><div className="dividerText py-2">{[labels.nettingTotals]}</div> </div> 
                     </div>
-            }
-             <div className="row pt-2">
-               <div className="col-sm-12 text-right"> 
-                 <button className="btn btn-outline-blue " disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}><i className="fa fa-undo"></i> {[labels.resetBtn]}</button>                
-                 <button onClick={()=>this.props.onSaveData()} className="btn ml-1"><i className="fa fa-cloud-upload"></i> {[labels.submitBtn]}</button>
-               </div>                    
-            </div>
+                    {totalsToHTML}
+                    {
+                        +totals.offsetAmount.value===0?'':
+                            <div className="row p-0 m-0 pt-4 text-center">
+                                <div className="col-sm-6"/>
+                                <div className="col-sm-6 text-right"><h3>{ +totals.offsetAmount.value>0?[labels.toSeller]:[labels.toBuyer] }</h3></div>
+                            </div>
+                    }
+                    <div className="row p-0 m-0 pt-2">
+                    <div className="col-sm-12 text-right"> 
+                        <button className="btn btn-outline-blue " disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}><i className="fa fa-undo"></i> {[labels.resetBtn]}</button>                
+                        <button onClick={()=>this.props.onSaveData()} className="btn ml-1"><i className="fa fa-cloud-upload"></i> {[labels.submitBtn]}</button>
+                    </div>                    
+                    </div>
+                </div>
             </section>
             }
             { noData? null:  isWaiting? null:    //replace nulls to something beauty
-            <section className="section-detail-tables  px-5"> 
+            <section className="section-detail-tables col-sm-12"> 
              <div className="row">
-              <div className="col-sm-12 formInfo text-blue">{[labels.helpText]} </div>
+              {/*<div className="col-sm-12 formInfo text-blue">{[labels.helpText]} </div> */}
               <div className="col-sm-12 mt-3"><label className="switch"><input checked={twoColView} onChange={()=>this.setState({twoColView:!twoColView})} type="checkbox"/><span className="slider round"></span></label> </div>    
-            <div className="col-sm-12" style={{opacity:0.6}}>{twoColView?'Switch to 1-column view':'Switch to 2-column view'}</div>
-                <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center`}>
+                  <div className="col-sm-12" style={{opacity:0.6}}>{twoColView?[labels.switchtoOne]: [labels.switchtoTwo]}</div>
+                <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center px-2`}>
                 <NettingDetailsTable_ 
                    type={0}
                    maxPagesCount={padgingTables.maxBuy}
@@ -326,6 +345,8 @@ const Netting = React.createClass({
                    formatDateColumnIndex={[1]}
                    offsetColumnIndex = {13}
                    netColumnIndex = {0}
+                   currencySymbol={currencySymbol} 
+                   currencyColumnIndex={[6,7,8,9,10,11]} 
                    formatNegativeNColumnIndex={[6,7,8,9,10,11]}
                    columns={columns__}
                    onSelectRow={(rowIndex)=>this.props.onSelectRowBuy(rowIndex)}
@@ -333,7 +354,7 @@ const Netting = React.createClass({
                    onSetStep = {page=>this.props.onSetPageBuy(page)}
                 />
                </div>
-               <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center`}>
+               <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center px-2`}>
                 <NettingDetailsTable_ 
                    type={1}
                    maxPagesCount={padgingTables.maxSell}
@@ -344,11 +365,14 @@ const Netting = React.createClass({
                    formatDateColumnIndex={[1]}
                    offsetColumnIndex = {13}
                    netColumnIndex = {0}
+                   currencySymbol={currencySymbol} 
+                   currencyColumnIndex={[6,7,8,9,10,11]}
                    formatNegativeNColumnIndex={[6,7,8,9,10,11,12]}
                    columns={columns__}
                    onSelectRow={(rowIndex)=>this.props.onSelectRowSell(rowIndex)}      
                    selectedRowIndex={selectedRowIndexSell}
-                   onSetStep = {page=>this.props.onSetPageSell(page)}      
+                   onSetStep = {page=>this.props.onSetPageSell(page)} 
+                       
                 />
                </div>                          
              </div>
@@ -363,7 +387,7 @@ const Netting = React.createClass({
 const NettingContainer = React.createClass({  
     getInitialState() {
     return {
-         netDate:-1,
+         netDate:CURRENT_DATE.getValue(),
          nettingAccount:-1,             
          nettingGroup:-1,
          nettingGroups:[],
@@ -665,6 +689,7 @@ const NettingContainer = React.createClass({
                 onSetPageSell = {step=>this.setPage(step,1)}
                 noData={noData}
                 isWaiting={isWaiting}
+                currencySymbol={CURRENCY_SYMBOL}
                 data={{detailedData,
                        totals,
                        offsets,
@@ -672,7 +697,6 @@ const NettingContainer = React.createClass({
                        selectedRowIndexSell,
                        nettingGroups
                       }}
-                currencySymbol={"$"}
                />
              </div>)
 	}
