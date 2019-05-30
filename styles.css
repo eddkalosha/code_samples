@@ -943,3 +943,11 @@ background:#f7f7f7 !important;
 background:#f7f7f7 !important;
 }
 
+.has-currency .currency {
+float:left;
+opacity: 0.3;
+}
+
+.has-currency .value {
+float:right;
+}
