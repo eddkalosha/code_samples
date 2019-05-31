@@ -19,6 +19,8 @@ const {userName,nodeId} =BPSystem;
 let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
 let CURRENT_DATE =  new BPUI.ReferenceObject(moment(new Date()).format('MM/DD/YYYY') );
 let NETTING_GROUPS =  new BPUI.ReferenceObject();
+const FIELD_APPROVE_INVOICE = "RecordStatus";
+const FIELD_KEY = "InvoiceID";
 const CURRENCY_SYMBOL = "$";
 const  TABLE_PAGE_COUNT = 100;
 
@@ -41,7 +43,8 @@ const queryMain = (account={
     "(i1.GrandTotalAmount-i1.CreditAmount+i1.PaymentAmount) AS OutstandingAmount, "+
     "n1.netting_statement AS Statement, "+
     "a1.nettinggroup, "+
-    "(bp1.PaymentTermDays || ' days') as  PaymentTermDays "+   
+    "(bp1.PaymentTermDays || ' days') as  PaymentTermDays, "+  
+    "0 as RecordStatus " +
     "FROM invoice i1 "+
     "JOIN billing_profile bp1 ON i1.billingprofileid = bp1.id "+
     "JOIN account a1 ON bp1.accountid = a1.id "+
@@ -181,7 +184,7 @@ const NettingDetailsTable_ = React.createClass({
 	    } = this.props;
     const {labels} = settings;
     const labelType = [[labels.tableTypeBuy],[labels.tableTypeSell]];
-    const columnsToHTML = columns.map((column,index)=><th className="py-4" scope="col" key={index}><div style={{width:column.width? column.width+'px':'100px'}}>{column.label}</div></th>);
+    const columnsToHTML = columns.map((column,index)=><th className="py-4_" scope="col" key={index}><div style={{width:column.width? column.width+'px':'100px'}}>{column.label}</div></th>);
 	const dataTmp = data.length>0? [...data].map(el=> {
         //calculation of offset field
         const index_ = offsets.findIndex(offsetEl=>+offsetEl.invoiceId===+el[keyFieldName]);
@@ -194,7 +197,7 @@ const NettingDetailsTable_ = React.createClass({
         :[];
 
     const dataToHTML_ =  dataTmp.map((el,index)=> (
-                  <tr className={`${selectedRowIndex.includes(+el[keyFieldName])?'bg-success':''}`}>
+                  <tr className={`${ +el[FIELD_APPROVE_INVOICE]!==0? 'disabled':selectedRowIndex.includes(+el[keyFieldName])?'bg-selected':''}`}>
                       	<td onClick={()=>this.props.onSelectRow(+el[keyFieldName])}><input type="checkbox" readOnly checked={selectedRowIndex.includes(+el[keyFieldName])} /></td>
                           {
                            columns.map((column,index)=>
@@ -217,7 +220,7 @@ const NettingDetailsTable_ = React.createClass({
     return(
         <div className="detail-table">
         <div className="row p-0 m-0">
-            <div className="divider">
+            <div className="divider pb-0">
                 <div className="dividerText py-2">{labelType[type] || null}
                 <BPUI.HelpText name={'tooltip'} shortHelp={labelType[type]+' table'} longHelp={[labels.tablesSelect]}/>
                 </div> 
@@ -349,7 +352,7 @@ const Netting = React.createClass({
                    type={0}
                    maxPagesCount={padgingTables.maxBuy}
                    currentPage={padgingTables.currentBuy}
-                   keyFieldName={'InvoiceID'}
+                   keyFieldName={FIELD_KEY}
                    data={detailedData.buy}
                    offsets={offsets.buy}
                    formatDateColumnIndex={[1]}
@@ -369,7 +372,7 @@ const Netting = React.createClass({
                    type={1}
                    maxPagesCount={padgingTables.maxSell}
                    currentPage={padgingTables.currentSell}
-                   keyFieldName={'InvoiceID'}
+                   keyFieldName={FIELD_KEY}
                    data={detailedData.sell}
                    offsets={offsets.sell}
                    formatDateColumnIndex={[1]}
@@ -548,8 +551,12 @@ const NettingContainer = React.createClass({
     async selectAllData(){
     //select all data for calculations by default
         const {detailedData} = this.state;
-      	const dataBuy = detailedData.buy.map(el=>(+el.InvoiceID));
-        const dataSell = detailedData.sell.map(el=>(+el.InvoiceID)); 
+          const dataBuy = detailedData.buy
+            .filter(el=>+el[FIELD_APPROVE_INVOICE]===0)
+            .map(el=>(+el.InvoiceID));
+        const dataSell = detailedData.sell
+            .filter(el=>+el[FIELD_APPROVE_INVOICE]===0)
+            .map(el=>(+el.InvoiceID)); 
         await this.setState({
             selectedRowIndexBuy:dataBuy,
             selectedRowIndexSell:dataSell,
@@ -568,10 +575,10 @@ const NettingContainer = React.createClass({
         let {selectedRowIndexBuy,selectedRowIndexSell,detailedData, totals} = this.state; 
         //calc totals
         const selectedDataBuy = [...detailedData.buy
-            .filter((el,index)=>selectedRowIndexBuy.includes(+el.InvoiceID))
+            .filter((el,index)=>selectedRowIndexBuy.includes(+el.InvoiceID) && +el[FIELD_APPROVE_INVOICE]===0)
             .sort((prev, next)=>+prev.InvoiceID < +next.InvoiceID)];
         const selectedDataSell = [...detailedData.sell
-            .filter((el,index)=>selectedRowIndexSell.includes(+el.InvoiceID))
+            .filter((el,index)=>selectedRowIndexSell.includes(+el.InvoiceID) && +el[FIELD_APPROVE_INVOICE]===0)
             .sort((prev, next)=>+prev.InvoiceID < +next.InvoiceID)];
         const buyInvoiceTotal_ = selectedDataBuy.reduce((acc,el,arr)=>acc+=+el.OutstandingAmount,0);
         const sellInvoiceTotal_ = selectedDataSell.reduce((acc,el,arr)=>acc+=+el.OutstandingAmount,0);
