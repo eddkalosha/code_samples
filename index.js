@@ -19,7 +19,7 @@ const {userName,nodeId} =BPSystem;
 let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
 let CURRENT_DATE =  new BPUI.ReferenceObject(moment(new Date()).format('MM/DD/YYYY') );
 let NETTING_GROUPS =  new BPUI.ReferenceObject();
-const CURRENCY_SYMBOL = "EUR";
+const CURRENCY_SYMBOL = "$";
 const  TABLE_PAGE_COUNT = 100;
 
 const queryMain = (account={
@@ -114,8 +114,8 @@ String.prototype.formatNumber = function(n = 2,x = 3){
 String.prototype.formatDate = function(){
     	try{ 
             const date_ = new Date(Date.parse(this)); 
-            return ('0' + date_.getDate()).slice(-2) + '/'
-             + ('0' + (date_.getMonth()+1)).slice(-2) + '/'
+            return ('0' + (date_.getMonth()+1)).slice(-2) + '/'+
+                ('0' + date_.getDate()).slice(-2) + '/'
              + date_.getFullYear()
     }catch(e){ console.error(e); return dateString}
 };
@@ -148,6 +148,11 @@ const settings = {
         userInput:('Input parameters'),
         switchtoOne:('Switch to 1-column view'),
         switchtoTwo:('Switch to 2-column view'),
+        step1Title:('Step 1'),
+        step1Descr:('Select Date, Company and Netting Group Code. Then you will see netting data.'),
+        step2Title:('Netting Totals'),
+        step2Descr:('Click [Save netting] button for save Netting results.'),
+        tablesSelect:('Choose/Unchoose the lines of this table for netting. For that click on checkbox for each line you want add for calculation.')
     }
 };
 
@@ -212,7 +217,12 @@ const NettingDetailsTable_ = React.createClass({
     return(
         <div className="detail-table">
         <div className="row p-0 m-0">
-            <div className="divider"><div className="dividerText py-2">{labelType[type] || null}</div> </div> 
+            <div className="divider">
+                <div className="dividerText py-2">{labelType[type] || null}
+                <BPUI.HelpText name={'tooltip'} shortHelp={labelType[type]+' table'} longHelp={[labels.tablesSelect]}/>
+                </div> 
+                
+            </div> 
         </div>                                                                           
         <div className="table-light-border">
     	 <div className="table-responsive">
@@ -275,12 +285,12 @@ const Netting = React.createClass({
      		<div className="row">
             <section className="section-user-input px-2 col-sm-6"> 
             <div className="row p-0 m-0">
-               <div className="divider"><div className="dividerText py-2">{[labels.userInput]}</div> </div> 
+               <div className="divider"><div className="dividerText py-2">{[labels.userInput]}<BPUI.HelpText name={'tooltip'} shortHelp={[labels.step1Title]} longHelp={[labels.step1Descr]}/></div> </div> 
             </div> 
                 <div className="row  p-0 m-0">
                     <div className="col-sm-6 pt-2"><img alt="" src="images/required.png"/>{[labels.netDate]}</div>
                     <div className="col-sm-6">
-                        <BPUI.InputField key="1112" className="dateselector" variable={CURRENT_DATE} placeholder="Click for select..." layout="plain" type="DATE_SELECTOR" onUpdate={(date,val2,val3)=>{this.props.onDateChange(date)}}/>                                    
+                        <BPUI.InputField key="1112" format="mm/dd/yy" className="dateselector" variable={CURRENT_DATE} placeholder="Click for select..." layout="plain" type="DATE_SELECTOR" onUpdate={(date,val2,val3)=>{this.props.onDateChange(date)}}/>                                    
                     </div>
                 </div>
                 <div className={`row p-0 m-0 pt-4 ${step<1?'disabled':''}`}>
@@ -309,7 +319,7 @@ const Netting = React.createClass({
             <section className="section-totals col-sm-6 px-2">
                 <div className="grey-block  pb-3">
                     <div className="row p-0 m-0">
-                    <div className="divider"><div className="dividerText py-2">{[labels.nettingTotals]}</div> </div> 
+                    <div className="divider"><div className="dividerText py-2">{[labels.nettingTotals]}<BPUI.HelpText name={'tooltip'} shortHelp={[labels.step2Title]} longHelp={[labels.step2Descr]}/></div> </div> 
                     </div>
                     {totalsToHTML}
                     {
