@@ -277,7 +277,7 @@ const Netting = React.createClass({
            
         let {padgingTables,step,isWaiting,noData,data,currencySymbol} = this.props ;
         padgingTables = padgingTables || {padgingTables:{maxBuy:0,currentBuy:0,maxSell:0,currentSell:0}};
-        const {nettingGroups,detailedData,offsets,totals,selectedRowIndexBuy,selectedRowIndexSell} = data || {selectedRowIndexBuy:[],selectedRowIndexSell:[],detailedData:{buy:[],sell:[]},offsets:{buy:[],sell:[]}};
+        const {nettingGroups,detailedData,offsets,totals,selectedRowIndexBuy,selectedGroup,selectedRowIndexSell} = data || {selectedRowIndexBuy:[],selectedRowIndexSell:[],detailedData:{buy:[],sell:[]},offsets:{buy:[],sell:[]}};
         const totalsToHTML = Object.values(totals || []).map(el=>
             <div className="row p-0 m-0 pt-4">
                 <div className="col-sm-6 text-right">{el.title}</div>
@@ -311,7 +311,7 @@ const Netting = React.createClass({
                         <span>{[labels.groupCode]}</span>     
                     </div>
                     <div className="col-sm-6 no-span">
-                        <select className="w-100" onChange={(e)=>{this.props.onChangeGroup(e.target.value)}}>
+                        <select className="w-100" value={selectedGroup} onChange={(e)=>{this.props.onChangeGroup(e.target.value)}}>
                             <option value='-1'>- Not selected -</option>
                             {nettingGroupsToHTML}
                         </select>
@@ -438,7 +438,7 @@ const NettingContainer = React.createClass({
     },
     async onAccChange(id){
        //dont call data load here, cause groupID depends on accountID
-      await this.setState({nettingAccount:id});
+       await this.setState({nettingAccount:id,nettingGroup:-1,noData:true});
       this.getData(queryTypes.GET_NETTING_GROUPS,{id})
     },
     async onGroupChange(id){
@@ -448,7 +448,7 @@ const NettingContainer = React.createClass({
     checkParams__then(callback){
         //check state parameters for know when to load all data with params
         const {netDate,nettingAccount,nettingGroup} = this.state;
-        if (netDate===-1 || nettingAccount===-1 /*|| nettingGroup===-1*/) {
+        if (netDate===-1 || nettingAccount===-1 || nettingGroup===-1) {
            console.warn('params are not ready');
         }else{
         callback()
@@ -689,7 +689,7 @@ const NettingContainer = React.createClass({
 	});
     },
     render(){
-    const {totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData,nettingGroups} = this.state;
+    const {totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData,nettingGroups,nettingGroup} = this.state;
     console.log('[render] NettingContainer',this.state);
         const nettingStep = (netDate === -1)? 0: (nettingAccount===-1)? 1:2; 
     	return(
@@ -715,7 +715,8 @@ const NettingContainer = React.createClass({
                        offsets,
                        selectedRowIndexBuy,
                        selectedRowIndexSell,
-                       nettingGroups
+                       nettingGroups,
+                       selectedGroup:nettingGroup
                       }}
                />
              </div>)
