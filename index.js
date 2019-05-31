@@ -152,7 +152,7 @@ const settings = {
         step1Descr:('Select Date, Company and Netting Group Code. Then you will see netting data.'),
         step2Title:('Netting Totals'),
         step2Descr:('Click [Save netting] button for save Netting results.'),
-        tablesSelect:('Choose/Unchoose the lines of this table for netting. For that click on checkbox for each line you want add for calculation.')
+        tablesSelect:('Choose/Unchoose the lines of this table for netting. For that click on checkbox for each line you want add for calculation. Totals of netting will be re-calculated automatically.')
     }
 };
 
