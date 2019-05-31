@@ -377,7 +377,7 @@ const Netting = React.createClass({
                    netColumnIndex = {0}
                    currencySymbol={currencySymbol} 
                    currencyColumnIndex={[6,7,8,9,10,11]}
-                   formatNegativeNColumnIndex={[6,7,8,9,10,11,12]}
+                   formatNegativeNColumnIndex={[6,7,8,9,10,11]}
                    columns={columns__}
                    onSelectRow={(rowIndex)=>this.props.onSelectRowSell(rowIndex)}      
                    selectedRowIndex={selectedRowIndexSell}
@@ -566,10 +566,13 @@ const NettingContainer = React.createClass({
     }, 
     calcOutputData(){
         let {selectedRowIndexBuy,selectedRowIndexSell,detailedData, totals} = this.state; 
-        //+ add sort data by InvoiceID
         //calc totals
-        const selectedDataBuy = [...detailedData.buy.filter((el,index)=>selectedRowIndexBuy.includes(+el.InvoiceID))];
-        const selectedDataSell = [...detailedData.sell.filter((el,index)=>selectedRowIndexSell.includes(+el.InvoiceID))];
+        const selectedDataBuy = [...detailedData.buy
+            .filter((el,index)=>selectedRowIndexBuy.includes(+el.InvoiceID))
+            .sort((prev, next)=>+prev.InvoiceID < +next.InvoiceID)];
+        const selectedDataSell = [...detailedData.sell
+            .filter((el,index)=>selectedRowIndexSell.includes(+el.InvoiceID))
+            .sort((prev, next)=>+prev.InvoiceID < +next.InvoiceID)];
         const buyInvoiceTotal_ = selectedDataBuy.reduce((acc,el,arr)=>acc+=+el.OutstandingAmount,0);
         const sellInvoiceTotal_ = selectedDataSell.reduce((acc,el,arr)=>acc+=+el.OutstandingAmount,0);
  		//sell offset max total  = sell offset
