@@ -33,7 +33,7 @@ const calculateWidthWidget = () => {
         let CURRENT_DATE =  new BPUI.ReferenceObject(moment(new Date()).format('MM/DD/YYYY') );
         let NETTING_GROUPS =  new BPUI.ReferenceObject();
         let WIDGET_WIDTH = calculateWidthWidget()+'px';
-            let UPDATE_RESIZE_TIMEOUT = 1000;//ms delay for window.resize re-calc width of component
+            let UPDATE_RESIZE_TIMEOUT = 500;//ms delay for window.resize re-calc width of component
             let UPDATE_RESIZE_QUEED = null; 
     
         
@@ -554,16 +554,17 @@ const calculateWidthWidget = () => {
               this.selectAllData();
             },       
             componentDidMount(){
-                window.addEventListener('resize', ()=>{
-                 if (UPDATE_RESIZE_QUEED) clearTimeout(UPDATE_RESIZE_QUEED);
-                 UPDATE_RESIZE_QUEED = setTimeout(() =>  this.forceUpdate(), UPDATE_RESIZE_TIMEOUT);
-                 });
+                 $(window).on("resize",  ()=>{
+                        if (UPDATE_RESIZE_QUEED) clearTimeout(UPDATE_RESIZE_QUEED);
+                        UPDATE_RESIZE_QUEED = setTimeout(() =>  this.forceUpdate(), UPDATE_RESIZE_TIMEOUT);
+                        });
                // const savedStateData = window.localStorage.widget_state_data;
               //  if (savedStateData) this.setState(JSON.parse(savedStateData))
               console.log('[didmounted] NettingContainer');
             },
             componentWillUnmount() {
-              window.removeEventListener('resize',()=> this.forceUpdate())
+                $(window).off("resize", ()=>this.forceUpdate());
+              //window.removeEventListener('resize',()=> this.forceUpdate())
             },
             componentDidUpdate(props,state){
              //save state 
