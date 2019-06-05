@@ -744,7 +744,7 @@ const calculateWidthWidget = () => {
             window.BPActions.showDialog(resStatus?"modalDlg_success":"modalDlg_error", {
               resizable: false, 
               draggable: true, 
-              title: [labels.dlgTitle], 
+              title: [settings.labels.dlgTitle], 
               modal: true, 
               width: 390, 
               maxHeight: (window.innerHeight * 2 / 2), 
