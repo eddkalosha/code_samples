@@ -25,19 +25,20 @@ const calculateWidthWidget = () => {
         const ver = React.version;
         const {userName,nodeId} =BPSystem;
         const FIELD_APPROVE_INVOICE = "InvoiceStatus";
-        const FIELD_KEY = "InvoiceID";
-        const ALLOWED_INVOICES = ["OPEN","CLOSED","APPROVED"];
+        const FIELD_KEY = "InvoiceID"; // field for calculation and filter of calc results
+        const ALLOWED_INVOICES = ["READY"]; //for this statuses of invoices we can do Netting
+        const DATE_FORMATTER = {DB:'YYYY-MM-DD' , UI:'MM/DD/YYYY'};
         const CURRENCY_SYMBOL = "$";
         const  TABLE_PAGE_COUNT = 100;
         let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
-        let CURRENT_DATE =  new BPUI.ReferenceObject(moment(new Date()).format('MM/DD/YYYY') );
+        let CURRENT_DATE =  new BPUI.ReferenceObject(moment(new Date()).format(DATE_FORMATTER.UI) );
         let NETTING_GROUPS =  new BPUI.ReferenceObject();
         let WIDGET_WIDTH = calculateWidthWidget()+'px';
-            let UPDATE_RESIZE_TIMEOUT = 500;//ms delay for window.resize re-calc width of component
-            let UPDATE_RESIZE_QUEED = null; 
+        let UPDATE_RESIZE_TIMEOUT = 500;//ms delay for window.resize re-calc width of component
+        let UPDATE_RESIZE_QUEED = null; 
     
         
-        const queryMain = (account={
+        const queryMain = (dueDate = moment(new Date()).format(DATE_FORMATTER.DB),account={
                             accountType:'',
                             accountID:-1,
                                nettingGroup:''},
@@ -54,14 +55,15 @@ const calculateWidthWidget = () => {
             "i1.GrandTotalAmount AS InvoiceCharges, "+
             "i1.PaymentAmount AS Payments,  "+
             "i1.CreditAmount AS Adjustments, "+
-            "(i1.GrandTotalAmount-i1.CreditAmount+i1.PaymentAmount) AS OutstandingAmount, "+
+            "(i1.GrandTotalAmount-i1.CreditAmount-i1.PaymentAmount) AS OutstandingAmount, "+
             "n1.netting_statement AS Statement, "+
             "a1.nettinggroup, "+
-            "(bp1.PaymentTermDays || ' days') as  PaymentTermDays, "+  
-            "CASE WHEN i1.status = 'CURRENT' THEN 'OPEN' "+ 
-                    "WHEN i1.status = 'CLOSED' and i1.ApprovalStatus <> 'APPROVED' THEN 'CLOSED' "+ 
-                    "WHEN i1.status = 'CLOSED' and i1.ApprovalStatus = 'APPROVED' and i1.netted_id IS NULL THEN 'APPROVED' "+
-                    "ELSE 'NETTED' END as InvoiceStatus "+
+            "(bp1.PaymentTermDays || ' days') AS  PaymentTermDays, "+
+            "CASE "+
+            "WHEN i1.netted_id IS NOT NULL THEN 'NETTED'  "+
+            "WHEN i1.netted_id IS NULL AND i1.ApprovalStatus = 'APPROVED' AND i1.DueDate<='"+moment(dueDate).format(DATE_FORMATTER.DB)+"' THEN 'READY' "+ 
+            "ELSE 'INELIGIBLE'  "+
+            " END as InvoiceStatus "+
             "FROM invoice i1 "+
             "JOIN billing_profile bp1 ON i1.billingprofileid = bp1.id "+
             "JOIN account a1 ON bp1.accountid = a1.id "+
@@ -72,7 +74,7 @@ const calculateWidthWidget = () => {
            // "AND i1.status = 'CLOSED' "+
             "ORDER BY i1.id ASC OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
         
-        const queryMainRowCount = (account={
+        const queryMainRowCount = (dueDate = moment(new Date()).format(DATE_FORMATTER.DB),account={
                                     accountType:'',
                                     accountID:-1,
                                     nettingGroup:''}) =>
@@ -104,21 +106,17 @@ const calculateWidthWidget = () => {
             GET_NETTING_GROUPS: String('GET_NETTING_GROUPS'),
         };
         
-        const columns__ = [
-               
+        const columns__ = [      
         {field:'InvoiceID', label:'Invoice ID'},
         {field:'NetDate', label:'Net Date', width:'100'},
-       // {field:'InvoiceStatus', label:'Invoice s'},	
         {field:'AccountId', label:'Account Id', width:'100'},	
-        {field:'Account', label:'Account Number', width:'100'},
-        //{field:'bProfileID', label:'bProfileID ', width:'100'}, 	
+        {field:'Account', label:'Account Number', width:'100'},	
         {field:'AccountName', label:'Account Name', width:'250'},		
         {field:'InvoiceStatus', label:'Status', width:'100'},	
         {field:'InvoiceCharges', label:'Invoice Charges', width:'100'},	
         {field:'Payments', label:'Payments', width:'100'},	
         {field:'Adjustments', label:'Adjustments', width:'100'},
         {field:'Offset', label:'Offset', width:'100'},
-        //{field:'OutstandingAmount', label:'Outstanding Amount', width:'100'},
         {field:'OutstandingAmountTotal', label:'Outstanding Amount', width:'100'},	
         {field:'PaymentTermDays',label:'Pay terms', width:'100'},
         {field:'Statement', label:'Statement', width:'100'}
@@ -134,12 +132,7 @@ const calculateWidthWidget = () => {
             return this_.toFixed(Math.max(0, ~~n)).replace(new RegExp(re,'g'),"$"+'&,');
         }
         String.prototype.formatDate = function(){
-                try{ 
-                    const date_ = new Date(Date.parse(this)); 
-                    return ('0' + (date_.getMonth()+1)).slice(-2) + '/'+
-                        ('0' + date_.getDate()).slice(-2) + '/'
-                     + date_.getFullYear()
-            }catch(e){ console.error(e); return dateString}
+               return moment(this).format(DATE_FORMATTER.UI)
         };
         String.prototype.replaceIfNegativeNumber = function(){
             return /^-/.test(this)? '('+(this.replace('-',''))+')':this.toString()
@@ -174,7 +167,9 @@ const calculateWidthWidget = () => {
                 step1Descr:('Select Date, Company and Netting Group Code. Then you will see netting data.'),
                 step2Title:('Netting Totals'),
                 step2Descr:('Click [Save netting] button for save Netting results.'),
-                tablesSelect:('Choose/Unchoose the lines of this table for netting. For that click on checkbox for each line you want add for calculation. Totals of netting will be re-calculated automatically.')
+                tablesSelect:('Choose/Unchoose the lines of this table for netting. For that click on checkbox for each line you want add for calculation. Totals of netting will be re-calculated automatically.'),
+                groupIsNotSelected:('- Not selected - '),
+                dlgTitle:('Netting data was send')
             }
         };
         
@@ -280,7 +275,7 @@ const calculateWidthWidget = () => {
                 })
             },
             render(){
-            console.log('[NettingComponent] props',this.props);
+            console.log('[NettingComponent] props',this.props, this);
                 const {twoColView} = this.state;
                 const {labels} = settings;
                 const preLoader = (<div className="col-sm-12">
@@ -331,7 +326,7 @@ const calculateWidthWidget = () => {
                             </div>
                             <div className="col-sm-6 no-span">
                                 <select className="w-100" value={selectedGroup} onChange={(e)=>{this.props.onChangeGroup(e.target.value)}}>
-                                    <option value='-1'>- Not selected -</option>
+                                    <option value='-1'>{[labels.groupIsNotSelected]}</option>
                                     {nettingGroupsToHTML}
                                 </select>
                             </div>
@@ -401,15 +396,13 @@ const calculateWidthWidget = () => {
                            columns={columns__}
                            onSelectRow={(rowIndex)=>this.props.onSelectRowSell(rowIndex)}      
                            selectedRowIndex={selectedRowIndexSell}
-                           onSetStep = {page=>this.props.onSetPageSell(page)} 
-                               
+                           onSetStep = {page=>this.props.onSetPageSell(page)}      
                         />
                        </div>                          
                      </div>
                     </section>  
-                }  
-                               
-                      </div>
+                }            
+               </div>
             </div>)
             }
         });
@@ -502,26 +495,23 @@ const calculateWidthWidget = () => {
                 try {
                 switch(type){
                   case queryTypes.GET_INVOICES_BUY:{
-                    
-                        const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountBuy,offsetRows)).collection()]);
-                      const resList =  res.elements;
-                      await this.setState({detailedData:{...this.state.detailedData,buy:resList}});
-                     
-                    break;}
+                          const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(netDate,accountBuy,offsetRows)).collection()]);
+                          const resList =  res.elements;
+                          await this.setState({detailedData:{...this.state.detailedData,buy:resList}});
+                          break;
+                        }
                   case queryTypes.GET_INVOICES_SELL:{
-                    
-                      const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(accountSell,offsetRows)).collection()]);
-                      const resList =  res.elements;
-                      await this.setState({detailedData:{...this.state.detailedData,sell:resList}});
-           
-                      break;}
+                          const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(netDate,accountSell,offsetRows)).collection()]);
+                          const resList =  res.elements;
+                          await this.setState({detailedData:{...this.state.detailedData,sell:resList}});
+                          break;
+                        }
                   case queryTypes.GET_PAGESCOUNT_BUY:{ 
-                       const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountBuy)).single()]);
+                       const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMainRowCount(netDate,accountBuy)).single()]);
                       await this.setState({padgingTables:{...this.state.padgingTables,maxBuy: Math.ceil(+res.rowCount/TABLE_PAGE_COUNT)-1}});
-                
                       break;}
                   case queryTypes.GET_PAGESCOUNT_SELL:{
-                 const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMainRowCount(accountSell)).single()]);
+                 const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMainRowCount(netDate,accountSell)).single()]);
                       await this.setState({padgingTables:{...this.state.padgingTables,maxSell: Math.ceil(+res.rowCount/TABLE_PAGE_COUNT)-1}});
   
                       break;}
@@ -529,7 +519,6 @@ const calculateWidthWidget = () => {
                           const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryNettGroups(params.id)).collection()]);
                       const resList = res.elements;
                       await this.setState({nettingGroups:resList});
-   
                       break;}
                   default : return false;
                   
@@ -545,8 +534,7 @@ const calculateWidthWidget = () => {
                         this.getData(queryTypes.GET_INVOICES_SELL),
                         this.getData(queryTypes.GET_PAGESCOUNT_BUY),
                         this.getData(queryTypes.GET_PAGESCOUNT_SELL)
-              ]);   
-              console.log('get data invoices',[buyInv,sellInv])       
+              ]);      
               await this.setState({
                   isWaiting:false, 
                   noData:!(buyInv&&sellInv&&buyCount&&sellCount)
@@ -554,8 +542,9 @@ const calculateWidthWidget = () => {
               this.selectAllData();
             },       
             componentDidMount(){
-                 $(window).on("resize",  ()=>{
-                        if (UPDATE_RESIZE_QUEED) clearTimeout(UPDATE_RESIZE_QUEED);
+                $(window).on("resize",  ()=>{
+                console.warn('...widget resized...');
+                 if (UPDATE_RESIZE_QUEED) clearTimeout(UPDATE_RESIZE_QUEED);
                         UPDATE_RESIZE_QUEED = setTimeout(() =>  this.forceUpdate(), UPDATE_RESIZE_TIMEOUT);
                         });
                // const savedStateData = window.localStorage.widget_state_data;
@@ -695,14 +684,14 @@ const calculateWidthWidget = () => {
              const nettingResults  = {
                 account_id: this.state.nettingAccount,
                 company:companyLabel,
-                due_date:moment(this.state.netDate).format('YYYY-MM-DD'),
+                due_date:moment(this.state.netDate).format(DATE_FORMATTER.DB),
                 netting_group:this.state.nettingGroup,
                 buy_total:this.state.totals.buyInvoiceTotal.value,
                 sell_total:this.state.totals.sellInvoiceTotal.value,
                 sell_pay_term:60,
                 buy_pay_term:30,
                 netted_amount:this.state.totals.netAmount.value,
-                netted_as_of_date:moment(this.state.netDate).format('YYYY-MM-DD'),
+                netted_as_of_date:moment(this.state.netDate).format(DATE_FORMATTER.DB),
                 reversal_date:null,
                 netted_status: 'PROCESSED',
                 netting_statement: null
@@ -725,7 +714,7 @@ const calculateWidthWidget = () => {
                         Autoallocate:1, 
                         PaymentType:'CASH',
                         PaymentNote:'##### Netting test',
-                        PaymentDate:moment(new Date()).format('YYYY-MM-DD')
+                        PaymentDate:moment(new Date()).format(DATE_FORMATTER.DB)
                 })));
             // * * * * * *  step 4
             const paymentsId = addPaymentsToInvoices.map((el,index)=>({
@@ -755,7 +744,7 @@ const calculateWidthWidget = () => {
             window.BPActions.showDialog(resStatus?"modalDlg_success":"modalDlg_error", {
               resizable: false, 
               draggable: true, 
-              title: "Netting data was send", 
+              title: [settings.labels.dlgTitle], 
               modal: true, 
               width: 390, 
               maxHeight: (window.innerHeight * 2 / 2), 
@@ -777,7 +766,7 @@ const calculateWidthWidget = () => {
             const nettingStep = (netDate === -1)? 0: (nettingAccount===-1)? 1:2;
             WIDGET_WIDTH = calculateWidthWidget()+'px';   
                 return(
-                     <div className="netting-container netting-container-wrapper" style={{width:WIDGET_WIDTH}}>
+                     <div className="netting-container" style={{width:WIDGET_WIDTH}}>
                      <NavToolBar />
                       <Netting
                         step={nettingStep}
