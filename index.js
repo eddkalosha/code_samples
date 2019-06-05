@@ -191,7 +191,7 @@ const calculateWidthWidget = () => {
         
         const NettingDetailsTable_ = React.createClass({
             render() { 
-            console.log('[render] NettingDetailsTable_',this.props);
+                console.log('%c [render] ' + this.constructor.displayName,'color:red',this.props);
             const {type,data,offsets,maxPagesCount,keyFieldName,columns,onSetStep,currentPage,
                 selectedRowIndex,formatDateColumnIndex : FDC, formatNegativeNColumnIndex : FNI,
                 currencyColumnIndex, currencySymbol
@@ -275,7 +275,7 @@ const calculateWidthWidget = () => {
                 })
             },
             render(){
-            console.log('[NettingComponent] props',this.props, this);
+             console.log('%c [render] ' + this.constructor.displayName,'color:red',this.props);
                 const {twoColView} = this.state;
                 const {labels} = settings;
                 const preLoader = (<div className="col-sm-12">
@@ -744,7 +744,7 @@ const calculateWidthWidget = () => {
             window.BPActions.showDialog(resStatus?"modalDlg_success":"modalDlg_error", {
               resizable: false, 
               draggable: true, 
-              title: [settings.labels.dlgTitle], 
+              title: [labels.dlgTitle], 
               modal: true, 
               width: 390, 
               maxHeight: (window.innerHeight * 2 / 2), 
@@ -761,8 +761,8 @@ const calculateWidthWidget = () => {
             });
             },
             render(){
+           console.log('%c [render] ' + this.constructor.displayName,'color:red',this.state);
             const {totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData,nettingGroups,nettingGroup} = this.state;
-            console.log('[render] NettingContainer',this.state);
             const nettingStep = (netDate === -1)? 0: (nettingAccount===-1)? 1:2;
             WIDGET_WIDTH = calculateWidthWidget()+'px';   
                 return(
