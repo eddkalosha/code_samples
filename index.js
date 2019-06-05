@@ -50,7 +50,7 @@ const calculateWidthWidget = () => {
             "a1.Name AS AccountName, "+
             "i1.billingprofileid as bProfileID, "+
             "i1.id AS InvoiceID, "+
-            "i1.status AS Status, "+
+           // "i1.status AS Status, "+
             "i1.GrandTotalAmount AS InvoiceCharges, "+
             "i1.PaymentAmount AS Payments,  "+
             "i1.CreditAmount AS Adjustments, "+
@@ -108,12 +108,12 @@ const calculateWidthWidget = () => {
                
         {field:'InvoiceID', label:'Invoice ID'},
         {field:'NetDate', label:'Net Date', width:'100'},
-        {field:'InvoiceStatus', label:'Invoice s'},	
+       // {field:'InvoiceStatus', label:'Invoice s'},	
         {field:'AccountId', label:'Account Id', width:'100'},	
         {field:'Account', label:'Account Number', width:'100'},
         //{field:'bProfileID', label:'bProfileID ', width:'100'}, 	
         {field:'AccountName', label:'Account Name', width:'250'},		
-        {field:'Status', label:'Status', width:'100'},	
+        {field:'InvoiceStatus', label:'Status', width:'100'},	
         {field:'InvoiceCharges', label:'Invoice Charges', width:'100'},	
         {field:'Payments', label:'Payments', width:'100'},	
         {field:'Adjustments', label:'Adjustments', width:'100'},
@@ -686,7 +686,7 @@ const calculateWidthWidget = () => {
              *  2. get ID of total_result
              *  3. insert data (invoices) into payments table (create Payments) with ID of step 2
              *  4. get ID's of Payments
-             *  5. insert data (invoices) with payments ID of them from step 3
+             *  5. insert data (invoices) into payments_allocation with payments ID of them from step 3
              *  6. upsert data in invoice table (ID, netted_id)
              */
             const lookupText = document.querySelector('.lookup23__ input[type="text"]');
