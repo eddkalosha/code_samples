@@ -24,8 +24,9 @@ const calculateWidthWidget = () => {
         BPSystem.initialize();
         const ver = React.version;
         const {userName,nodeId} =BPSystem;
-        const FIELD_APPROVE_INVOICE = "RecordStatus";
+        const FIELD_APPROVE_INVOICE = "InvoiceStatus";
         const FIELD_KEY = "InvoiceID";
+        const ALLOWED_INVOICES = ["OPEN","CLOSED","APPROVED"];
         const CURRENCY_SYMBOL = "$";
         const  TABLE_PAGE_COUNT = 100;
         let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
@@ -57,7 +58,6 @@ const calculateWidthWidget = () => {
             "n1.netting_statement AS Statement, "+
             "a1.nettinggroup, "+
             "(bp1.PaymentTermDays || ' days') as  PaymentTermDays, "+  
-            "0 as RecordStatus, " +
             "CASE WHEN i1.status = 'CURRENT' THEN 'OPEN' "+ 
                     "WHEN i1.status = 'CLOSED' and i1.ApprovalStatus <> 'APPROVED' THEN 'CLOSED' "+ 
                     "WHEN i1.status = 'CLOSED' and i1.ApprovalStatus = 'APPROVED' and i1.netted_id IS NULL THEN 'APPROVED' "+
@@ -69,7 +69,7 @@ const calculateWidthWidget = () => {
             "WHERE 1=1 "+
                (account.nettingGroup =='Unassigned'?" AND a1.AccountNumber  = "+account.accountID+" ":" AND a1.nettinggroup = '"+account.nettingGroup+"' ")+
             "AND a1.AccountType = '"+account.accountType+"' "+
-            "AND i1.status = 'CLOSED' "+
+           // "AND i1.status = 'CLOSED' "+
             "ORDER BY i1.id ASC OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
         
         const queryMainRowCount = (account={
@@ -83,8 +83,8 @@ const calculateWidthWidget = () => {
             "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
             "WHERE 1=1 "+
             (account.nettingGroup =='Unassigned'?" AND a1.AccountNumber  = "+account.accountID+" ":"AND a1.nettinggroup = '"+account.nettingGroup+"' ")+
-            "AND a1.AccountType = '"+account.accountType+"' "+
-            "AND i1.status = 'CLOSED' "
+            "AND a1.AccountType = '"+account.accountType+"' "//+
+           // "AND i1.status = 'CLOSED' "
            );
         
         const queryNettGroups = (accountID = -1) =>( 
@@ -106,11 +106,12 @@ const calculateWidthWidget = () => {
         
         const columns__ = [
                
-        {field:'InvoiceID', label:'Invoice ID'},	
-        {field:'NetDate', label:'Net Date', width:'100'},	
+        {field:'InvoiceID', label:'Invoice ID'},
+        {field:'NetDate', label:'Net Date', width:'100'},
+        {field:'InvoiceStatus', label:'Invoice s'},	
         {field:'AccountId', label:'Account Id', width:'100'},	
         {field:'Account', label:'Account Number', width:'100'},
-        {field:'bProfileID', label:'bProfileID ', width:'100'}, 	
+        //{field:'bProfileID', label:'bProfileID ', width:'100'}, 	
         {field:'AccountName', label:'Account Name', width:'250'},		
         {field:'Status', label:'Status', width:'100'},	
         {field:'InvoiceCharges', label:'Invoice Charges', width:'100'},	
@@ -215,7 +216,7 @@ const calculateWidthWidget = () => {
                 :[];
         
             const dataToHTML_ =  dataTmp.map((el,index)=> (
-                          <tr className={`${ +el[FIELD_APPROVE_INVOICE]!==0? 'disabled':selectedRowIndex.includes(+el[keyFieldName])?'bg-selected':''}`}>
+                          <tr className={`${ ALLOWED_INVOICES.includes(el[FIELD_APPROVE_INVOICE])? selectedRowIndex.includes(+el[keyFieldName])?'bg-selected':'':'disabled'}`}>
                                   <td onClick={()=>this.props.onSelectRow(+el[keyFieldName])}><input type="checkbox" readOnly checked={selectedRowIndex.includes(+el[keyFieldName])} /></td>
                                   {
                                    columns.map((column,index)=>
@@ -553,7 +554,6 @@ const calculateWidthWidget = () => {
               this.selectAllData();
             },       
             componentDidMount(){
-             // this.getDataInvoices()
                 window.addEventListener('resize', ()=>{
                  if (UPDATE_RESIZE_QUEED) clearTimeout(UPDATE_RESIZE_QUEED);
                  UPDATE_RESIZE_QUEED = setTimeout(() =>  this.forceUpdate(), UPDATE_RESIZE_TIMEOUT);
@@ -585,10 +585,10 @@ const calculateWidthWidget = () => {
             //select all data for calculations by default
                 const {detailedData} = this.state;
                   const dataBuy = detailedData.buy
-                    .filter(el=>+el[FIELD_APPROVE_INVOICE]===0)
+                    .filter(el=>ALLOWED_INVOICES.includes(el[FIELD_APPROVE_INVOICE]))
                     .map(el=>(+el.InvoiceID));
                 const dataSell = detailedData.sell
-                    .filter(el=>+el[FIELD_APPROVE_INVOICE]===0)
+                    .filter(el=>ALLOWED_INVOICES.includes(el[FIELD_APPROVE_INVOICE]))
                     .map(el=>(+el.InvoiceID)); 
                 await this.setState({
                     selectedRowIndexBuy:dataBuy,
@@ -608,10 +608,10 @@ const calculateWidthWidget = () => {
                 let {selectedRowIndexBuy,selectedRowIndexSell,detailedData, totals} = this.state; 
                 //calc totals
                 const selectedDataBuy = [...detailedData.buy
-                    .filter((el,index)=>selectedRowIndexBuy.includes(+el.InvoiceID) && +el[FIELD_APPROVE_INVOICE]===0)
+                    .filter((el,index)=>selectedRowIndexBuy.includes(+el.InvoiceID) && ALLOWED_INVOICES.includes(el[FIELD_APPROVE_INVOICE]))
                     .sort((prev, next)=>+prev.InvoiceID < +next.InvoiceID)];
                 const selectedDataSell = [...detailedData.sell
-                    .filter((el,index)=>selectedRowIndexSell.includes(+el.InvoiceID) && +el[FIELD_APPROVE_INVOICE]===0)
+                    .filter((el,index)=>selectedRowIndexSell.includes(+el.InvoiceID) && ALLOWED_INVOICES.includes(el[FIELD_APPROVE_INVOICE]))
                     .sort((prev, next)=>+prev.InvoiceID < +next.InvoiceID)];
                 const buyInvoiceTotal_ = selectedDataBuy.reduce((acc,el,arr)=>acc+=+el.OutstandingAmount,0);
                 const sellInvoiceTotal_ = selectedDataSell.reduce((acc,el,arr)=>acc+=+el.OutstandingAmount,0);
@@ -681,6 +681,14 @@ const calculateWidthWidget = () => {
             },
             async saveCalcData(){
             //+ add check if not empty data
+            /** 
+             *  1. insert data (totals) into netting_results
+             *  2. get ID of total_result
+             *  3. insert data (invoices) into payments table (create Payments) with ID of step 2
+             *  4. get ID's of Payments
+             *  5. insert data (invoices) with payments ID of them from step 3
+             *  6. upsert data in invoice table (ID, netted_id)
+             */
             const lookupText = document.querySelector('.lookup23__ input[type="text"]');
             const companyLabel  = lookupText? lookupText.value : '';    
              const nettingResults  = {
@@ -701,12 +709,16 @@ const calculateWidthWidget = () => {
                 
             let resStatus = null;  
                 try{
+            // * * * * * *  step 1
             const createNettingResult = await BPConnection.netting.create(nettingResults);
+            const invoicesArr = this.state.offsets.buy.concat(this.state.offsets.sell);
+            // * * * * * *  step 2
             const nettedId_ = createNettingResult[0].Id;
             console.log('[Save data] netted_result -> OK');
+            // * * * * * *  step 3
             const addPaymentsToInvoices = await BPConnection.Payment.create(
-            this.state.offsets.buy.concat(this.state.offsets.sell).map(el=>({
-                        Amount:1, // el.offset
+             invoicesArr.map(el=>({
+                        Amount:el.offset,
                         BillingProfileId:el.billingId,
                         netted_id:nettedId_,
                         Autoallocate:1, 
@@ -714,8 +726,27 @@ const calculateWidthWidget = () => {
                         PaymentNote:'##### Netting test',
                         PaymentDate:moment(new Date()).format('YYYY-MM-DD')
                 })));
-            console.log('[Save data] invoices offsets -> OK');   
-          resStatus = true;
+            // * * * * * *  step 4
+            const paymentsId = addPaymentsToInvoices.map((el,index)=>({
+                    PaymentItemId:el.Id,
+                    InvoiceId:invoicesArr[index].invoiceId,
+                    Amount:invoicesArr[index].offset
+                })); 
+            console.log('[Save data] invoices payments -> ',invoicesArr.length===paymentsId.length);
+            if (invoicesArr.length===paymentsId.length) {
+          // * * * * * *  step 5
+                const addAllocationsToInvoices = await  BPConnection.PaymentAllocation.create(paymentsId);
+            console.log('[Save data] invoices allocation -> OK');
+           // * * * * * *  step 6
+           const updateInvoiceTable = await BPConnection.INVOICE.upsert(invoicesArr.map(el=>({
+                Id:el.invoiceId,
+                netted_id:nettedId_ 
+           })))
+           console.log('[Save data] update invoices -> OK');
+                resStatus = true;
+                } else {
+                        resStatus = false;       
+                }
                 }catch(e){
             resStatus = false;    
                 }
@@ -730,11 +761,13 @@ const calculateWidthWidget = () => {
               dialogClass: 'dialog-lookup', 
               maxWidth: 450,
               buttons: [{
-                text: "Ok",
-                click: function () {
-                    window.BPActions.closeDialog("modalDlg_success")
-                }}]
-                                                           
+                text: "OK",
+                click:  ()=> {
+                    window.BPActions.closeDialog(resStatus?"modalDlg_success":"modalDlg_error");
+                    if (resStatus){
+                        this.getDataInvoices();
+                    }
+                }}]                                            
             });
             },
             render(){
