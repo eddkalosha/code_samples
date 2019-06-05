@@ -777,7 +777,7 @@ const calculateWidthWidget = () => {
             const nettingStep = (netDate === -1)? 0: (nettingAccount===-1)? 1:2;
             WIDGET_WIDTH = calculateWidthWidget()+'px';   
                 return(
-                     <div style={{width:WIDGET_WIDTH}}>
+                     <div className="netting-container netting-container-wrapper" style={{width:WIDGET_WIDTH}}>
                      <NavToolBar />
                       <Netting
                         step={nettingStep}
