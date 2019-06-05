@@ -967,3 +967,8 @@ float:right;
 background: #dcf4fc !important;
     border-color: #d2e7ef !important;
 }
+
+.netting-container, .section-totals{
+  -webkit-transition: width 0.5s, height 0.5s; /* For Safari 3.1 to 6.0 */
+  transition: width 0.5s, height 0.5s;
+}
