@@ -705,6 +705,7 @@ const calculateWidthWidget = () => {
             // * * * * * *  step 2
             const nettedId_ = createNettingResult[0].Id;
             console.log('[Save data] netted_result -> OK');
+            
             // * * * * * *  step 3
             const addPaymentsToInvoices = await BPConnection.Payment.create(
              invoicesArr.map(el=>({
@@ -721,18 +722,28 @@ const calculateWidthWidget = () => {
                     PaymentItemId:el.Id,
                     InvoiceId:invoicesArr[index].invoiceId,
                     Amount:invoicesArr[index].offset
-                })); 
+                }));
+             
+
             console.log('[Save data] invoices payments -> ',invoicesArr.length===paymentsId.length);
             if (invoicesArr.length===paymentsId.length) {
           // * * * * * *  step 5
                 const addAllocationsToInvoices = await  BPConnection.PaymentAllocation.create(paymentsId);
+            
             console.log('[Save data] invoices allocation -> OK');
            // * * * * * *  step 6
            const updateInvoiceTable = await BPConnection.INVOICE.upsert(invoicesArr.map(el=>({
                 Id:el.invoiceId,
                 netted_id:nettedId_ 
            })))
+           
            console.log('[Save data] update invoices -> OK');
+
+           console.log('%c [undo actions] * * * DO IT FOR UNDO * * *','color:blue');
+           console.log('%c [undo actions] const res1 = await BPConnection.INVOICE.upsert('+JSON.stringify(updateInvoiceTable.map(el=>({Id:el.Id,netted_id:null})))+');','color:blue');
+           console.log('%c [undo actions] const res2 = await BPConnection.Payment.delete('+JSON.stringify(addPaymentsToInvoices.map(el=>({Id:el.Id})))+')','color:blue');
+           console.log('%c [undo actions] const res3 = await BPConnection.netting.delete({Id:'+nettedId_+'})','color:blue'); 
+           console.log('%c [undo actions] console.log(res1,res2,res3)','color:blue'); 
                 resStatus = true;
                 } else {
                         resStatus = false;       
