@@ -173,7 +173,7 @@ const calculateWidthWidget = () => {
                 tablesSelect:('Choose/Unchoose the lines of this table for netting. For that click on checkbox for each line you want add for calculation. Totals of netting will be re-calculated automatically.'),
                 groupIsNotSelected:('- Not selected - '),
                 dlgTitle:('Netting data was send'),
-                loadedPreviousText:('Widget was loaded from session of last usage. Since that time data can be changed.')
+                loadedPreviousText:('Widget was loaded from session of last usage. Since that time data could be changed. Click here to close.')
             }
         };
         
@@ -752,6 +752,7 @@ const calculateWidthWidget = () => {
            console.log('%c [undo actions] * * * DO IT FOR UNDO * * *','color:blue');
            console.log('%c [undo actions] const res1 = await BPConnection.INVOICE.upsert('+JSON.stringify(updateInvoiceTable.map(el=>({Id:el.Id,netted_id:null})))+');','color:blue');
            console.log('%c [undo actions] const res2 = await BPConnection.Payment.delete('+JSON.stringify(addPaymentsToInvoices.map(el=>({Id:el.Id})))+')','color:blue');
+           console.log('%c [undo actions] const res2 = await BPConnection.Payment.upsert('+JSON.stringify(addPaymentsToInvoices.map(el=>({Id:el.Id,netted_id:null})))+')','color:blue');
            console.log('%c [undo actions] const res3 = await BPConnection.netting.delete({Id:'+nettedId_+'})','color:blue'); 
            console.log('%c [undo actions] console.log(res1,res2,res3)','color:blue'); 
                 resStatus = true;
