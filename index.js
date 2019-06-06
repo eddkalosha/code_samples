@@ -23,16 +23,19 @@ const calculateWidthWidget = () => {
         
         BPSystem.initialize();
         const ver = React.version;
-        const {userName,nodeId} =BPSystem;
+        const SAVE_STATE_VARIABLE = 'widget_state_data'; //save to local storage
+        const SAVE_USERINPUT_VARIABLE = "user_state_data"
         const FIELD_APPROVE_INVOICE = "InvoiceStatus";
         const FIELD_KEY = "InvoiceID"; // field for calculation and filter of calc results
         const ALLOWED_INVOICES = ["READY"]; //for this statuses of invoices we can do Netting
         const DATE_FORMATTER = {DB:'YYYY-MM-DD' , UI:'MM/DD/YYYY'};
         const CURRENCY_SYMBOL = "$";
         const  TABLE_PAGE_COUNT = 100;
+        //user input variables
         let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
         let CURRENT_DATE =  new BPUI.ReferenceObject(moment(new Date()).format(DATE_FORMATTER.UI) );
         let NETTING_GROUPS =  new BPUI.ReferenceObject();
+
         let WIDGET_WIDTH = calculateWidthWidget()+'px';
         let UPDATE_RESIZE_TIMEOUT = 500;//ms delay for window.resize re-calc width of component
         let UPDATE_RESIZE_QUEED = null; 
@@ -169,7 +172,8 @@ const calculateWidthWidget = () => {
                 step2Descr:('Click [Save netting] button for save Netting results.'),
                 tablesSelect:('Choose/Unchoose the lines of this table for netting. For that click on checkbox for each line you want add for calculation. Totals of netting will be re-calculated automatically.'),
                 groupIsNotSelected:('- Not selected - '),
-                dlgTitle:('Netting data was send')
+                dlgTitle:('Netting data was send'),
+                loadedPreviousText:('Widget was loaded from session of last usage. Since that time data can be changed.')
             }
         };
         
@@ -415,6 +419,7 @@ const calculateWidthWidget = () => {
                  nettingGroup:-1,
                  nettingGroups:[],
                  isWaiting:true,
+                 loadedPrevious:null,
                  noData:true,
                  padgingTables:{
                      currentBuy:0,
@@ -541,23 +546,28 @@ const calculateWidthWidget = () => {
                 });
               this.selectAllData();
             },       
-            componentDidMount(){
+            async componentDidMount(){
                 $(window).on("resize",  ()=>{
                 console.warn('...widget resized...');
                  if (UPDATE_RESIZE_QUEED) clearTimeout(UPDATE_RESIZE_QUEED);
                         UPDATE_RESIZE_QUEED = setTimeout(() =>  this.forceUpdate(), UPDATE_RESIZE_TIMEOUT);
                         });
-               // const savedStateData = window.localStorage.widget_state_data;
-              //  if (savedStateData) this.setState(JSON.parse(savedStateData))
+                const savedStateData = window.localStorage[SAVE_STATE_VARIABLE];
+                const savedUserInput = window.localStorage[SAVE_USERINPUT_VARIABLE];
+                if (savedStateData && savedUserInput) {
+                       await this.setState(JSON.parse(savedStateData));
+                       await this.setState({loadedPrevious:true});
+                [NETTING, NETTING_GROUPS, CURRENT_DATE] = JSON.parse(savedUserInput);
+                       this.getDataInvoices();
+                }
               console.log('[didmounted] NettingContainer');
             },
             componentWillUnmount() {
-                $(window).off("resize", ()=>this.forceUpdate());
-              //window.removeEventListener('resize',()=> this.forceUpdate())
+                $(window).off("resize");
             },
             componentDidUpdate(props,state){
-             //save state 
-              //window.localStorage.setItem('widget_state_data',JSON.stringify(state));
+              window.localStorage.setItem(SAVE_STATE_VARIABLE,JSON.stringify(state));
+              window.localStorage.setItem(SAVE_USERINPUT_VARIABLE,JSON.stringify([NETTING, NETTING_GROUPS, CURRENT_DATE]))
             },
             async selectRowSell(row){            
                 const {selectedRowIndexSell} =this.state;   
@@ -773,12 +783,13 @@ const calculateWidthWidget = () => {
             },
             render(){
            console.log('%c [render] ' + this.constructor.displayName,'color:red',this.state);
-            const {totals,detailedData,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData,nettingGroups,nettingGroup} = this.state;
+            const {totals,detailedData,loadedPrevious,isWaiting,padgingTables,selectedRowIndexBuy,nettingAccount,selectedRowIndexSell,netDate,offsets,noData,nettingGroups,nettingGroup} = this.state;
             const nettingStep = (netDate === -1)? 0: (nettingAccount===-1)? 1:2;
             WIDGET_WIDTH = calculateWidthWidget()+'px';   
                 return(
                      <div className="netting-container" style={{width:WIDGET_WIDTH}}>
                      <NavToolBar />
+                     {loadedPrevious? <div onClick={()=>this.setState({loadedPrevious:null})} className="alert-primary p-2">{settings.labels.loadedPreviousText}</div>:null}
                       <Netting
                         step={nettingStep}
                         padgingTables = {padgingTables}
