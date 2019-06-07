@@ -75,10 +75,10 @@ const calculateWidthWidget = () => {
             "JOIN account a1 ON bp1.accountid = a1.id "+
             "LEFT JOIN netting n1 ON i1.netted_id = n1.id "+
             "WHERE 1=1 "+
-               (account.nettingGroup =='Unassigned'?" AND a1.AccountNumber  = "+account.accountID+" ":" AND a1.nettinggroup = '"+account.nettingGroup+"' ")+
+              (account.nettingGroup =='Unassigned'?" AND a1.AccountNumber  = "+account.accountID+" ":" AND a1.nettinggroup = '"+account.nettingGroup+"' ")+
             "AND a1.AccountType = '"+account.accountType+"' "+
            // "AND i1.status = 'CLOSED' "+
-            "ORDER BY 14 ASC,i1.id ASC  OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
+            "ORDER BY  14 DESC,i1.id ASC  OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
         
         const queryMainRowCount = (dueDate = moment(new Date()).format(DATE_FORMATTER.DB),account={
                                     accountType:'',
