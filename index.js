@@ -22,7 +22,6 @@ const calculateWidthWidget = () => {
     }
         
         BPSystem.initialize();
-        const ver = React.version;
         const SAVE_STATE_VARIABLE = 'widget_state_data'; //save to local storage
         const SAVE_USERINPUT_VARIABLE = "user_state_data"
         const FIELD_APPROVE_INVOICE = "InvoiceStatus";
@@ -31,8 +30,12 @@ const calculateWidthWidget = () => {
         const DATE_FORMATTER = {DB:'YYYY-MM-DD' , UI:'MM/DD/YYYY'};
         const CURRENCY_SYMBOL = "$";
         const  TABLE_PAGE_COUNT = 100;
+        const INVOICE_TYPE_BUY = 0;
+        const INVOICE_TYPE_SELL = 1;
+        const PAYMENT_TYPE_BUY = 'Buyer Offset';
+        const PAYMENT_TYPE_SELL = 'Seller Offset'
         //user input variables
-        let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
+        const NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
         let CURRENT_DATE =  new BPUI.ReferenceObject(moment(new Date()).format(DATE_FORMATTER.UI) );
         let NETTING_GROUPS =  new BPUI.ReferenceObject();
 
@@ -75,7 +78,7 @@ const calculateWidthWidget = () => {
                (account.nettingGroup =='Unassigned'?" AND a1.AccountNumber  = "+account.accountID+" ":" AND a1.nettinggroup = '"+account.nettingGroup+"' ")+
             "AND a1.AccountType = '"+account.accountType+"' "+
            // "AND i1.status = 'CLOSED' "+
-            "ORDER BY i1.id ASC OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
+            "ORDER BY 14 ASC,i1.id ASC  OFFSET "+(+offsetRows*+countRows)+" ROWS FETCH NEXT "+countRows+" ROWS ONLY");
         
         const queryMainRowCount = (dueDate = moment(new Date()).format(DATE_FORMATTER.DB),account={
                                     accountType:'',
@@ -143,6 +146,7 @@ const calculateWidthWidget = () => {
         Number.prototype.replaceIfNegativeNumber = function(){
             return /^-[0-9]\d*(\.\d+)?$/.test(+this)? '('+(this*-1)+')':this.toString()
         };
+ 
         
         const settings = {
             labels:{
@@ -365,15 +369,13 @@ const calculateWidthWidget = () => {
                           <div className="col-sm-12" style={{opacity:0.6}}>{twoColView?[labels.switchtoOne]: [labels.switchtoTwo]}</div>
                         <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center px-2`}>
                         <NettingDetailsTable_ 
-                           type={0}
+                           type={INVOICE_TYPE_BUY}
                            maxPagesCount={padgingTables.maxBuy}
                            currentPage={padgingTables.currentBuy}
                            keyFieldName={FIELD_KEY}
                            data={detailedData.buy}
                            offsets={offsets.buy} 
                            formatDateColumnIndex={[1]}
-                           offsetColumnIndex = {13}
-                           netColumnIndex = {0}
                            currencySymbol={currencySymbol} 
                            currencyColumnIndex={[6,7,8,9,10]} 
                            formatNegativeNColumnIndex={[6,7,8,9,10]}
@@ -385,15 +387,13 @@ const calculateWidthWidget = () => {
                        </div>
                        <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center px-2`}>
                         <NettingDetailsTable_ 
-                           type={1}
+                           type={INVOICE_TYPE_SELL}
                            maxPagesCount={padgingTables.maxSell}
                            currentPage={padgingTables.currentSell}
                            keyFieldName={FIELD_KEY}
                            data={detailedData.sell}
                            offsets={offsets.sell}
                            formatDateColumnIndex={[1]}
-                           offsetColumnIndex = {13}
-                           netColumnIndex = {0}
                            currencySymbol={currencySymbol} 
                            currencyColumnIndex={[6,7,8,9,10,11]}
                            formatNegativeNColumnIndex={[6,7,8,9,10,11]}
@@ -556,8 +556,11 @@ const calculateWidthWidget = () => {
                 const savedUserInput = window.localStorage[SAVE_USERINPUT_VARIABLE];
                 if (savedStateData && savedUserInput) {
                        await this.setState(JSON.parse(savedStateData));
-                       await this.setState({loadedPrevious:true});
-                [NETTING, NETTING_GROUPS, CURRENT_DATE] = JSON.parse(savedUserInput);
+                       await this.setState({loadedPrevious:true}); 
+                const [n, ng, cd,companyLabel] = JSON.parse(savedUserInput);
+                NETTING.set(n); NETTING_GROUPS.set(ng); CURRENT_DATE = cd;       
+                const lookupText = document.querySelector('.lookup23__ input[type="text"]'); // bug with lookup load
+                if (lookupText) { lookupText.value = companyLabel; console.log('_____setted') } else {console.log('unsetted')}
                        this.getDataInvoices();
                 }
               console.log('[didmounted] NettingContainer');
@@ -566,8 +569,10 @@ const calculateWidthWidget = () => {
                 $(window).off("resize");
             },
             componentDidUpdate(props,state){
+                const lookupText = document.querySelector('.lookup23__ input[type="text"]'); // bug with lookup load
+                const companyLabel  = lookupText? lookupText.value : '';  
               window.localStorage.setItem(SAVE_STATE_VARIABLE,JSON.stringify(state));
-              window.localStorage.setItem(SAVE_USERINPUT_VARIABLE,JSON.stringify([NETTING, NETTING_GROUPS, CURRENT_DATE]))
+              window.localStorage.setItem(SAVE_USERINPUT_VARIABLE,JSON.stringify([NETTING, NETTING_GROUPS, CURRENT_DATE,companyLabel]))
             },
             async selectRowSell(row){            
                 const {selectedRowIndexSell} =this.state;   
@@ -634,6 +639,7 @@ const calculateWidthWidget = () => {
                     }
                           
                     buyOffsets.push({
+                        invoiceType:INVOICE_TYPE_BUY, 
                         invoiceId:el.InvoiceID,
                         billingId:el.bProfileID,
                         OutstandingAmountTotal:(+el.OutstandingAmount - +offsetBuy),
@@ -652,6 +658,7 @@ const calculateWidthWidget = () => {
                         offsetSell = Math.abs(+el.OutstandingAmount);
                     }
                     sellOffsets.push({
+                        invoiceType:INVOICE_TYPE_SELL, 
                         invoiceId:el.InvoiceID,
                         billingId:el.bProfileID,
                         OutstandingAmountTotal:(+el.OutstandingAmount + +offsetSell),
@@ -689,6 +696,7 @@ const calculateWidthWidget = () => {
              *  5. insert data (invoices) into payments_allocation with payments ID of them from step 3
              *  6. upsert data in invoice table (ID, netted_id)
              */
+            let step_executed = 1;
             const lookupText = document.querySelector('.lookup23__ input[type="text"]');
             const companyLabel  = lookupText? lookupText.value : '';    
              const nettingResults  = {
@@ -712,10 +720,11 @@ const calculateWidthWidget = () => {
             // * * * * * *  step 1
             const createNettingResult = await BPConnection.netting.create(nettingResults);
             const invoicesArr = this.state.offsets.buy.concat(this.state.offsets.sell);
+            step_executed++;
             // * * * * * *  step 2
             const nettedId_ = createNettingResult[0].Id;
             console.log('[Save data] netted_result -> OK');
-            
+            step_executed++;
             // * * * * * *  step 3
             const addPaymentsToInvoices = await BPConnection.Payment.create(
              invoicesArr.map(el=>({
@@ -723,36 +732,37 @@ const calculateWidthWidget = () => {
                         BillingProfileId:el.billingId,
                         netted_id:nettedId_,
                         Autoallocate:1, 
-                        PaymentType:'CASH',
+                        PaymentType: el.invoiceType === INVOICE_TYPE_BUY? PAYMENT_TYPE_BUY:PAYMENT_TYPE_SELL,
                         PaymentNote:'##### Netting test',
                         PaymentDate:moment(new Date()).format(DATE_FORMATTER.DB)
                 })));
+            step_executed++;   
             // * * * * * *  step 4
             const paymentsId = addPaymentsToInvoices.map((el,index)=>({
                     PaymentItemId:el.Id,
                     InvoiceId:invoicesArr[index].invoiceId,
                     Amount:invoicesArr[index].offset
                 }));
-             
+           step_executed++;
 
             console.log('[Save data] invoices payments -> ',invoicesArr.length===paymentsId.length);
             if (invoicesArr.length===paymentsId.length) {
           // * * * * * *  step 5
-                const addAllocationsToInvoices = await  BPConnection.PaymentAllocation.create(paymentsId);
-            
-            console.log('[Save data] invoices allocation -> OK');
+          const addAllocationsToInvoices = await  BPConnection.PaymentAllocation.create(paymentsId);
+          console.log('[Save data] invoices allocation -> OK');
+          step_executed++
            // * * * * * *  step 6
            const updateInvoiceTable = await BPConnection.INVOICE.upsert(invoicesArr.map(el=>({
                 Id:el.invoiceId,
                 netted_id:nettedId_ 
            })))
-           
            console.log('[Save data] update invoices -> OK');
+           step_executed++;
+           console.log(step_executed>6?'executed successfully':'executed with fail',step_executed);
 
            console.log('%c [undo actions] * * * DO IT FOR UNDO * * *','color:blue');
-           console.log('%c [undo actions] const res1 = await BPConnection.INVOICE.upsert('+JSON.stringify(updateInvoiceTable.map(el=>({Id:el.Id,netted_id:null})))+');','color:blue');
-           console.log('%c [undo actions] const res2 = await BPConnection.Payment.delete('+JSON.stringify(addPaymentsToInvoices.map(el=>({Id:el.Id})))+')','color:blue');
-           console.log('%c [undo actions] const res2 = await BPConnection.Payment.upsert('+JSON.stringify(addPaymentsToInvoices.map(el=>({Id:el.Id,netted_id:null})))+')','color:blue');
+           console.log('%c [undo actions] const res1 = await BPConnection.INVOICE.update('+JSON.stringify(updateInvoiceTable.map(el=>({Id:el.Id,netted_id:null})))+');','color:blue'); 
+           console.log('%c [undo actions] const res2 = await BPConnection.Payment.update('+JSON.stringify(addPaymentsToInvoices.map(el=>({Id:el.Id,Voided:1})))+')','color:blue');
            console.log('%c [undo actions] const res3 = await BPConnection.netting.delete({Id:'+nettedId_+'})','color:blue'); 
            console.log('%c [undo actions] console.log(res1,res2,res3)','color:blue'); 
                 resStatus = true;
@@ -760,6 +770,7 @@ const calculateWidthWidget = () => {
                         resStatus = false;       
                 }
                 }catch(e){
+            console.log('failed on step =',step_executed);
             resStatus = false;    
                 }
         
