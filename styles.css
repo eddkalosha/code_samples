@@ -27,9 +27,9 @@
 }
 
 .alert-primary {
-  color: #004085;
-  background-color: #cce5ff;
-  border-color: #b8daff;
+    color: #5cc3ff;
+    background-color: #e2f5ff;
+    border-color: #e2f5ff;
 }
 
 .alert-primary hr {
@@ -972,4 +972,20 @@ background: #dcf4fc !important;
   -webkit-transition: width 0.5s, height 0.5s; /* For Safari 3.1 to 6.0 */
   transition: width 0.5s, height 0.5s;
 }
- 
+
+td .status{
+ width:20px;
+}
+
+td .status-netted{
+ background:green;
+}
+
+tr td.invoice-status-ready{
+    color: #49a92c;
+    background: #dcfcdf !important;
+}
+tr td.invoice-status-ineligible {
+    color: #a9a12c;
+    background: #fbfcdc !important;
+}
