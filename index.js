@@ -68,8 +68,8 @@ const calculateWidthWidget = () => {
         "a1.nettinggroup, "+
         "(bp1.PaymentTermDays || ' days') AS  PaymentTermDays, "+
         "CASE "+
-        "WHEN i1.netted_id IS NOT NULL AND i1.netted_id<>-1 THEN 'NETTED'  "+
-        "WHEN (i1.netted_id IS NULL OR i1.netted_id=-1) AND i1.ApprovalStatus = 'APPROVED' AND i1.DueDate<='"+moment(dueDate).format(DATE_FORMATTER.DB)+"' THEN 'READY' "+ 
+        "WHEN i1.netted_id IS NOT NULL THEN 'NETTED'  "+
+        "WHEN i1.netted_id IS NULL AND i1.ApprovalStatus = 'APPROVED' AND i1.DueDate<='"+moment(dueDate).format(DATE_FORMATTER.DB)+"' THEN 'READY' "+ 
         "ELSE 'INELIGIBLE'  "+
         " END as InvoiceStatus "+
         "FROM invoice i1 "+
@@ -765,7 +765,7 @@ const calculateWidthWidget = () => {
        console.log(step_executed>6?'executed successfully':'executed with fail',step_executed);
 
        console.log('%c [undo actions] * * * DO IT FOR UNDO * * *','color:blue');
-       console.log('%c [undo actions] const res1 = await BPConnection.INVOICE.update('+JSON.stringify(updateInvoiceTable.map(el=>({Id:el.Id,netted_id:-1})))+');','color:blue'); 
+       console.log('%c [undo actions] const res1 = await BPConnection.INVOICE.update('+JSON.stringify(updateInvoiceTable.map(el=>({Id:el.Id,fieldsToNull:["netted_id"]})))+');','color:blue'); 
        console.log('%c [undo actions] const res2 = await BPConnection.Payment.update('+JSON.stringify(addPaymentsToInvoices.map(el=>({Id:el.Id,Voided:1})))+')','color:blue');
        console.log('%c [undo actions] const res3 = await BPConnection.netting.delete({Id:'+nettedId_+'})','color:blue'); 
        console.log('%c [undo actions] console.log(res1,res2,res3)','color:blue'); 
