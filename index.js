@@ -36,7 +36,7 @@ const calculateWidthWidget = () => {
     const ACCOUNT_TYPE_BUYER = 'BUYER';
     const ACCOUNT_TYPE_SELLER= 'SELLER';
     const PAYMENT_NOTE = '##### Netting test'
-    const PAGING_TABLES = true;
+    const PAGING_TABLES = false;
     //user input variables
     let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
     let CURRENT_DATE =  new BPUI.ReferenceObject(moment(new Date()).format(DATE_FORMATTER.UI) );
@@ -111,13 +111,13 @@ const calculateWidthWidget = () => {
         GET_NETTING_GROUPS: String('GET_NETTING_GROUPS'),
     };
     
-    const columns__ = [ 
-    {field:'InvoiceStatus', label:'Status', width:'100'},
+    const columns__ = [    		
+    {field:'InvoiceStatus', label:'Status', width:'100'},  
     {field:'InvoiceID', label:'Invoice ID'},
     {field:'NetDate', label:'Net Date', width:'100'},
     {field:'AccountId', label:'Account Id', width:'100'},	
     {field:'Account', label:'Account Number', width:'100'},	
-    {field:'AccountName', label:'Account Name', width:'250'},		
+    {field:'AccountName', label:'Account Name', width:'250'},	
     {field:'InvoiceCharges', label:'Invoice Charges', width:'100'},	
     {field:'Payments', label:'Payments', width:'100'},	
     {field:'Adjustments', label:'Adjustments', width:'100'},
@@ -175,7 +175,8 @@ const calculateWidthWidget = () => {
             tablesSelect:('Choose/Unchoose the lines of this table for netting. For that click on checkbox for each line you want add for calculation. Totals of netting will be re-calculated automatically.'),
             groupIsNotSelected:('- Not selected - '),
             dlgTitle:('Netting data was send'),
-            loadedPreviousText:('Widget was loaded from session of last usage. Since that time data could be changed. Click here to close.')
+            loadedPreviousText:('Widget was loaded from session of last usage. Since that time data could be changed. Click for hide. '),
+            resetUserToDefault:('Reset')
         }
     };
     
@@ -217,17 +218,17 @@ const calculateWidthWidget = () => {
             :[];
     
         const dataToHTML_ =  dataTmp.map((el,index)=> (
-                      <tr className={`${ ALLOWED_INVOICES.includes(el[FIELD_APPROVE_INVOICE])? selectedRowIndex.includes(+el[keyFieldName])?'bg-selected':'':'disabled'} table-row`}>
+            <tr className={`${ ALLOWED_INVOICES.includes(el[FIELD_APPROVE_INVOICE])? selectedRowIndex.includes(+el[keyFieldName])?'bg-selected':'':'disabled'} table-row`}>
                               <td onClick={()=>this.props.onSelectRow(+el[keyFieldName])}>
                                   <span className="status status-netted"></span>
                                   <input type="checkbox" readOnly checked={selectedRowIndex.includes(+el[keyFieldName])} /></td>
                               {
                                columns.map((column,index)=>
-                                 <td className={`${column.field==='InvoiceStatus'? 
-                                        el[column.field]==='READY'?'invoice-status-ready':
-                                           el[column.field]==='NETTED'?'invoice-status-netted': 
-                                            el[column.field]==='INELIGIBLE'?'invoice-status-ineligible':''                               
-                                        :''}`}>
+                               <td className={`${column.field==='InvoiceStatus'? 
+                               el[column.field]==='READY'?'invoice-status-ready':
+                                  el[column.field]==='NETTED'?'invoice-status-netted': 
+                                   el[column.field]==='INELIGIBLE'?'invoice-status-ineligible':''                               
+                               :''}`}>
                                      <div className={`${currencyColumnIndex.includes(index)? 'has-currency':'' } field`}>
                                          {
                                           currencyColumnIndex.includes(index)? <span className="currency">{currencySymbol}</span>:null   
@@ -271,7 +272,7 @@ const calculateWidthWidget = () => {
             <div className="row p-2">
               <div className="col-sm-6 text-right mt-2">Page {currentPage+1} of {maxPagesCount+1 || '1'}</div>
               <div className="col-sm-6 text-right">
-                <span onClick={()=>onSetStep(currentPage-1<0?0:currentPage-1)} className={`px-3 btn ${+currentPage===0?'disabled':''}`}><i className="fa fa-chevron-left"></i></span>
+                <span onClick={()=>onSetStep(currentPage-1<0?0:currentPage-1)} className={`px-3 btn ${+currentPage===0?'disabled':''}`}><i className="fa fa-chevron-left" /></span>
                 <span onClick={()=>onSetStep(currentPage+1>maxPagesCount?maxPagesCount:currentPage+1)} className={` btn  ${+currentPage===+maxPagesCount?'disabled':''}`}><i className="fa fa-chevron-right"></i> </span>
                </div> 
            </div>:null
@@ -361,8 +362,8 @@ const calculateWidthWidget = () => {
                         }
                         <div className="row p-0 m-0 pt-2">
                         <div className="col-sm-12 text-right"> 
-                            <button className="btn btn-outline-blue " disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}><i className="fa fa-undo"></i> {[labels.resetBtn]}</button>                
-                            <button onClick={()=>this.props.onSaveData()} className="btn ml-1"><i className="fa fa-cloud-upload"></i> {[labels.submitBtn]}</button>
+                            <button className="btn btn-outline-blue " disabled={selectedRowIndexBuy.length===0 && selectedRowIndexSell.length===0 }  onClick={()=>this.props.onSelectionReset()}><i className="fa fa-undo"/> {[labels.resetBtn]}</button>                
+                            <button onClick={()=>this.props.onSaveData()} className="btn ml-1"><i className="fa fa-cloud-upload" /> {[labels.submitBtn]}</button>
                         </div>                    
                         </div>
                     </div>
@@ -545,37 +546,37 @@ const calculateWidthWidget = () => {
               noData:!(buyInv&&sellInv&&buyCount&&sellCount)
             });
           this.selectAllData();
-        },       
+        },
+        resizeEvent(){
+                console.warn('...widget resized...');
+                 if (UPDATE_RESIZE_QUEED) clearTimeout(UPDATE_RESIZE_QUEED);
+                        UPDATE_RESIZE_QUEED = setTimeout(() =>  this.forceUpdate(), UPDATE_RESIZE_TIMEOUT);
+        },    
         async componentDidMount(){
-            $(window).on("resize",  ()=>{
-            console.warn('...widget resized...');
-             if (UPDATE_RESIZE_QUEED) clearTimeout(UPDATE_RESIZE_QUEED);
-                    UPDATE_RESIZE_QUEED = setTimeout(() =>  this.forceUpdate(), UPDATE_RESIZE_TIMEOUT);
-                    });
-             /*
+            $(window).on("resize", this.resizeEvent);
             const savedStateData = window.localStorage[SAVE_STATE_VARIABLE];
             const savedUserInput = window.localStorage[SAVE_USERINPUT_VARIABLE];
             if (savedStateData && savedUserInput) {
                    await this.setState(JSON.parse(savedStateData));
                    await this.setState({loadedPrevious:true}); 
-            const [n, ng, cd,companyLabel] = JSON.parse(savedUserInput);
-            NETTING.set(new BPUI.ReferenceObject(BPSystem.toBPObject(n, BPConnection.Netting))); 
-            NETTING_GROUPS.set(ng); 
-            CURRENT_DATE = cd;       
-            const lookupText = document.querySelector('.lookup23__ input[type="text"]'); // bug with lookup load
-            if (lookupText) { lookupText.value = companyLabel; console.log('_____setted') } else {console.log('unsetted')}
-                   this.getDataInvoices();
-            } */
+            const [n, ng, cd] = JSON.parse(savedUserInput);
+            try {
+                NETTING.set(BPSystem.toBPObject(n, BPConnection.Netting)); 
+                NETTING_GROUPS.set(ng); 
+                CURRENT_DATE.set(cd.holder.value);       
+                this.getDataInvoices();
+                }
+                catch(e){ console.error('[error]',e)}
+            }
           console.log('[didmounted] NettingContainer');
         },
         componentWillUnmount() {
-            $(window).off("resize");
+            $(window).off("resize",this.resizeEvent);
+            $(window).unbind("resize",this.resizeEvent);
         },
         componentDidUpdate(props,state){
-            const lookupText = document.querySelector('.lookup23__ input[type="text"]'); // bug with lookup load
-            const companyLabel  = lookupText? lookupText.value : '';  
-         // window.localStorage.setItem(SAVE_STATE_VARIABLE,JSON.stringify(state));
-         // window.localStorage.setItem(SAVE_USERINPUT_VARIABLE,JSON.stringify([NETTING.get(), NETTING_GROUPS, CURRENT_DATE,companyLabel]))
+          window.localStorage.setItem(SAVE_STATE_VARIABLE,JSON.stringify(state));
+          window.localStorage.setItem(SAVE_USERINPUT_VARIABLE,JSON.stringify([NETTING.get(), NETTING_GROUPS, CURRENT_DATE]))
         },
         async selectRowSell(row){            
             const {selectedRowIndexSell} =this.state;   
@@ -804,7 +805,12 @@ const calculateWidthWidget = () => {
             return(
                  <div className="netting-container" style={{width:WIDGET_WIDTH}}>
                  <NavToolBar />
-                 {loadedPrevious? <div onClick={()=>this.setState({loadedPrevious:null})} className="alert-primary p-2">{settings.labels.loadedPreviousText}</div>:null}
+                 {loadedPrevious? 
+                    <div 
+                        onClick={()=>this.setState({loadedPrevious:null})} 
+                        className="alert-primary p-2">
+                            {settings.labels.loadedPreviousText}
+                    </div>:null}
                   <Netting
                     step={nettingStep}
                     padgingTables = {padgingTables}
