@@ -825,8 +825,7 @@ const calculateWidthWidget = () => {
                  {loadedPrevious? 
                     <div 
                         onClick={()=>this.setState({loadedPrevious:null})} 
-                        className="alert-primary p-2">
-                            <a href="#" className="close" style={{marginTop:'-2px'}} data-dismiss="alert" aria-label="close">&times;</a>
+						className="alert-primary p-2" style={{cursor:'pointer'}}>
                             {settings.labels.loadedPreviousText}
                     </div>:null}
                   <Netting
@@ -855,5 +854,5 @@ const calculateWidthWidget = () => {
                    />
                  </div>)
         }
-    });
+    }); 
           
