@@ -155,6 +155,7 @@ const calculateWidthWidget = () => {
             OffsetColumnName:('Offset'),
             noDataPrimary:('Select Account and Netting Group Code'),
             noDataSecondary:('to see buy and sell side invoices'),
+            noDataTable:('Haven\'t data for available invoices'),
             netDate:('Net As of Date'),
             company:('Company'),
             groupCode:('Netting Group Code'),
@@ -267,16 +268,26 @@ const calculateWidthWidget = () => {
                     </tbody>
                 </table>
             </div> 
+            <div className="row p-2 m-0 table-footer">
             {
-            PAGING_TABLES ?      
-            <div className="row p-2">
-              <div className="col-sm-6 text-right mt-2">Page {currentPage+1} of {maxPagesCount+1 || '1'}</div>
-              <div className="col-sm-6 text-right">
-                <span onClick={()=>onSetStep(currentPage-1<0?0:currentPage-1)} className={`px-3 btn ${+currentPage===0?'disabled':''}`}><i className="fa fa-chevron-left" /></span>
-                <span onClick={()=>onSetStep(currentPage+1>maxPagesCount?maxPagesCount:currentPage+1)} className={` btn  ${+currentPage===+maxPagesCount?'disabled':''}`}><i className="fa fa-chevron-right"></i> </span>
+                data.length===0? 
+                <div className="col-sm-12 text-center py-3 alert-warning">
+                        <div>{[labels.noDataTable]}</div>
+                </div>
+                :null
+            }    
+            {
+            PAGING_TABLES ?
+                <div className="table-paging">      
+                    <div className="col-sm-6 text-right mt-2">Page {currentPage+1} of {maxPagesCount+1 || '1'}</div>
+                    <div className="col-sm-6 text-right">
+                        <span onClick={()=>onSetStep(currentPage-1<0?0:currentPage-1)} className={`px-3 btn ${+currentPage===0?'disabled':''}`}><i className="fa fa-chevron-left" /></span>
+                        <span onClick={()=>onSetStep(currentPage+1>maxPagesCount?maxPagesCount:currentPage+1)} className={` btn  ${+currentPage===+maxPagesCount?'disabled':''}`}><i className="fa fa-chevron-right"></i> </span>
+                    </div>
                </div> 
-           </div>:null
+            :null
             }
+            </div>
              </div>
             </div> 
            )
@@ -371,7 +382,6 @@ const calculateWidthWidget = () => {
                 {noData? haveNoData:  isWaiting? preLoader:
                 <section className="section-detail-tables col-sm-12"> 
                  <div className="row">
-                  {/*<div className="col-sm-12 formInfo text-blue">{[labels.helpText]} </div> */}
                   <div className="col-sm-12 mt-3"><label className="switch"><input checked={twoColView} onChange={()=>this.setState({twoColView:!twoColView})} type="checkbox"/><span className="slider round"></span></label> </div>    
                       <div className="col-sm-12" style={{opacity:0.6}}>{twoColView?[labels.switchtoOne]: [labels.switchtoTwo]}</div>
                     <div className={`${twoColView? 'col-sm-6':'col-sm-12'} text-center px-2`}>
@@ -503,26 +513,31 @@ const calculateWidthWidget = () => {
             try {
             switch(type){
               case queryTypes.GET_INVOICES_BUY:{
+                      await this.setState({detailedData:{...this.state.detailedData,buy:[]}});
                       const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(netDate,accountBuy,offsetRows)).collection()]);
                       const resList =  res.elements;
                       await this.setState({detailedData:{...this.state.detailedData,buy:resList}});
                       break;
                     }
               case queryTypes.GET_INVOICES_SELL:{
+                    await this.setState({detailedData:{...this.state.detailedData,sell:[]}});
                       const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMain(netDate,accountSell,offsetRows)).collection()]);
                       const resList =  res.elements;
                       await this.setState({detailedData:{...this.state.detailedData,sell:resList}});
                       break;
                     }
               case queryTypes.GET_PAGESCOUNT_BUY:{ 
+                 await this.setState({padgingTables:{...this.state.padgingTables,maxBuy:0}});
                    const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMainRowCount(netDate,accountBuy)).single()]);
                   await this.setState({padgingTables:{...this.state.padgingTables,maxBuy: Math.ceil(+res.rowCount/TABLE_PAGE_COUNT)-1}});
                   break;}
               case queryTypes.GET_PAGESCOUNT_SELL:{
+                await this.setState({padgingTables:{...this.state.padgingTables,maxSell:0}});
              const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryMainRowCount(netDate,accountSell)).single()]);
                   await this.setState({padgingTables:{...this.state.padgingTables,maxSell: Math.ceil(+res.rowCount/TABLE_PAGE_COUNT)-1}});
                   break;}
               case queryTypes.GET_NETTING_GROUPS:{ 
+                await this.setState({nettingGroups:[]});
                   const [res] = await Promise.all([BPConnection.BrmAggregate.queryAsync(queryNettGroups(params.id)).collection()]);
                   const resList = res.elements;
                   await this.setState({nettingGroups:resList});
@@ -543,7 +558,7 @@ const calculateWidthWidget = () => {
           ]);      
           await this.setState({
               isWaiting:false, 
-              noData:!(buyInv&&sellInv&&buyCount&&sellCount)
+              noData:!((buyInv||sellInv)&&buyCount&&sellCount)
             });
           this.selectAllData();
         },
