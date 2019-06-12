@@ -21,6 +21,10 @@ const calculateWidthWidget = () => {
 }
     
     BPSystem.initialize();
+    const BSIT = 'Buy Side Invoice Total';
+    const SSIT ='Sell Side Invoice Total';
+    const OA_ = 'Offset Amount';
+    const NA_ = 'Netted Amount';
     const SAVE_STATE_VARIABLE = 'widget_state_data'; //save to local storage
     const SAVE_USERINPUT_VARIABLE = "user_state_data"
     const FIELD_APPROVE_INVOICE = "InvoiceStatus";
@@ -37,6 +41,8 @@ const calculateWidthWidget = () => {
     const ACCOUNT_TYPE_SELLER= 'SELLER';
     const PAYMENT_NOTE = '##### Netting test'
     const PAGING_TABLES = false;
+    const WIDGET_VERSION_VARIABLE = 'version_';
+    const VERSION = 1.2;
     //user input variables
     let NETTING = new BPUI.ReferenceObject(BPSystem.toBPObject({}, BPConnection.Netting));
     let CURRENT_DATE =  new BPUI.ReferenceObject(moment(new Date()).format(DATE_FORMATTER.UI) );
@@ -155,7 +161,7 @@ const calculateWidthWidget = () => {
             OffsetColumnName:('Offset'),
             noDataPrimary:('Select Account and Netting Group Code'),
             noDataSecondary:('to see buy and sell side invoices'),
-            noDataTable:('Haven\'t available invoices for netting'),
+            noDataTable:('Haven\'t data for available invoices'),
             netDate:('Net As of Date'),
             company:('Company'),
             groupCode:('Netting Group Code'),
@@ -319,7 +325,7 @@ const calculateWidthWidget = () => {
             padgingTables = padgingTables || {padgingTables:{maxBuy:0,currentBuy:0,maxSell:0,currentSell:0}};
             const {nettingGroups,detailedData,offsets,totals,selectedRowIndexBuy,selectedGroup,selectedRowIndexSell} = data || {selectedRowIndexBuy:[],selectedRowIndexSell:[],detailedData:{buy:[],sell:[]},offsets:{buy:[],sell:[]}};
             const noDataBuyOrSell = (detailedData.buy.length===0 || detailedData.sell.length===0);
-            const noDataSelected = (offsets.buy.length===0 || offsets.sell.length===0);
+            const noDataSelected = (offsets.buy.length===0 || offsets.sell.length===0)
             const totalsToHTML = Object.values(totals || []).map(el=>
                 <div className="row p-0 m-0 pt-4">
                     <div className="col-sm-6 text-right">{el.title}</div>
@@ -453,10 +459,10 @@ const calculateWidthWidget = () => {
                  sell:[],
              },
              totals:{
-                 buyInvoiceTotal:{title:'Buy Side Invoice Total', value:0},
-                 sellInvoiceTotal:{title:'Sell Side Invoice Total', value:0},
-                 netAmount:{title:'Net Amount', value:0},
-                 offsetAmount:{title:'Offset Amount', value:0},
+                 buyInvoiceTotal:{title:BSIT, value:0},
+                 sellInvoiceTotal:{title:SSIT, value:0},
+                 netAmount:{title:OA_, value:0},
+                 offsetAmount:{title:NA_, value:0},
                 }
             }
         },
@@ -571,6 +577,8 @@ const calculateWidthWidget = () => {
         },    
         async componentDidMount(){
             $(window).on("resize", this.resizeEvent);
+            const ver = window.localStorage[WIDGET_VERSION_VARIABLE];
+            if (ver==VERSION) {
             const savedStateData = window.localStorage[SAVE_STATE_VARIABLE];
             const savedUserInput = window.localStorage[SAVE_USERINPUT_VARIABLE];
             if (savedStateData && savedUserInput) {
@@ -584,7 +592,7 @@ const calculateWidthWidget = () => {
                 this.getDataInvoices();
                 }
                 catch(e){ console.error('[error]',e)}
-            }
+            }}
           console.log('[didmounted] NettingContainer');
         },
         componentWillUnmount() {
@@ -594,6 +602,7 @@ const calculateWidthWidget = () => {
         componentDidUpdate(props,state){
           window.localStorage.setItem(SAVE_STATE_VARIABLE,JSON.stringify(state));
           window.localStorage.setItem(SAVE_USERINPUT_VARIABLE,JSON.stringify([NETTING.get(), NETTING_GROUPS, CURRENT_DATE]))
+          window.localStorage.setItem(WIDGET_VERSION_VARIABLE, VERSION);
         },
         async selectRowSell(row){            
             const {selectedRowIndexSell} =this.state;   
@@ -719,12 +728,14 @@ const calculateWidthWidget = () => {
          */
         let step_executed = 1;
         const lookupText = document.querySelector('.lookup23__ input[type="text"]');
-        const companyLabel  = lookupText? lookupText.value : '';    
+        const companyLabel  = lookupText? lookupText.value : '';
+        const indexGr = this.state.nettingGroups.findIndex(el=>el.GroupID==this.state.nettingGroup);
+        let grouplabel =  (indexGr>-1) ? this.state.nettingGroups[indexGr].NettingGroup : "";  
          const nettingResults  = {
             account_id: this.state.nettingAccount,
             company:companyLabel,
             due_date:moment(this.state.netDate).format(DATE_FORMATTER.DB),
-            netting_group:this.state.nettingGroup,
+            netting_group:grouplabel,
             buy_total:this.state.totals.buyInvoiceTotal.value,
             sell_total:this.state.totals.sellInvoiceTotal.value,
             sell_pay_term:60,
@@ -825,7 +836,7 @@ const calculateWidthWidget = () => {
                  {loadedPrevious? 
                     <div 
                         onClick={()=>this.setState({loadedPrevious:null})} 
-						className="alert-primary p-2" style={{cursor:'pointer'}}>
+                        className="alert-primary p-2">
                             {settings.labels.loadedPreviousText}
                     </div>:null}
                   <Netting
@@ -854,5 +865,5 @@ const calculateWidthWidget = () => {
                    />
                  </div>)
         }
-    }); 
+    });
           
