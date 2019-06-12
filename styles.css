@@ -984,10 +984,10 @@ td .status-netted{
 tr td.invoice-status-ready{
     color: #49a92c;
     background: #dcfcdf !important;
-    border-left: 3px solid #49a92c;
+    border-left: 3px solid #49a92c !important;
 }
 tr td.invoice-status-ineligible {
     color: #a9a12c;
     background: #fbfcdc !important;
-    border-left: 3px solid #a9a12c;
+    border-left: 3px solid #a9a12c !important;
 }
