@@ -155,7 +155,7 @@ const calculateWidthWidget = () => {
             OffsetColumnName:('Offset'),
             noDataPrimary:('Select Account and Netting Group Code'),
             noDataSecondary:('to see buy and sell side invoices'),
-            noDataTable:('Haven\'t data for available invoices'),
+            noDataTable:('Haven\'t available invoices for netting'),
             netDate:('Net As of Date'),
             company:('Company'),
             groupCode:('Netting Group Code'),
@@ -315,9 +315,11 @@ const calculateWidthWidget = () => {
                    <small>{[labels.noDataSecondary]}</small>            
                 </div>);
                
-            let {padgingTables,step,isWaiting,noData,data,currencySymbol} = this.props ;
+            let {padgingTables,step,isWaiting,noData,data,currencySymbol} = this.props;
             padgingTables = padgingTables || {padgingTables:{maxBuy:0,currentBuy:0,maxSell:0,currentSell:0}};
             const {nettingGroups,detailedData,offsets,totals,selectedRowIndexBuy,selectedGroup,selectedRowIndexSell} = data || {selectedRowIndexBuy:[],selectedRowIndexSell:[],detailedData:{buy:[],sell:[]},offsets:{buy:[],sell:[]}};
+            const noDataBuyOrSell = (detailedData.buy.length===0 || detailedData.sell.length===0);
+            const noDataSelected = (offsets.buy.length===0 || offsets.sell.length===0);
             const totalsToHTML = Object.values(totals || []).map(el=>
                 <div className="row p-0 m-0 pt-4">
                     <div className="col-sm-6 text-right">{el.title}</div>
@@ -358,7 +360,7 @@ const calculateWidthWidget = () => {
                         </div>
                     </div>
                 </section>
-                <section className={`section-totals col-sm-6 px-2 ${(noData || isWaiting)?'disabled':'' }`}>
+                <section className={`section-totals col-sm-6 px-2 ${(noData || isWaiting || noDataBuyOrSell || noDataSelected)?'disabled':'' }`}>
                     <div className="grey-block  pb-3">
                         <div className="row p-0 m-0">
                         <div className="divider"><div className="dividerText py-2">{[labels.nettingTotals]}<BPUI.HelpText name={'tooltip'} shortHelp={[labels.step2Title]} longHelp={[labels.step2Descr]}/></div> </div> 
@@ -824,6 +826,7 @@ const calculateWidthWidget = () => {
                     <div 
                         onClick={()=>this.setState({loadedPrevious:null})} 
                         className="alert-primary p-2">
+                            <a href="#" className="close" style={{marginTop:'-2px'}} data-dismiss="alert" aria-label="close">&times;</a>
                             {settings.labels.loadedPreviousText}
                     </div>:null}
                   <Netting
