@@ -760,7 +760,7 @@ const calculateWidthWidget = () => {
         // * * * * * *  step 3
         const addPaymentsToInvoices = await BPConnection.Payment.create(
          invoicesArr.map(el=>({
-                    Amount:el.offset,
+                    Amount:el.offset*-1,
                     BillingProfileId:el.billingId,
                     netted_id:nettedId_,
                     Autoallocate:1, 
