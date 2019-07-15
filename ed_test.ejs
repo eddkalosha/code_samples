@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Project title</title>
+    <link href="assets/css/old.css" rel="stylesheet">
+    <link href="assets/css/app.css?v=1.1" rel="stylesheet">
+
+    <!--[if lt IE 9]>
+    <script src="https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js"></script>
+    <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script>
+    <![endif]-->
+    <script src="assets/js/initial.js"></script>
+    <script src="assets/js/components.js"></script>
+    <script src="assets/js/BPComponents.js"></script>
+ 
+  
+</head>
+<body>
+<div id="container" class="effect mainnav-lg aside-left aside-bright aside-in mainnav-fixed">
+    <div class="boxed">
+        <!--CONTENT CONTAINER-->
+        <!--===================================================-->
+        <div id="content-container">
+
+            <!--===================================================-->
+            <header id="topbar">
+                <ul class="nav topbar-top-links pull-right">
+                    <li id="dropdown-user" class="dropdown">
+                        <div class="bleft"></div>
+                        <div class="bright"></div>
+                        <a href="#" data-toggle="dropdown" class="dropdown-toggle text-right">
+                            <div class="username"><i class="icon-cogs"></i> Edd Kalosha test</div>
+                        </a>
+                        <div class="dropdown-menu dropdown-menu-md dropdown-menu-right panel-default">
+
+                            <ul class="head-list">
+                                <li>
+                                    <a href="">
+                                        Logout
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="">
+                                        Help
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="">
+                                        Support
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+               <div id="topbar-container" class="row">
+                    <div class="topbar-content col-lg-6 col-lg-push-6">
+                        <div id="app-logo"></div>
+                    </div>
+                </div>  
+                <!-- * * * * * * * * Flex toolbar * * * * * * * * * -->
+                <div class="flex-container-topbar">
+                    <div class="flex-item flex-item-nav title-section">
+                        <div id="page-title" class="Dashboard">
+                            <h1 class="page-header">Dashboard: Very Long Title that needs to be displayed properly</h1>
+                            <ol class="breadcrumb">
+                                <li><a href="#">Home</a></li>
+                                <li><a href="#">Library</a></li>
+                                <li class="active">Data</li>
+                            </ol>
+                        </div> 
+                    </div>
+                    <div class="flex-item flex-item-search flex-block">
+                        <div class="inline-block_ flex-item-search-box">
+                        <div class="input-group main-search">
+                            <input type="text" class="form-control" placeholder="Search Accounts" onblur = "document.querySelector('.main-search-results').classList.add('hide')"  oninput = "document.querySelector('.main-search-results').classList.remove('hide')" />
+                            <span class="input-group-addon input-group-addon-back">
+                                <a class="search" href="#"> <i class="fa fa-x fa-sliders" aria-hidden="true"></i></a>
+                            </span>
+                            <span class="input-group-addon">
+                                    <i class="fa fa-2x icon-mag-thin"></i>
+                                </span>
+                        </div>
+                        <div class="main-search-results hide">
+                            <div class="main-search-results-item">Some text for results Some text for results Some text for results </div>
+                            <div class="main-search-results-item">Text 2</div>
+                            <div class="main-search-results-item">Text 3</div>
+                        </div>
+                        </div>  
+                    </div>
+                    <div id="topbar-container" class="flex-item flex-item-logo">
+                        <span id="app-logo"></span>
+                    </div>
+                </div>
+                <!-- * * * * * * * * End Flex toolbar * * * * * * * * * -->
+                <!--===================================================-->
+
+            </header>
+            <!--END topbar-->
+
+            <!--Page content-->
+            <!--===================================================-->
+            <div id="page-content">
+                <!--Search Form-->
+                <div id="search-panel" class="panel" style="display:none">
+                    <a class="pin" onclick="$(this).toggleClass( 'active');"><i class="fa fa-thumb-tack "></i></a>
+                    <form class="form-horizontal col-2-layout edit-view">
+                        <div class="panel-body">
+                            <div class="row">
+                                <div class="form-group">
+                                    <label class="col-sm-5 control-label" for="demo-is-inputsmall">Invoice Id (starts
+                                        with):</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" placeholder="" class="form-control input-sm"
+                                               id="demo-is-inputsmall">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label for="demo-is-inputnormal" class="col-sm-5 control-label">Customer Name
+                                        (starts with):</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" placeholder="" class="form-control" id="demo-is-inputnormal">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="form-group">
+                                    <label for="demo-is-inputlarge" class="col-sm-5 control-label">Customer ID (starts
+                                        with):</label>
+                                    <div class="col-sm-7">
+                                        <input type="text" placeholder="" class="form-control input-lg"
+                                               id="demo-is-inputlarge">
+                                    </div>
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="panel-footer">
+                            <div class="form-group">
+                                <label class="col-sm-5 control-label"></label>
+                                <div class="col-sm-7">
+                                    <button class="btn btn-secondary btn-labeled fa fa-search fa-lg" type="submit">
+                                        Search
+                                    </button>
+                                    <button class="btn btn-secondary btn-labeled fa fa-repeat fa-lg" type="reset">
+                                        Clear
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+                <div class="content-navigation">
+                    <div class="navigation-buttons">
+                        <a class="btn btn-icon btn-return"><i class="icon-return"></i></a>
+                        <button class="btn btn-primary" type="submit">Edit</button>
+                        <button class="btn btn-primary" type="submit">New</button>
+                        <button class="btn btn-primary" type="submit">Copy</button>
+                      <!--  <button class="btn btn-primary" type="submit">Refresh</button>
+                        <button class="btn btn-primary" type="submit">Edit</button>
+                        <button class="btn btn-primary" type="submit">New</button>
+                        <button class="btn btn-primary" type="submit">Copy</button>
+                        <button class="btn btn-primary" type="submit">Refresh</button>
+                        <select id="toolsMenu" class="selectpicker">
+                            <option value="-">Select an Action...</option>
+                            <option value="88">Merge Invoices</option>
+                        </select> -->
+                        <a class="btn btn-icon btn-history" onclick="lookUpSETUP_PRODUCT_NEW.show()"
+                           href="javascript:void(0)"><i class="icon-history"></i></a>
+                    </div>
+                </div>
+                <div>
+                    <div class="alert alert-danger fade in"><b>Test error. Edd. Now it's red :)</b></div>
+                    <div class="alert alert-primary fade in"><b>Test error. Edd. Now it's red :)</b></div>
+                    <div class="alert alert-success fade in"><b>Test error. Edd. Now it's red :)</b></div>
+                    <div class="alert alert-warning fade in"><b>Test error. Edd. Now it's red :)</b></div>
+                </div>
+                <div>
+                    <input id="datepicker-test"/>
+                </div>
+                <!--<div id="crudForm">
+                </div> -->
+                <table 
+                id="grid" 
+                data-data-action="list" 
+                data-clickable="true" 
+                data-page-size="100" 
+                data-page-list="100,200" 
+                data-page-number="1" 
+                data-sort-name="SORTCOLUNDEF" 
+                data-sort-order="asc" 
+                data-view-mode="tree" 
+                data-tree-field="C__325" 
+                data-editable="true" 
+                data-deletable="true" 
+                data-actions-field="edit" 
+                data-node-key-field="NODE_KEY" 
+                data-node-name-field="NAME" 
+                data-node-key-value="70860" 
+                data-web-form-item-id-value="0"
+                data-file-field="C__1381,C__1382"
+                > 
+                    <colgroup>
+                        <col data-field="edit" data-title="Actions" data-align="left" data-switchable="false" data-class="bootstrap-table-actions">
+                        <col data-field="C__325" data-title="Account Id" data-align="left" data-sort-name="48254" data-visible="true" data-switchable="true" data-sortable="true">
+                        <col data-field="C__1381" data-title="Account Name" data-align="left" data-sort-name="48255" data-visible="true" data-switchable="true" data-sortable="true">
+                        <col data-field="C__9506" data-title="Type" data-align="left" data-sort-name="48256" data-visible="true" data-switchable="true" data-sortable="true">
+                        <col data-field="C__1382" data-title="Status" data-align="left" data-sort-name="48257" data-visible="true" data-switchable="true" data-sortable="true">
+                        <col data-field="NODE_KEY" data-title="NODE_KEY" data-align="left" data-sort-name="0" data-visible="false" data-switchable="false" data-sortable="false">
+                        <col data-field="NAME" data-title="NAME" data-align="left" data-sort-name="0" data-visible="false" data-switchable="false" data-sortable="false">
+                        <col data-field="level" data-title="Level" data-visible="false" data-switchable="false">
+                        <col data-field="parent" data-title="Parent" data-visible="false" data-switchable="false">
+                        <col data-field="leaf" data-title="Is Leaf" data-visible="false" data-switchable="false">
+                        <col data-field="open" data-title="Is Open" data-visible="false" data-switchable="false">
+                    </colgroup>
+                </table>
+            </div>
+            <!--===================================================-->
+            <!--****************************************End PAGE content-->
+
+
+        </div>
+        <!--===================================================-->
+        <!--END CONTENT CONTAINER-->
+
+        <!--ASIDE-->
+        <!--===================================================-->
+        <aside id="aside-container" class="aside-in" >
+            <div id="aside" data-simplebar>
+                <ul class="nav aside-bar">
+                    <li>
+                        <a id="toggle-aside" class="shortcut-grid" href="#">
+                            <i class="fa fa-ellipsis-v"></i>
+                        </a>
+                    </li>
+                </ul>
+                <div class="aside-menu">
+                    <div class="fade in active">
+                        <ul id="secondary-menu" class="list-group">
+
+                            <!--Menu list item-->
+                            <li class="active">
+                                <a href="#" aria-expanded="true">
+                                    <i class="menuico DataManagement"></i>
+                                    <span class="menu-title">
+												Data Management
+											</span>
+                                </a>
+                                <ul class="collapse">
+                                    <li><a href="#" class="current"><i class="arrow"></i>Usage Collectors
+                                            <label>[ Genband ]</label></a>
+                                        <ul class="collapse">
+                                            <li><a href="#">Upload Usage File</a></li>
+                                            <li><a href="#"><i class="arrow"></i>Collector Usage Identifier </a>
+                                                <ul class="collapse">
+                                                    <li><a href="#">Collector Usage Identifier Mapping</a></li>
+                                                </ul>
+                                            </li>
+                                        </ul>
+                                    </li>
+                                    <li><a href="#">Usage Identifier</a></li>
+                                    <li><a href="#">Bulk data Loader</a></li>
+                                    <li><a href="#">Usage Identifier</a></li>
+                                    <li><a href="#">Bulk data Loader</a></li>
+                                    <li><a href="#">Usage Identifier</a></li>
+                                    <li><a href="#">Bulk data Loader</a></li>
+                                    <li><a href="#">Usage Identifier</a></li>
+                                    <li><a href="#">Bulk data Loader</a></li>
+                                    <li><a href="#">Usage Identifier</a></li>
+                                    <li><a href="#">Bulk data Loader</a></li>
+                                    <li><a href="#">Usage Identifier</a></li>
+                                </ul>
+                            </li>
+
+                            <!--Menu list item-->
+                            <li>
+                                <a href="#">
+                                    <i class="menuico MeteredUsage"></i>
+                                    <span class="menu-title">
+												Metered Usage
+											</span>
+                                </a>
+
+                                <!--Submenu-->
+                                <ul class="collapse">
+                                    <li><a href="">Collapsed Navigation</a></li>
+                                    <li><a href="">Off-Canvas Navigation</a></li>
+                                    <li><a href="">Slide-in Navigation</a></li>
+                                    <li>
+                                        <a href="layouts-fixed-topbar.html">Fixed topbar<i class="arrow"></i></a>
+                                        <ul class="collapse">
+                                            <li><a href="">Collapsed Navigation</a></li>
+                                            <li><a href="">Off-Canvas Navigation</a></li>
+                                        </ul>
+                                    </li>
+                                    <li><a href="">Revealing Navigation</a></li>
+                                    <li><a href="">Aside on the right side</a></li>
+                                    <li><a href="">Aside on the left side</a></li>
+                                    <li><a href="">Bright aside theme</a></li>
+                                    <li>
+                                        <a href="">Fixed topbar<i class="arrow"></i></a>
+                                        <ul class="collapse">
+                                            <li><a href="">Collapsed Navigation</a></li>
+                                            <li><a href="">Off-Canvas Navigation</a></li>
+                                        </ul>
+                                    </li>
+                                    <li><a href="">Fixed Footer</a></li>
+
+                                </ul>
+                            </li>
+                            <li>
+                                <a href="index.html">
+                                    <i class="menuico Localization"></i>
+                                    <span class="menu-title">
+												Localization
+											</span>
+                                </a>
+                                <ul class="collapse">
+                                    <li><a href="">Collapsed Navigation</a></li>
+                                    <li><a href="">Off-Canvas Navigation</a></li>
+                                </ul>
+
+                            </li>
+                        </ul>
+
+                    </div>
+                </div>
+            </div>
+        </aside>
+        <!--===================================================-->
+        <!--END ASIDE-->
+
+        <!--MAIN NAVIGATION-->
+        <!--===================================================-->
+        <nav id="mainnav-container">
+            <div id="mainnav" data-simplebar>
+
+                <!--Menu-->
+                <!--================================-->
+                <div id="mainnav-menu-wrap">
+
+                    <!--Toogle Main Menu Button-->
+
+                    <ul id="mainnav-menu" class="list-group">
+
+                        <li class="active-link">
+                            <a href="#">
+                                <i class="fa fa-dashboard"></i><span class="menu-title">Home</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-cube"></i><span class="menu-title">Products</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-user"></i><span class="menu-title">Accounts</span>
+                            </a>
+                        </li>
+
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-user"></i><span class="menu-title">Accounts Long Title </span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-user"></i><span class="menu-title">Accounts</span>
+                            </a>
+                        </li>
+                    </ul>
+                    <ul id="recyle-bin" class="list-group">
+                        <li>
+                            <a href="#">
+                                <i class="fa fa-recycle"></i><span class="menu-title">Recycle Bin</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+                <!--================================-->
+                <!--End menu-->
+
+            </div>
+        </nav>
+        <!--===================================================-->
+        <!--END MAIN NAVIGATION-->
+        <nav id="main-manu-button">
+            <a class="topbar-brand mainnav-toggle">
+                <i class="fa fa-bars"></i>
+            </a>
+        </nav>
+
+
+    </div>
+    <!--===================================================-->
+    <!-- END OF CONTAINER -->
+</div>
+ 
+ 
+
+<script src="assets/js/app.js"></script>
+<script type="text/javascript" src="../js/partials/components/datetimepicker.js"></script>
+ 
+<script> 
+$('#grid').brmgrid();
+$('#datepicker-test').brmdatetimepicker({ constrainInput: true ,changeMonth:true,changeYear: true});
+ 
+</script>
+</body>
+</html>
