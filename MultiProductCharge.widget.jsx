@@ -1,5 +1,5 @@
 <BPUI.Page>  
-<BPUI.Divider Name="Account Info" style ={{width: 1000 + "px"}}>Account Name:<span className="text-blue"> {accountInfo.Name}</span> <br/><br/>Invoice period:  {invoiceDate.start} - {invoiceDate.end} <br/><br/></BPUI.Divider>
+<BPUI.Divider Name="Account Info" style ={{width: 1000 + "px"}}>Account Name:<span className="text-blue" id="account-info-name">  </span> <br/><br/>Invoice period:  {invoiceDate.start} - {invoiceDate.end} <br/><br/></BPUI.Divider>
     <BPUI.FormLayout submitAction={saveInvoices} cancelAction={cancel}>
                 <BPUI.Panel style ={{width: 900 + "px"}} className="formBody">
                 <BPUI.PanelRow>
@@ -45,6 +45,7 @@ transform: translateY(20%) !important;
 
 ___________________________________________________________________________________________________
 
+
 window.billingProfile = new BPUI.ReferenceObject();
 window.invoice = new BPUI.ReferenceObject();
 window.account = new BPUI.ReferenceObject();
@@ -52,15 +53,25 @@ window.activities = new BPUI.ReferenceObject();//ReferenceObject test
 window.activityEntity = new BPUI.ReferenceObject(BPConnection.Activity)
 
 BPSystem.initialize();
-let accountInfo = {};
+window.accountInfo = new BPUI.ReferenceObject({Name:'- Not found -'});
 let invoiceDate = {};
 const accountId =  BPSystem.nodeKey; //1
+const activityId =  BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
 
 // Initialize the Form Objects
-function init() {
+async function init() {
+    
+const res = await BPConnection.BrmAggregate.query("select a.AccountId from Activity a where a.Id = "+activityId).single();
+    console.log(res);
+const res2 = await BPConnection.BrmAggregate.query("select a.Id, a.Name from Account a where a.Id = "+res.AccountId).single();
+    console.log(res2);
+accountInfo.set({Name:res2.Name}); 
+    
+    document.querySelector('#account-info-name').innerHTML = res2.Name;    
+    
     activities.set(new BPConnection.BPCollection([{}], new Activity()));
     //default the activity dates to today
     activities.get().forEach(function (element, index, allArray) {
@@ -68,7 +79,7 @@ function init() {
     });
     //Initialize the BillingProfile Object and fields
     try {
-        accountInfo = BPConnection.Account.retrieveFiltered("Id=" + accountId).single();
+       // accountInfo = BPConnection.Account.retrieveFiltered("Id=" + accountId).single();
         account.set(BPSystem.toBPObject({}, new Account()));
         account.get().Id = accountId;
         billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountId).single());
