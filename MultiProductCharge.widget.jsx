@@ -122,7 +122,7 @@ const result = await BPConnection.Invoice.create(invoice.get());
     if (result[0].ErrorCode == "0") {
         var newActivities = activities.get().elements.map(el=>({
                 InvoiceId: result[0].Id,
-                AccountId: billingProfile.get().Id,
+                AccountId: accountInfo.Id,
                 ProductId: el.ProductId,
                 ActivityDate: el.ActivityDate,
                 Quantity: el.Quantity,
