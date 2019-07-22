@@ -1,5 +1,9 @@
 <BPUI.Page>  
-<BPUI.Divider Name="Account Info" style ={{width: 1000 + "px"}}>Account Name:<span className="text-blue" id="account-info-name">  </span> <br/><br/>Invoice period:  {invoiceDate.start} - {invoiceDate.end} <br/><br/></BPUI.Divider>
+<BPUI.Divider Name="Account Info" style ={{width: 1000 + "px"}}>
+<div>Account Name:<span className="text-blue" id="account-info-name"> {accountInfo.Name} </span> 
+                <br/><br/>Invoice period:<span className="text-blue" id="account-info-period">   {invoiceDate.start} - {invoiceDate.end} </span> <br/><br/>
+</div>
+</BPUI.Divider>
     <BPUI.FormLayout submitAction={saveInvoices} cancelAction={cancel}>
                 <BPUI.Panel style ={{width: 900 + "px"}} className="formBody">
                 <BPUI.PanelRow>
@@ -24,6 +28,7 @@
                     </BPUI.PanelRow>
                 </BPUI.Panel>
                 <BPUI.Panel style ={{width: 900 + "px"}}>
+                <button onClick={doSave}>Save Products</button>
                 </BPUI.Panel>
     </BPUI.FormLayout>
 </BPUI.Page>
@@ -50,17 +55,23 @@ window.billingProfile = new BPUI.ReferenceObject();
 window.invoice = new BPUI.ReferenceObject();
 window.account = new BPUI.ReferenceObject();
 window.activities = new BPUI.ReferenceObject();//ReferenceObject test
-window.activityEntity = new BPUI.ReferenceObject(BPConnection.Activity)
+
 
 BPSystem.initialize();
-window.accountInfo = new BPUI.ReferenceObject({Name:'- Not found -'});
-let invoiceDate = {};
+window.accountInfo = {Name:'- Not found -'};
+window.invoiceDate = {start:'- Not selected '};
 const accountId =  BPSystem.nodeKey; //1
 const activityId =  BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
-
+const UserBlock = React.createClass({
+    render() {
+       const {invoiceDate,accountInfo} = this.props;
+      return ( <div>Account Name:<span className="text-blue" id="account-info-name"> {accountInfo.Name} </span> 
+                <br/><br/><span className="text-blue" id="account-info-period">{invoiceDate.start} - {invoiceDate.end} </span> <br/><br/>
+                </div>)
+          }});
 // Initialize the Form Objects
 async function init() {
     
@@ -68,9 +79,10 @@ const res = await BPConnection.BrmAggregate.query("select a.AccountId from Activ
     console.log(res);
 const res2 = await BPConnection.BrmAggregate.query("select a.Id, a.Name from Account a where a.Id = "+res.AccountId).single();
     console.log(res2);
-accountInfo.set({Name:res2.Name}); 
+accountInfo={Name:res2.Name, Id:id}; 
     
-    document.querySelector('#account-info-name').innerHTML = res2.Name;    
+    document.querySelector('#account-info-name').innerHTML = res2.Name;  
+      document.querySelector('#account-info-period').innerHTML = `Invoice period: ${formatDateUI(formatDateDB())} - ${formatDateUI(formatDateDB())}`; 
     
     activities.set(new BPConnection.BPCollection([{}], new Activity()));
     //default the activity dates to today
@@ -79,7 +91,6 @@ accountInfo.set({Name:res2.Name});
     });
     //Initialize the BillingProfile Object and fields
     try {
-       // accountInfo = BPConnection.Account.retrieveFiltered("Id=" + accountId).single();
         account.set(BPSystem.toBPObject({}, new Account()));
         account.get().Id = accountId;
         billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountId).single());
@@ -111,13 +122,15 @@ const result = await BPConnection.Invoice.create(invoice.get());
     if (result[0].ErrorCode == "0") {
         var newActivities = activities.get().elements.map(el=>({
                 InvoiceId: result[0].Id,
-                AccountId: billingProfile.get().AccountId,
+                AccountId: billingProfile.get().Id,
                 ProductId: el.ProductId,
                 ActivityDate: el.ActivityDate,
                 Quantity: el.Quantity,
                 RateOverride: el.Rate,
                 CostOverride: el.RatedAmount
             }));
+            console.log(newActivities);
+ debugger;
 const resultActivity = await BPSystem.toBPCollection(newActivities, BPConnection.Activity).create(true);
     if (resultActivity){
         window.location = "admin.jsp?name=BILLING_INVOICE&key=" + resultActivity[0].Id + "&mode=R"
@@ -128,35 +141,7 @@ const resultActivity = await BPSystem.toBPCollection(newActivities, BPConnection
             showConfirmDialog(document.body, "Error value data " + result[0].ErrorText, function (delParam) { }, null)
         }
     }
-/*
-function doSave() {
-    BPConnection.Invoice.create(invoice.get()).done(function (result) {
-        console.log("Result", result);
-        if (result[0].ErrorCode == "0") {
-            var newActivities = activities.get().elements.map(function (el) {
-                return {
-                    InvoiceId: result[0].Id,
-                    AccountId: billingProfile.get().AccountId,
-                    ProductId: el.ProductId,
-                    ActivityDate: el.ActivityDate,
-                    Quantity: el.Quantity,
-                    RateOverride: el.Rate,
-                    CostOverride: el.RatedAmount
-                };
-            });
-            //THis doesn't seem to work...
-            BPSystem.toBPCollection(newActivities, BPConnection.Activity).create(true).done(function (resultActivity) {
-                window.location = "admin.jsp?name=BILLING_INVOICE&key=" + result[0].Id + "&mode=R"
-            }).fail(function (failError) {
-                console.log("Fail", result);
-            });
-        } else {
-            showConfirmDialog(document.body, "Error value data " + result[0].ErrorText, function (delParam) {
-            }, null)
-        }
-    })
-}*/
-
+ 
 function saveInvoices() {
     invoice.get().ManualCloseApprovedFlag = "0";
     doSave();
@@ -201,8 +186,7 @@ function calculateRate(row, column, event, scope) {
         }
         else if (rowElement.Quantity && rowElement.Rate   && ([3,4,6].includes(column))) {
             rowElement.RatedAmount = (rowElement.Rate * rowElement.Quantity).toFixed(2);
-            rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.Tax)?0:+rowElement.Tax)).toFixed(2);
-            
+            rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.Tax)?0:+rowElement.Tax)).toFixed(2);     
         }
     }
 }
@@ -229,6 +213,8 @@ const productIdUpdate = id => {
    // alert(id);
 }
         
-        const deleteCol = () =>{
-    alert('do you wanna delete this record?')
+const deleteCol = () =>{
+    if (confirm('Do you want delete this record?')){
+
     }
+}
