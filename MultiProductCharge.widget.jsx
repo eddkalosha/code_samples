@@ -8,7 +8,7 @@
                 <BPUI.Panel style ={{width: 900 + "px"}} className="formBody">
                 <BPUI.PanelRow>
                     <BPUI.PanelRowColumn colSpan="4">
-                        <BPUI.EmbeddedList variable={activities} name="activities" width="100%" onCellBlur={calculateRate} onAdd={addActivity} onDel={deleteCol}>
+                        <BPUI.EmbeddedList variable={activities} name="activities" width="100%" onCellBlur={calculateRate}   onAdd={addActivity} onDel={deleteCol}>
                             <BPUI.TableColumn name="ProductId" index="2" label="Product Name"/>
 							<BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="From Date" />
 							<BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="To Date" />
@@ -28,11 +28,13 @@
                     </BPUI.PanelRow>
                 </BPUI.Panel>
                 <BPUI.Panel style ={{width: 900 + "px"}}>
+                <div className="footer-buttons">
+				<span className="footer-buttons-label hide">Saving data in a progress...</span>
                 <button onClick={doSave}>Save Products</button>
+                </div>
                 </BPUI.Panel>
     </BPUI.FormLayout>
 </BPUI.Page>
-
 ___________________________________________________________________________________________________
 .disabled{pointer-events:none}
 
@@ -74,15 +76,14 @@ const UserBlock = React.createClass({
           }});
 // Initialize the Form Objects
 async function init() {
-    
 const res = await BPConnection.BrmAggregate.query("select a.AccountId from Activity a where a.Id = "+activityId).single();
     console.log(res);
 const res2 = await BPConnection.BrmAggregate.query("select a.Id, a.Name from Account a where a.Id = "+res.AccountId).single();
     console.log(res2);
-accountInfo={Name:res2.Name, Id:id}; 
+accountInfo={Name:res2.Name, Id:res2.Id}; 
     
     document.querySelector('#account-info-name').innerHTML = res2.Name;  
-      document.querySelector('#account-info-period').innerHTML = `Invoice period: ${formatDateUI(formatDateDB())} - ${formatDateUI(formatDateDB())}`; 
+      document.querySelector('#account-info-period').innerHTML = `${formatDateUI(formatDateDB())} - ${formatDateUI(formatDateDB())}`; 
     
     activities.set(new BPConnection.BPCollection([{}], new Activity()));
     //default the activity dates to today
@@ -92,8 +93,8 @@ accountInfo={Name:res2.Name, Id:id};
     //Initialize the BillingProfile Object and fields
     try {
         account.set(BPSystem.toBPObject({}, new Account()));
-        account.get().Id = accountId;
-        billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountId).single());
+        account.get().Id = accountInfo.Id;
+        billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountInfo.Id).single());
         invoice.set(new Invoice());
         invoice.get().BillingProfileId = billingProfile.get().Id;
     } catch (e) {
@@ -118,6 +119,7 @@ function cancel() {
 }
 
 const doSave = async()=> {
+document.querySelector('.footer-buttons-label').classList.remove('hide');
 const result = await BPConnection.Invoice.create(invoice.get());
     if (result[0].ErrorCode == "0") {
         var newActivities = activities.get().elements.map(el=>({
@@ -140,6 +142,8 @@ const resultActivity = await BPSystem.toBPCollection(newActivities, BPConnection
 } else {
             showConfirmDialog(document.body, "Error value data " + result[0].ErrorText, function (delParam) { }, null)
         }
+
+document.querySelector('.footer-buttons-label').classList.add('hide');
     }
  
 function saveInvoices() {
