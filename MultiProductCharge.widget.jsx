@@ -1,39 +1,36 @@
-<BPUI.Page>  
-<BPUI.Divider Name="Account Info" style ={{width: 1000 + "px"}}>
-<div>Account Name:<span className="text-blue" id="account-info-name"> {accountInfo.Name} </span> 
-                <br/><br/>Invoice period:<span className="text-blue" id="account-info-period">   {invoiceDate.start} - {invoiceDate.end} </span> <br/><br/>
+<BPUI.Page> 
+<div className="div-flex">
+<div className="div-flex-inner basis50">
+<div className="text-big">
+Account Name:<span className="text-blue" id="account-info-name"> {accountInfo.Name} </span> <br/><br/>
+Invoice period:<span className="text-blue" id="account-info-period">   {invoiceDate.start} - {invoiceDate.end} </span>
 </div>
-</BPUI.Divider>
-    <BPUI.FormLayout submitAction={saveInvoices} cancelAction={cancel}>
-                <BPUI.Panel style ={{width: 900 + "px"}} className="formBody">
-                <BPUI.PanelRow>
-                    <BPUI.PanelRowColumn colSpan="4">
-                        <BPUI.EmbeddedList variable={activities} name="activities" width="100%" onCellBlur={calculateRate}   onAdd={addActivity} onDel={deleteCol}>
+</div>
+<div className="div-flex-inner basis50">
+	<button className="btn btn-lg btn-block" onClick={addActivity}> New Product</button>
+</div>
+<div className="div-flex-inner basis100">
+<BPUI.EmbeddedList canAdd={false} variable={activities} name="activities" width="100%" onCellBlur={calculateRate}   onAdd={addActivity} onDel={deleteCol}>
                             <BPUI.TableColumn name="ProductId" index="2" label="Product Name"/>
-							<BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="From Date" />
-							<BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="To Date" />
+							<BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="From Date" />
+							<BPUI.TableColumn name="SubscriptionToDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="To Date" />
                             <BPUI.TableColumn name="Quantity" index="3" label="Quantity"/>
                             <BPUI.TableColumn name="Rate" index="4" label="Rate"/>
                             <BPUI.TableColumn className={"disabled"} name="RatedAmount" index="5" label="Cost"/>
-							<BPUI.TableColumn name="Tax" index="6" label="Tax" />
+							<BPUI.TableColumn name="TaxCost" index="6" label="Tax" />
 							<BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost"/>
 							<BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="8" displayTransform={formatDateUI} label="Activity Date" />
                         </BPUI.EmbeddedList>
-                    </BPUI.PanelRowColumn>
-                </BPUI.PanelRow>
-                </BPUI.Panel>
-                <BPUI.Panel>
-                    <BPUI.PanelRow style ={{height: 20 + "px"}}>
-                    <BPUI.PanelRowColumn />
-                    </BPUI.PanelRow>
-                </BPUI.Panel>
-                <BPUI.Panel style ={{width: 900 + "px"}}>
-                <div className="footer-buttons">
-				<span className="footer-buttons-label hide">Saving data in a progress...</span>
-                <button onClick={doSave}>Save Products</button>
-                </div>
-                </BPUI.Panel>
-    </BPUI.FormLayout>
+</div>
+<div className="div-flex-inner basis100">
+<div className="footer-buttons">
+<span id="msg-info" className="footer-buttons-label text-blue hide">Saving data in a progress... </span>
+<span id="msg-succ" className="footer-buttons-label text-success success-msg hide "><i className="fa fa-check-circle"></i> Data was saved successfully!</span>
+<span id="msg-fail" className="footer-buttons-label text-danger failed-msg hide "><i className="fa fa-check-circle"></i> Error occurred while data saving!</span>
+<button onClick={doSave}> Save Products</button>
+</div>
+</div>
+</div>
 </BPUI.Page>
 ___________________________________________________________________________________________________
 .disabled{pointer-events:none}
@@ -50,9 +47,39 @@ background:transparent !important;
 transform: translateY(20%) !important;
 }
 
+.footer-buttons{
+    display: flex;
+    justify-content: flex-end;
+    align-items:center;
+}
+
+.div-flex{
+display:flex;
+flex-wrap:wrap;
+align-items: center;
+}
+.basis50{
+flex-basis:50%;
+}
+.div-flex-inner{
+padding: 10px;
+}
+.basis100{
+flex-basis:100%;
+}
+.text-big{
+    font-size: 150%;
+}
+.success-msg{
+    padding: 6px;
+    background: #aaff5c29;
+}
+
+.failed-msg{
+    padding: 6px;
+    background: #ff5c5c29;
+}
 ___________________________________________________________________________________________________
-
-
 window.billingProfile = new BPUI.ReferenceObject();
 window.invoice = new BPUI.ReferenceObject();
 window.account = new BPUI.ReferenceObject();
@@ -89,6 +116,8 @@ accountInfo={Name:res2.Name, Id:res2.Id};
     //default the activity dates to today
     activities.get().forEach(function (element, index, allArray) {
         element.ActivityDate = formatDateDB();
+        element.SubscriptionFromDate = formatDateDB();
+        element.SubscriptionToDate = formatDateDB();
     });
     //Initialize the BillingProfile Object and fields
     try {
@@ -119,7 +148,7 @@ function cancel() {
 }
 
 const doSave = async()=> {
-document.querySelector('.footer-buttons-label').classList.remove('hide');
+document.querySelector('#msg-info').classList.remove('hide');
 const result = await BPConnection.Invoice.create(invoice.get());
     if (result[0].ErrorCode == "0") {
         var newActivities = activities.get().elements.map(el=>({
@@ -127,23 +156,30 @@ const result = await BPConnection.Invoice.create(invoice.get());
                 AccountId: accountInfo.Id,
                 ProductId: el.ProductId,
                 ActivityDate: el.ActivityDate,
+                SubscriptionFromDate:el.SubscriptionFromDate,
+                SubscriptionToDate:el.SubscriptionToDate,
                 Quantity: el.Quantity,
                 RateOverride: el.Rate,
-                CostOverride: el.RatedAmount
+                CostOverride: el.RatedAmount,
+    			TaxCost:el.TaxCost,
+    			TotalCost:el.TotalCost
             }));
             console.log(newActivities);
- debugger;
 const resultActivity = await BPSystem.toBPCollection(newActivities, BPConnection.Activity).create(true);
     if (resultActivity){
-        window.location = "admin.jsp?name=BILLING_INVOICE&key=" + resultActivity[0].Id + "&mode=R"
+        console.log(resultActivity)
+             window.onbeforeunload = true;
+        document.querySelector('#msg-succ').classList.remove('hide');
+      //  window.location = "admin.jsp?name=BILLING_INVOICE&key=" + resultActivity[0].Id + "&mode=R"
     }else{
+        document.querySelector('#msg-fail').classList.remove('hide');
         console.log("Fail", resultActivity); 
     } 
 } else {
             showConfirmDialog(document.body, "Error value data " + result[0].ErrorText, function (delParam) { }, null)
         }
 
-document.querySelector('.footer-buttons-label').classList.add('hide');
+document.querySelector('#msg-info').classList.add('hide');
     }
  
 function saveInvoices() {
@@ -190,7 +226,7 @@ function calculateRate(row, column, event, scope) {
         }
         else if (rowElement.Quantity && rowElement.Rate   && ([3,4,6].includes(column))) {
             rowElement.RatedAmount = (rowElement.Rate * rowElement.Quantity).toFixed(2);
-            rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.Tax)?0:+rowElement.Tax)).toFixed(2);     
+            rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost)).toFixed(2);     
         }
     }
 }
@@ -198,6 +234,8 @@ function calculateRate(row, column, event, scope) {
 const checkAccount = () =>(account && account.get() && account.get().Id);
 
 function addActivity(index) {
+    window.onbeforeunload = function(){
+  return 'Are you sure you want to leave? All Data will be loss.'};
     const activitiesData = activities.get();
     const accountId = account.get().Id;
     const invoiceId = invoice.get().Id;
@@ -206,6 +244,7 @@ function addActivity(index) {
         el.AccountId = accountId;
         el.InvoiceId = invoiceId;
     });
+       
     window.BPActions.refreshState("activities");
 }
 
@@ -218,7 +257,5 @@ const productIdUpdate = id => {
 }
         
 const deleteCol = () =>{
-    if (confirm('Do you want delete this record?')){
-
-    }
+return
 }
