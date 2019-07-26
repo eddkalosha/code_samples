@@ -2,8 +2,8 @@
 <div className="div-flex">
 <div className="div-flex-inner basis50">
 <div className="text-big">
-Account Name:<span className="text-blue" id="account-info-name"> {accountInfo.Name} </span> <br/><br/>
-Invoice period:<span className="text-blue" id="account-info-period">   {invoiceDate.start} - {invoiceDate.end} </span>
+Account Name: <span className="text-blue" id="account-info-name"> {accountInfo.Name} </span> <br/><br/>
+Invoice period: <span className="text-blue" id="account-info-period">   {invoiceDate.start} - {invoiceDate.end} </span>
 </div>
 </div>
 <div className="div-flex-inner basis50">
@@ -27,7 +27,30 @@ Invoice period:<span className="text-blue" id="account-info-period">   {invoiceD
 <span id="msg-info" className="footer-buttons-label text-blue hide">Saving data in a progress... </span>
 <span id="msg-succ" className="footer-buttons-label text-success success-msg hide "><i className="fa fa-check-circle"></i> Data was saved successfully!</span>
 <span id="msg-fail" className="footer-buttons-label text-danger failed-msg hide "><i className="fa fa-check-circle"></i> Error occurred while data saving!</span>
-<button onClick={doSave}> Save Products</button>
+<button onClick={doSave}> Save Product (-s)</button>
+</div>
+</div>
+
+<div className="div-flex-inner basis100">
+History data for Products: 
+<BPUI.EmbeddedList canAdd={false} variable={lastactivities} name="activities" width="100%" onCellBlur={calculateRate}>
+                            <BPUI.TableColumn className={"disabled"} name="ProductId" index="2" label="Product Name"/>
+							<BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="From Date" />
+							<BPUI.TableColumn name="SubscriptionToDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="To Date" />
+                            <BPUI.TableColumn name="Quantity" index="3" label="Quantity"/>
+                            <BPUI.TableColumn name="Rate" index="4" label="Rate"/>
+                            <BPUI.TableColumn className={"disabled"} name="RatedAmount" index="5" label="Cost"/>
+							<BPUI.TableColumn name="TaxCost" index="6" label="Tax" />
+							<BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost"/>
+							<BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="8" displayTransform={formatDateUI} label="Activity Date" />
+</BPUI.EmbeddedList>
+</div>
+<div className="div-flex-inner basis100">
+<div className="footer-buttons">
+<span id="msg-info_" className="footer-buttons-label text-blue hide">Saving data in a progress... </span>
+<span id="msg-succ_" className="footer-buttons-label text-success success-msg hide "><i className="fa fa-check-circle"></i> Data was saved successfully!</span>
+<span id="msg-fail_" className="footer-buttons-label text-danger failed-msg hide "><i className="fa fa-check-circle"></i> Error occurred while data saving!</span>
+<button> Update Product (-s)</button>
 </div>
 </div>
 </div>
@@ -84,6 +107,7 @@ window.billingProfile = new BPUI.ReferenceObject();
 window.invoice = new BPUI.ReferenceObject();
 window.account = new BPUI.ReferenceObject();
 window.activities = new BPUI.ReferenceObject();//ReferenceObject test
+window.lastactivities = new BPUI.ReferenceObject();
 
 
 BPSystem.initialize();
@@ -103,21 +127,28 @@ const UserBlock = React.createClass({
           }});
 // Initialize the Form Objects
 async function init() {
-const res = await BPConnection.BrmAggregate.query("select a.AccountId from Activity a where a.Id = "+activityId).single();
-    console.log(res);
-const res2 = await BPConnection.BrmAggregate.query("select a.Id, a.Name from Account a where a.Id = "+res.AccountId).single();
-    console.log(res2);
-accountInfo={Name:res2.Name, Id:res2.Id}; 
     
-    document.querySelector('#account-info-name').innerHTML = res2.Name;  
-      document.querySelector('#account-info-period').innerHTML = `${formatDateUI(formatDateDB())} - ${formatDateUI(formatDateDB())}`; 
+ 
+const res = await BPConnection.BrmAggregate.query("select a.AccountId, a.InvoiceId from Activity a where a.Id = "+activityId).single();
+    console.log(res);
+    //get results in parallel
+const [res2,res3] = await Promise.all([
+      BPConnection.BrmAggregate.query("select a.Id, a.Name from Account a where a.Id = "+res.AccountId).single(),
+      BPConnection.BrmAggregate.query("select a.Id, a.BillingCycleStartDate,a.BillingCycleEndDate from Invoice a where a.Id = "+res.InvoiceId).single()]);
+    console.log(res2,res3);
+window.lastactivities.set(BPConnection.Activity.retrieveFiltered('AccountId='+res2.Id).collection());
+///
+accountInfo={Name:res2.Name, Id:res2.Id}; 
+invoiceDate = {start: formatDateUI(formatDateDB(res3.BillingCycleStartDate)), end: formatDateUI(formatDateDB(res3.BillingCycleEndDate))};
+document.querySelector('#account-info-name').innerHTML = res2.Name;  
+document.querySelector('#account-info-period').innerHTML = `${invoiceDate.start} - ${invoiceDate.end}`; 
     
     activities.set(new BPConnection.BPCollection([{}], new Activity()));
     //default the activity dates to today
     activities.get().forEach(function (element, index, allArray) {
-        element.ActivityDate = formatDateDB();
-        element.SubscriptionFromDate = formatDateDB();
-        element.SubscriptionToDate = formatDateDB();
+        element.ActivityDate = formatDateDB(invoiceDate.start);
+        element.SubscriptionFromDate = formatDateDB(invoiceDate.start);
+        element.SubscriptionToDate = formatDateDB(invoiceDate.end);
     });
     //Initialize the BillingProfile Object and fields
     try {
@@ -133,7 +164,6 @@ accountInfo={Name:res2.Name, Id:res2.Id};
     }
     invoice.get().BillingCycleStartDate = formatDateDB();
     invoice.get().BillingCycleEndDate = formatDateDB();
-    invoiceDate = {start: formatDateUI(formatDateDB()), end: formatDateUI(formatDateDB())};
     invoice.get().ManualCloseApprovedFlag = "0"
 }
 
