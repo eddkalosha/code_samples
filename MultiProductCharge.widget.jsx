@@ -136,7 +136,7 @@ const [res2,res3] = await Promise.all([
       BPConnection.BrmAggregate.query("select a.Id, a.Name from Account a where a.Id = "+res.AccountId).single(),
       BPConnection.BrmAggregate.query("select a.Id, a.BillingCycleStartDate,a.BillingCycleEndDate from Invoice a where a.Id = "+res.InvoiceId).single()]);
     console.log(res2,res3);
-window.lastactivities.set(BPConnection.Activity.retrieveFiltered('AccountId='+res2.Id).collection());
+window.lastactivities.set(BPConnection.Activity.retrieveFiltered('AccountId='+res2.Id+' AND InvoiceId='+res.InvoiceId).collection());
 ///
 accountInfo={Name:res2.Name, Id:res2.Id}; 
 invoiceDate = {start: formatDateUI(formatDateDB(res3.BillingCycleStartDate)), end: formatDateUI(formatDateDB(res3.BillingCycleEndDate))};
