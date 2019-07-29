@@ -10,7 +10,7 @@ Invoice period: <span className="text-blue" id="account-info-period">   {invoice
 	<button className="btn btn-lg btn-block" onClick={addActivity}> New Product</button>
 </div>
 <div className="div-flex-inner basis100">
-<BPUI.EmbeddedList canAdd={false} variable={activities} name="activities" width="100%" onCellBlur={calculateRate}   onAdd={addActivity} onDel={deleteCol}>
+<BPUI.EmbeddedList canAdd={false} variable={activities} name="activities" width="100%" onCellBlur={calculateRate}   onAdd={addActivity}>
                             <BPUI.TableColumn name="ProductId" index="2" label="Product Name"/>
 							<BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="From Date" />
 							<BPUI.TableColumn name="SubscriptionToDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="To Date" />
@@ -19,7 +19,7 @@ Invoice period: <span className="text-blue" id="account-info-period">   {invoice
                             <BPUI.TableColumn className={"disabled"} name="RatedAmount" index="5" label="Cost"/>
 							<BPUI.TableColumn name="TaxCost" index="6" label="Tax" />
 							<BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost"/>
-							<BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="8" displayTransform={formatDateUI} label="Activity Date" />
+							<BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="8"  sortable="DESC" displayTransform={formatDateUI} label="Activity Date" />
                         </BPUI.EmbeddedList>
 </div>
 <div className="div-flex-inner basis100">
@@ -103,6 +103,7 @@ flex-basis:100%;
     background: #ff5c5c29;
 }
 ___________________________________________________________________________________________________
+
 window.billingProfile = new BPUI.ReferenceObject();
 window.invoice = new BPUI.ReferenceObject();
 window.account = new BPUI.ReferenceObject();
@@ -125,46 +126,31 @@ const UserBlock = React.createClass({
                 <br/><br/><span className="text-blue" id="account-info-period">{invoiceDate.start} - {invoiceDate.end} </span> <br/><br/>
                 </div>)
           }});
+
 // Initialize the Form Objects
 async function init() {
-    
- 
-const res = await BPConnection.BrmAggregate.query("select a.AccountId, a.InvoiceId from Activity a where a.Id = "+activityId).single();
-    console.log(res);
-    //get results in parallel
-const [res2,res3] = await Promise.all([
+const res = await BPConnection.BrmAggregate.query("select a.AccountId, a.InvoiceId from Activity a where a.Id = "+activityId).single();    
+const [res2,res3] = await Promise.all([//get data results in parallel
       BPConnection.BrmAggregate.query("select a.Id, a.Name from Account a where a.Id = "+res.AccountId).single(),
-      BPConnection.BrmAggregate.query("select a.Id, a.BillingCycleStartDate,a.BillingCycleEndDate from Invoice a where a.Id = "+res.InvoiceId).single()]);
-    console.log(res2,res3);
-window.lastactivities.set(BPConnection.Activity.retrieveFiltered('AccountId='+res2.Id+' AND InvoiceId='+res.InvoiceId).collection());
-///
-accountInfo={Name:res2.Name, Id:res2.Id}; 
-invoiceDate = {start: formatDateUI(formatDateDB(res3.BillingCycleStartDate)), end: formatDateUI(formatDateDB(res3.BillingCycleEndDate))};
-document.querySelector('#account-info-name').innerHTML = res2.Name;  
-document.querySelector('#account-info-period').innerHTML = `${invoiceDate.start} - ${invoiceDate.end}`; 
-    
-    activities.set(new BPConnection.BPCollection([{}], new Activity()));
-    //default the activity dates to today
-    activities.get().forEach(function (element, index, allArray) {
-        element.ActivityDate = formatDateDB(invoiceDate.start);
-        element.SubscriptionFromDate = formatDateDB(invoiceDate.start);
-        element.SubscriptionToDate = formatDateDB(invoiceDate.end);
-    });
-    //Initialize the BillingProfile Object and fields
-    try {
-        account.set(BPSystem.toBPObject({}, new Account()));
-        account.get().Id = accountInfo.Id;
-        billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountInfo.Id).single());
-        invoice.set(new Invoice());
-        invoice.get().BillingProfileId = billingProfile.get().Id;
-    } catch (e) {
-        console.error(e);
-        billingProfile.set(new BillingProfile());
-        invoice.set(new Invoice());
-    }
-    invoice.get().BillingCycleStartDate = formatDateDB();
-    invoice.get().BillingCycleEndDate = formatDateDB();
-    invoice.get().ManualCloseApprovedFlag = "0"
+      BPConnection.Invoice.retrieveFiltered('Id='+res.InvoiceId).single()
+    ]);
+      window.lastactivities.set(BPConnection.Activity.retrieveFiltered('AccountId='+res2.Id+' AND InvoiceId='+res.InvoiceId).collection());
+      accountInfo={Name:res2.Name, Id:res2.Id}; 
+      invoiceDate = {start: formatDateUI(formatDateDB(res3.BillingCycleStartDate)), end: formatDateUI(formatDateDB(res3.BillingCycleEndDate))};
+      document.querySelector('#account-info-name').innerHTML = res2.Name;  
+      document.querySelector('#account-info-period').innerHTML = `${invoiceDate.start} - ${invoiceDate.end}`; 
+    //init new activity by default
+    activities.set(new BPConnection.BPCollection([{}], new Activity({
+        ActivityDate:formatDateDB(invoiceDate.start),
+        SubscriptionFromDate:formatDateDB(invoiceDate.start),
+        SubscriptionToDate:formatDateDB(invoiceDate.end)
+    })));
+    //init account and billing profile of account
+    account.set(BPSystem.toBPObject({}, new Account()));
+    account.get().Id = accountInfo.Id;
+    billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountInfo.Id).single());
+    //init selected invoice
+    invoice.set(res3);
 }
 
 init();
@@ -179,7 +165,7 @@ function cancel() {
 
 const doSave = async()=> {
 document.querySelector('#msg-info').classList.remove('hide');
-const result = await BPConnection.Invoice.create(invoice.get());
+const result = await BPConnection.Invoice.upsert(invoice.get());
     if (result[0].ErrorCode == "0") {
         var newActivities = activities.get().elements.map(el=>({
                 InvoiceId: result[0].Id,
@@ -194,35 +180,21 @@ const result = await BPConnection.Invoice.create(invoice.get());
     			TaxCost:el.TaxCost,
     			TotalCost:el.TotalCost
             }));
-            console.log(newActivities);
 const resultActivity = await BPSystem.toBPCollection(newActivities, BPConnection.Activity).create(true);
     if (resultActivity){
-        console.log(resultActivity)
-             window.onbeforeunload = true;
+        window.onbeforeunload = true;
         document.querySelector('#msg-succ').classList.remove('hide');
       //  window.location = "admin.jsp?name=BILLING_INVOICE&key=" + resultActivity[0].Id + "&mode=R"
     }else{
         document.querySelector('#msg-fail').classList.remove('hide');
-        console.log("Fail", resultActivity); 
+        console.error("Fail", resultActivity); 
     } 
 } else {
-            showConfirmDialog(document.body, "Error value data " + result[0].ErrorText, function (delParam) { }, null)
-        }
-
+    showConfirmDialog(document.body, "Error value data " + result[0].ErrorText, function (delParam) { }, null)
+}
 document.querySelector('#msg-info').classList.add('hide');
     }
  
-function saveInvoices() {
-    invoice.get().ManualCloseApprovedFlag = "0";
-    doSave();
-}
-
-function saveAndSendInvoices() {
-    invoice.get().ManualCloseApprovedFlag = "1";
-    doSave();
-}
- 
-
 function calculateRate(row, column, event, scope) {
     var activityCollection = activities.get();
     var rowElement = activityCollection.elements[row];
@@ -270,22 +242,9 @@ function addActivity(index) {
     const accountId = account.get().Id;
     const invoiceId = invoice.get().Id;
     activitiesData.addNew({}, index + 1); // next item
-    activitiesData.forEach( el=> {
+    activitiesData.forEach(el=> {
         el.AccountId = accountId;
         el.InvoiceId = invoiceId;
-    });
-       
+    });  
     window.BPActions.refreshState("activities");
-}
-
-BPUI.afterRender = () => {
-    checkAccount();
-};
-
-const productIdUpdate = id => {
-   // alert(id);
-}
-        
-const deleteCol = () =>{
-return
 }
