@@ -1,133 +1,160 @@
-<BPUI.Page> 
-<div className="div-flex">
-<div className="div-flex-inner basis50">
-<div className="text-big">
-Account Name: <span className="text-blue" id="account-info-name"> {accountInfo.Name} </span> <br/><br/>
-Invoice period: <span className="text-blue" id="account-info-period">   {invoiceDate.start} - {invoiceDate.end} </span>
-</div>
-</div>
-<div className="div-flex-inner basis50">
-	<button className="btn btn-lg btn-block" onClick={addActivity}> New Product</button>
-</div>
-<div className="div-flex-inner basis100">
-<BPUI.EmbeddedList canAdd={false} variable={activities} name="activities" width="100%" onCellBlur={calculateRate}   onAdd={addActivity}>
-                            <BPUI.TableColumn name="ProductId" index="2" label="Product Name"/>
-							<BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="From Date" />
-							<BPUI.TableColumn name="SubscriptionToDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="To Date" />
-                            <BPUI.TableColumn name="Quantity" index="3" label="Quantity"/>
-                            <BPUI.TableColumn name="Rate" index="4" label="Rate"/>
-                            <BPUI.TableColumn className={"disabled"} name="RatedAmount" index="5" label="Cost"/>
-							<BPUI.TableColumn name="TaxCost" index="6" label="Tax" />
-							<BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost"/>
-							<BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="8"  sortable="DESC" displayTransform={formatDateUI} label="Activity Date" />
-                        </BPUI.EmbeddedList>
-</div>
-<div className="div-flex-inner basis100">
-<div className="footer-buttons">
-<span id="msg-info" className="footer-buttons-label text-blue hide">Saving data in a progress... </span>
-<span id="msg-succ" className="footer-buttons-label text-success success-msg hide "><i className="fa fa-check-circle"></i> Data was saved successfully!</span>
-<span id="msg-fail" className="footer-buttons-label text-danger failed-msg hide "><i className="fa fa-check-circle"></i> Error occurred while data saving!</span>
-<button onClick={doSave}> Save Product (-s)</button>
-</div>
-</div>
-
-<div className="div-flex-inner basis100">
-History data for Products: 
-<BPUI.EmbeddedList canAdd={false} variable={lastactivities} name="activities" width="100%" onCellBlur={calculateRate}>
-                            <BPUI.TableColumn className={"disabled"} name="ProductId" index="2" label="Product Name"/>
-							<BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="From Date" />
-							<BPUI.TableColumn name="SubscriptionToDate" type="DATE_SELECTOR" index="1" displayTransform={formatDateUI} label="To Date" />
-                            <BPUI.TableColumn name="Quantity" index="3" label="Quantity"/>
-                            <BPUI.TableColumn name="Rate" index="4" label="Rate"/>
-                            <BPUI.TableColumn className={"disabled"} name="RatedAmount" index="5" label="Cost"/>
-							<BPUI.TableColumn name="TaxCost" index="6" label="Tax" />
-							<BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost"/>
-							<BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="8" displayTransform={formatDateUI} label="Activity Date" />
-</BPUI.EmbeddedList>
-</div>
-<div className="div-flex-inner basis100">
-<div className="footer-buttons">
-<span id="msg-info_" className="footer-buttons-label text-blue hide">Saving data in a progress... </span>
-<span id="msg-succ_" className="footer-buttons-label text-success success-msg hide "><i className="fa fa-check-circle"></i> Data was saved successfully!</span>
-<span id="msg-fail_" className="footer-buttons-label text-danger failed-msg hide "><i className="fa fa-check-circle"></i> Error occurred while data saving!</span>
-<button> Update Product (-s)</button>
-</div>
-</div>
-</div>
+<BPUI.Page>
+    <div className="div-flex bg-semiblue">
+        <div className="div-flex-inner basis50">
+            <div className="text-big">
+                Account Name: <span className="text-blue" id="account-info-name"> {accountInfo.Name} </span>
+                <br /><br />
+                Invoice period: <span className="text-blue" id="account-info-period"> {invoiceDate.start} -
+                    {invoiceDate.end} </span>
+            </div>
+        </div>
+        <div className="div-flex-inner basis50">
+            {WIDGET_MODE === 'insert'?
+            <button className="btn btn-lg btn-block" onClick={addActivity}> New Product</button> 
+            : null }
+        </div>
+    </div>
+    {WIDGET_MODE === 'insert'?
+    <div className="div-flex">
+        <div className="div-flex-inner basis100">
+            <BPUI.EmbeddedList canAdd={false} variable={activities} name="activities" width="100%"
+                onCellBlur={calculateRate} onAdd={addActivity} onDel={deleteCol}>
+                <BPUI.TableColumn name="ProductId" index="2" label="Product Name" />
+                <BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1"
+                    displayTransform={formatDateUI} label="From Date" />
+                <BPUI.TableColumn name="SubscriptionToDate" type="DATE_SELECTOR" index="1"
+                    displayTransform={formatDateUI} label="To Date" />
+                <BPUI.TableColumn name="Quantity" index="3" label="Quantity" />
+                <BPUI.TableColumn name="Rate" index="4" label="Rate" />
+                <BPUI.TableColumn className={"disabled"} name="RatedAmount" index="5" label="Cost" />
+                <BPUI.TableColumn name="TaxCost" index="6" label="Tax" />
+                <BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost" />
+                <BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="8" displayTransform={formatDateUI}
+                    label="Activity Date" />
+            </BPUI.EmbeddedList>
+        </div>
+        <div className="div-flex-inner basis100">
+            <div className="footer-buttons">
+                <span id="msg-info" className="footer-buttons-label text-blue hide">Saving data in a progress... </span>
+                <span id="msg-succ" className="footer-buttons-label text-success success-msg hide "><i
+                        className="fa fa-check-circle"></i> Data was saved successfully!</span>
+                <span id="msg-fail" className="footer-buttons-label text-danger failed-msg hide "><i
+                        className="fa fa-check-circle"></i> Error occurred while data saving!</span>
+                <button onClick={doSave}> Save Product (-s)</button>
+            </div>
+        </div>
+    </div>
+    :null}
+    {WIDGET_MODE === 'update'?
+    <div className="div-flex">
+        <div className="div-flex-inner basis100">
+            History data for Products:
+            <BPUI.EmbeddedList canAdd={false} variable={lastactivities} name="activities" width="100%"
+                onCellBlur={calculateRate}>
+                <BPUI.TableColumn className={"disabled"} name="ProductId" index="2" label="Product Name" />
+                <BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1"
+                    displayTransform={formatDateUI} label="From Date" />
+                <BPUI.TableColumn name="SubscriptionToDate" type="DATE_SELECTOR" index="1"
+                    displayTransform={formatDateUI} label="To Date" />
+                <BPUI.TableColumn name="Quantity" index="3" label="Quantity" />
+                <BPUI.TableColumn name="Rate" index="4" label="Rate" />
+                <BPUI.TableColumn className={"disabled"} name="RatedAmount" index="5" label="Cost" />
+                <BPUI.TableColumn name="TaxCost" index="6" label="Tax" />
+                <BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost" />
+                <BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="8" displayTransform={formatDateUI}
+                    label="Activity Date" />
+            </BPUI.EmbeddedList>
+        </div>
+        <div className="div-flex-inner basis100">
+            <div className="footer-buttons">
+                <span id="msg-info_" className="footer-buttons-label text-blue hide">Saving data in a progress...
+                </span>
+                <span id="msg-succ_" className="footer-buttons-label text-success success-msg hide "><i
+                        className="fa fa-check-circle"></i> Data was saved successfully!</span>
+                <span id="msg-fail_" className="footer-buttons-label text-danger failed-msg hide "><i
+                        className="fa fa-check-circle"></i> Error occurred while data saving!</span>
+                <button> Update Product (-s)</button>
+            </div>
+        </div>
+    </div>
+    :null}
 </BPUI.Page>
 ___________________________________________________________________________________________________
-.disabled{pointer-events:none}
-
-input[type="text"]{
-padding:0 !important;
-margin:0 !important;
-background:transparent !important;
+.disabled {
+  pointer-events: none
 }
 
-.text-blue{color: #5cc3ff;}
-
-.return-btn{
-transform: translateY(20%) !important;
+input[type="text"] {
+  padding: 0 !important;
+  margin: 0 !important;
+  background: transparent !important;
 }
 
-.footer-buttons{
-    display: flex;
-    justify-content: flex-end;
-    align-items:center;
+.text-blue {
+  color: #5cc3ff;
 }
 
-.div-flex{
-display:flex;
-flex-wrap:wrap;
-align-items: center;
-}
-.basis50{
-flex-basis:50%;
-}
-.div-flex-inner{
-padding: 10px;
-}
-.basis100{
-flex-basis:100%;
-}
-.text-big{
-    font-size: 150%;
-}
-.success-msg{
-    padding: 6px;
-    background: #aaff5c29;
+.return-btn {
+  transform: translateY(20%) !important;
 }
 
-.failed-msg{
-    padding: 6px;
-    background: #ff5c5c29;
+.footer-buttons {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.div-flex {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.basis50 {
+  flex-basis: 50%;
+}
+
+.div-flex-inner {
+  padding: 10px;
+}
+
+.basis100 {
+  flex-basis: 100%;
+}
+
+.text-big {
+  font-size: 150%;
+}
+
+.success-msg {
+  padding: 6px;
+  background: #aaff5c29;
+}
+
+.failed-msg {
+  padding: 6px;
+  background: #ff5c5c29;
+}
+
+.bg-semiblue {
+  background: #dcf4fc;
 }
 ___________________________________________________________________________________________________
-
+BPSystem.initialize();
 window.billingProfile = new BPUI.ReferenceObject();
 window.invoice = new BPUI.ReferenceObject();
 window.account = new BPUI.ReferenceObject();
 window.activities = new BPUI.ReferenceObject();//ReferenceObject test
 window.lastactivities = new BPUI.ReferenceObject();
-
-
-BPSystem.initialize();
 window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
+const WIDGET_MODE = localStorage.MultiProductCharge_mode || localStorage.setItem('MultiProductCharge_mode','insert');
 const accountId =  BPSystem.nodeKey; //1
 const activityId =  BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
-const UserBlock = React.createClass({
-    render() {
-       const {invoiceDate,accountInfo} = this.props;
-      return ( <div>Account Name:<span className="text-blue" id="account-info-name"> {accountInfo.Name} </span> 
-                <br/><br/><span className="text-blue" id="account-info-period">{invoiceDate.start} - {invoiceDate.end} </span> <br/><br/>
-                </div>)
-          }});
 
-// Initialize the Form Objects
 async function init() {
 const res = await BPConnection.BrmAggregate.query("select a.AccountId, a.InvoiceId from Activity a where a.Id = "+activityId).single();    
 const [res2,res3] = await Promise.all([//get data results in parallel
