@@ -18,7 +18,7 @@
     <div className="div-flex">
         <div className="div-flex-inner basis100">
             <BPUI.EmbeddedList canAdd={false} variable={activities} name="activities" width="100%"
-                onCellBlur={calculateRate} onAdd={addActivity} onDel={deleteCol}>
+                onCellBlur={calculateRate} onAdd={addActivity}>
                 <BPUI.TableColumn name="ProductId" index="2" label="Product Name" />
                 <BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1"
                     displayTransform={formatDateUI} label="From Date" />
