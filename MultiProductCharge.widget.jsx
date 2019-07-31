@@ -234,7 +234,7 @@ const doUpdate = async () => {
 			document.querySelector('#msg-fail_').classList.remove('hide');
 			console.error("Fail", resultActivity); 
 		} 
-	document.querySelector('#msg-info').classList.add('hide');
+	document.querySelector('#msg-info_').classList.add('hide');
 }
  
 function calculateRate(row, column, event, scope) {
