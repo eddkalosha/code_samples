@@ -167,11 +167,13 @@ const [res2,res3] = await Promise.all([//get data results in parallel
       document.querySelector('#account-info-name').innerHTML = res2.Name;  
       document.querySelector('#account-info-period').innerHTML = `${invoiceDate.start} - ${invoiceDate.end}`; 
     //init new activity by default
-    activities.set(new BPConnection.BPCollection([{}], new Activity({
-        ActivityDate:formatDateDB(invoiceDate.start),
-        SubscriptionFromDate:formatDateDB(invoiceDate.start),
-        SubscriptionToDate:formatDateDB(invoiceDate.end)
-    })));
+    activities.set(new BPConnection.BPCollection([{}], new Activity()));
+    //default the activity dates to today
+    activities.get().forEach(function (element, index, allArray) {
+        element.ActivityDate = formatDateDB(invoiceDate.start);
+        element.SubscriptionFromDate = formatDateDB(invoiceDate.start);
+        element.SubscriptionToDate = formatDateDB(invoiceDate.end);
+    });
     //init account and billing profile of account
     account.set(BPSystem.toBPObject({}, new Account()));
     account.get().Id = accountInfo.Id;
