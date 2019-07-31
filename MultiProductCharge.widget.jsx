@@ -194,10 +194,10 @@ function cancel() {
 
 const doSave = async()=> {
 document.querySelector('#msg-info').classList.remove('hide');
-const result = await BPConnection.Invoice.upsert(invoice.get());
-    if (result[0].ErrorCode == "0") {
-        var newActivities = activities.get().elements.map(el=>({
-                InvoiceId: result[0].Id,
+document.querySelector('#msg-fail').classList.add('hide');
+document.querySelector('#msg-succ').classList.add('hide');
+const newActivities = activities.get().elements.map(el=>({
+                InvoiceId: invoice.get().Id,
                 AccountId: accountInfo.Id,
                 ProductId: el.ProductId,
                 ActivityDate: el.ActivityDate,
@@ -210,7 +210,7 @@ const result = await BPConnection.Invoice.upsert(invoice.get());
     			TotalCost:el.TotalCost
             }));
 const resultActivity = await BPSystem.toBPCollection(newActivities, BPConnection.Activity).create(true);
-    if (resultActivity){
+    if (resultActivity[0].ErrorCode == "0"){
         window.onbeforeunload = true;
         document.querySelector('#msg-succ').classList.remove('hide');
       //  window.location = "admin.jsp?name=BILLING_INVOICE&key=" + resultActivity[0].Id + "&mode=R"
@@ -218,19 +218,30 @@ const resultActivity = await BPSystem.toBPCollection(newActivities, BPConnection
         document.querySelector('#msg-fail').classList.remove('hide');
         console.error("Fail", resultActivity); 
     } 
-} else {
-    showConfirmDialog(document.body, "Error value data " + result[0].ErrorText, function (delParam) { }, null)
+	document.querySelector('#msg-info').classList.add('hide');
 }
-document.querySelector('#msg-info').classList.add('hide');
-    }
+    
+const doUpdate = async () => {
+	document.querySelector('#msg-info_').classList.remove('hide');
+	document.querySelector('#msg-fail_').classList.add('hide');
+	document.querySelector('#msg-succ_').classList.add('hide');
+	const resultActivity = await lastactivities.get().update();
+		if (resultActivity[0].ErrorCode == "0"){
+			window.onbeforeunload = true;
+			document.querySelector('#msg-succ_').classList.remove('hide');
+		  //  window.location = "admin.jsp?name=BILLING_INVOICE&key=" + resultActivity[0].Id + "&mode=R"
+		}else{
+			document.querySelector('#msg-fail_').classList.remove('hide');
+			console.error("Fail", resultActivity); 
+		} 
+	document.querySelector('#msg-info').classList.add('hide');
+}
  
 function calculateRate(row, column, event, scope) {
-    var activityCollection = activities.get();
+    var activityCollection = WIDGET_MODE==='insert'? activities.get():lastactivities.get();
     var rowElement = activityCollection.elements[row];
-    console.log("CALCULATE RATE ", column, row, event, scope);
     if ([1,2,3,4,6].includes(column) ) {
         if (column == 1 || column == 2) {
-            console.log("CALCULATE RATE from product", rowElement, rowElement.ProductId, rowElement.ActivityDate);
             if (rowElement.ProductId != null && rowElement.Quantity != null) {
                 try {
                     var whereClause = "account_id =" + billingProfile.get().AccountId
@@ -238,20 +249,15 @@ function calculateRate(row, column, event, scope) {
                         + " and quantity =" + rowElement.Quantity;
                     BPConnection.AccountProductQuote.retrieveFilteredAsync(whereClause).single()
                         .done(function (res) {
-                            console.log('::::::::::::Rate:::::::::::');
-                            console.log(res);
-                            console.log('::::::::::::Rate END:::::::::::');
                             var rateDetails = $.parseXML(res.RateDetails);
                             rowElement.Rate = formatAmount($(rateDetails).find('RateDetailsRow > Rate').text());
                             rowElement.RatedAmount = formatAmount($(rateDetails).find('RateDetailsRow > RatedAmount').text());
                         })
                         .fail(function (fail) {
-                            console.log(fail.message);
-                            alert(fail.message);
+                            console.error(fail.message);
                         });
                 } catch (e) {
-                    alert('ERROR: ' + e);
-                    console.log(e);
+                    console.error(e);
                 }
             }
         }
