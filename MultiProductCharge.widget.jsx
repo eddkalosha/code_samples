@@ -1,4 +1,5 @@
 <BPUI.Page>
+ <BPUI.FormLayout submitAction={WIDGET_MODE === 'insert'doSave:doUpdate} cancelAction={cancel}>
     <div className="div-flex bg-semiblue">
         <div className="div-flex-inner basis50">
             <div className="text-big">
@@ -78,6 +79,7 @@
         </div>
     </div>
     :null}
+ </BPUI.FormLayout>
 </BPUI.Page>
 ___________________________________________________________________________________________________
 .disabled {
