@@ -1,7 +1,12 @@
 <BPUI.Page>
- <BPUI.FormLayout submitAction={WIDGET_MODE === 'insert'doSave:doUpdate} cancelAction={cancel}>
-    <div className="div-flex bg-semiblue">
+ <BPUI.FormLayout submitAction={WIDGET_MODE === 'insert'?doSave:doUpdate} cancelAction={cancel}>
+	<div className="main-div">
+    <div className="div-flex   my-15">
         <div className="div-flex-inner basis50">
+{/*
+<BPUI.InputField key="01112" label="Account Name  " disabled variable={new BPUI.ReferenceObject('- Not found -')} /> 
+<br /><br />
+<BPUI.InputField key="01113"  label="Invoice period " disabled variable={new BPUI.ReferenceObject('- Not selected -')} /> */}
             <div className="text-big">
                 Account Name: <span className="text-blue" id="account-info-name"> {accountInfo.Name} </span>
                 <br /><br />
@@ -9,16 +14,13 @@
                     {invoiceDate.end} </span>
             </div>
         </div>
-        <div className="div-flex-inner basis50">
-            {WIDGET_MODE === 'insert'?
-            <button className="btn btn-lg btn-block" onClick={addActivity}> New Product</button> 
-            : null }
-        </div>
+
+ 
     </div>
     {WIDGET_MODE === 'insert'?
     <div className="div-flex">
         <div className="div-flex-inner basis100">
-            <BPUI.EmbeddedList canAdd={false} variable={activities} name="activities" width="100%"
+            <BPUI.EmbeddedList  variable={activities} name="activities" width="100%"
                 onCellBlur={calculateRate} onAdd={addActivity}>
                 <BPUI.TableColumn name="ProductId" index="2" label="Product Name" />
                 <BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1"
@@ -40,8 +42,7 @@
                 <span id="msg-succ" className="footer-buttons-label text-success success-msg hide "><i
                         className="fa fa-check-circle"></i> Data was saved successfully!</span>
                 <span id="msg-fail" className="footer-buttons-label text-danger failed-msg hide "><i
-                        className="fa fa-check-circle"></i> Error occurred while data saving!</span>
-                <button onClick={doSave}> Save Product (-s)</button>
+                        className="fa fa-warning"></i> Error occurred while data saving!</span>
             </div>
         </div>
     </div>
@@ -68,17 +69,22 @@
         </div>
         <div className="div-flex-inner basis100">
             <div className="footer-buttons">
-                <span id="msg-info_" className="footer-buttons-label text-blue hide">Saving data in a progress...
+                <span id="msg-info_" className="footer-buttons-label text-blue hide">Updating data in a progress...
                 </span>
                 <span id="msg-succ_" className="footer-buttons-label text-success success-msg hide "><i
                         className="fa fa-check-circle"></i> Data was saved successfully!</span>
                 <span id="msg-fail_" className="footer-buttons-label text-danger failed-msg hide "><i
-                        className="fa fa-check-circle"></i> Error occurred while data saving!</span>
-                <button> Update Product (-s)</button>
+                        className="fa fa-warning"></i> Error occurred while data saving!</span>
             </div>
         </div>
     </div>
     :null}
+</div>
+<div className="div-flex process-error hide">
+<div className="div-flex-inner basis100 text-danger failed-msg">
+<i className="fa fa-warning" aria-hidden="true"/> You can't Insert/Update Products on Invoice with status CLOSED or APPROVED.
+</div>
+</div>
  </BPUI.FormLayout>
 </BPUI.Page>
 ___________________________________________________________________________________________________
