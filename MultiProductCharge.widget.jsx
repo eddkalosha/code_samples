@@ -1,6 +1,5 @@
 <BPUI.Page>
- <BPUI.FormLayout submitAction={WIDGET_MODE === 'insert'?doSave:doUpdate} cancelAction={cancel}>
-	<div className="main-div">
+	<div className="main-div-page">
     <div className="div-flex   my-15">
         <div className="div-flex-inner basis50">
 {/*
@@ -17,8 +16,9 @@
 
  
     </div>
+ <BPUI.FormLayout submitAction={WIDGET_MODE === 'insert'?doSave:doUpdate} cancelAction={cancel}>
     {WIDGET_MODE === 'insert'?
-    <div className="div-flex">
+    <div className="div-flex main-div">
         <div className="div-flex-inner basis100">
             <BPUI.EmbeddedList  variable={activities} name="activities" width="100%"
                 onCellBlur={calculateRate} onAdd={addActivity}>
@@ -48,7 +48,7 @@
     </div>
     :null}
     {WIDGET_MODE === 'update'?
-    <div className="div-flex">
+    <div className="div-flex main-div">
         <div className="div-flex-inner basis100">
             History data for Products:
             <BPUI.EmbeddedList canAdd={false} variable={lastactivities} name="activities" width="100%"
@@ -79,73 +79,77 @@
         </div>
     </div>
     :null}
-</div>
 <div className="div-flex process-error hide">
 <div className="div-flex-inner basis100 text-danger failed-msg">
 <i className="fa fa-warning" aria-hidden="true"/> You can't Insert/Update Products on Invoice with status CLOSED or APPROVED.
+</div> 
 </div>
+</BPUI.FormLayout>
 </div>
- </BPUI.FormLayout>
+
+
 </BPUI.Page>
 ___________________________________________________________________________________________________
-.disabled {
-  pointer-events: none
+.disabled{pointer-events:none}
+.disabled-grayfilter{
+    pointer-events:none;
+    opacity:0.7;
+    filter: url(filters.svg#grayscale); /* Firefox 3.5+ */
+    filter: gray; /* IE5+ */
+    -webkit-filter: grayscale(1); /* Webkit Nightlies & Chrome Canary */ 
+ -webkit-filter: grayscale(100%); /* Safari 6.0 - 9.0 */
+  filter: grayscale(100%);
 }
 
-input[type="text"] {
-  padding: 0 !important;
-  margin: 0 !important;
-  background: transparent !important;
+input[type="text"]{
+padding:0 !important;
+margin:0 !important;
+background:transparent !important;
 }
 
-.text-blue {
-  color: #5cc3ff;
+.text-blue{color: #5cc3ff;}
+
+.return-btn{
+transform: translateY(20%) !important;
 }
 
-.return-btn {
-  transform: translateY(20%) !important;
+.footer-buttons{
+    display: flex;
+    justify-content: center;
+    align-items:center;
 }
 
-.footer-buttons {
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
+.div-flex{
+display:flex;
+flex-wrap:wrap;
+align-items: center;
+}
+.basis50{
+flex-basis:50%;
+}
+.div-flex-inner{
+padding: 10px;
+}
+.basis100{
+flex-basis:100%;
+}
+.text-big{
+    font-size: 150%;
+}
+.success-msg{
+    padding: 6px;
+    background: #aaff5c29;
 }
 
-.div-flex {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
+.failed-msg{
+    padding: 6px;
+    background: #ff5c5c29;
 }
-
-.basis50 {
-  flex-basis: 50%;
+.bg-semiblue{
+background: #dcf4fc;
 }
-
-.div-flex-inner {
-  padding: 10px;
-}
-
-.basis100 {
-  flex-basis: 100%;
-}
-
-.text-big {
-  font-size: 150%;
-}
-
-.success-msg {
-  padding: 6px;
-  background: #aaff5c29;
-}
-
-.failed-msg {
-  padding: 6px;
-  background: #ff5c5c29;
-}
-
-.bg-semiblue {
-  background: #dcf4fc;
+.my-15{
+margin:15px 0;
 }
 ___________________________________________________________________________________________________
 BPSystem.initialize();
@@ -156,6 +160,7 @@ window.activities = new BPUI.ReferenceObject();//ReferenceObject test
 window.lastactivities = new BPUI.ReferenceObject();
 window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
+window.INVOICE_STATUS = null;
 const WIDGET_MODE = localStorage.MultiProductCharge_mode || localStorage.setItem('MultiProductCharge_mode','insert');
 const accountId =  BPSystem.nodeKey; //1
 const activityId =  BPSystem.nodeKey; //1
@@ -171,9 +176,17 @@ const [res2,res3] = await Promise.all([//get data results in parallel
     ]);
       window.lastactivities.set(BPConnection.Activity.retrieveFiltered('AccountId='+res2.Id+' AND InvoiceId='+res.InvoiceId).collection());
       accountInfo={Name:res2.Name, Id:res2.Id}; 
+    	INVOICE_STATUS = res3.Status;
       invoiceDate = {start: formatDateUI(formatDateDB(res3.BillingCycleStartDate)), end: formatDateUI(formatDateDB(res3.BillingCycleEndDate))};
       document.querySelector('#account-info-name').innerHTML = res2.Name;  
-      document.querySelector('#account-info-period').innerHTML = `${invoiceDate.start} - ${invoiceDate.end}`; 
+      document.querySelector('#account-info-period').innerHTML = `${invoiceDate.start} - ${invoiceDate.end}`;
+    console.log(INVOICE_STATUS);
+    if (!(INVOICE_STATUS=='OPEN' || INVOICE_STATUS=='CURRENT')){
+       document.querySelector('.process-error').classList.remove('hide');
+       document.querySelector('.main-div').classList.add('disabled-grayfilter');
+       const submitBtns = document.querySelectorAll('.main-div-page a[name="submitForm"]');
+       for (let btn of submitBtns) btn.classList.add('hide'); 
+    }
     //init new activity by default
     activities.set(new BPConnection.BPCollection([{}], new Activity()));
     //default the activity dates to today
@@ -290,4 +303,9 @@ function addActivity(index) {
         el.InvoiceId = invoiceId;
     });  
     window.BPActions.refreshState("activities");
+}
+BPUI.afterRender = () => {
+//fix top&bottom menus width
+let menus = document.querySelectorAll('.formButtons');
+for (let menu of menus) menu.setAttribute('width','100%');
 }
