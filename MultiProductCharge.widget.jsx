@@ -50,7 +50,6 @@
     {WIDGET_MODE === 'update'?
     <div className="div-flex main-div">
         <div className="div-flex-inner basis100">
-            History data for Products:
             <BPUI.EmbeddedList canAdd={false} variable={lastactivities} name="activities" width="100%"
                 onCellBlur={calculateRate}>
                 <BPUI.TableColumn className={"disabled"} name="ProductId" index="2" label="Product Name" />
