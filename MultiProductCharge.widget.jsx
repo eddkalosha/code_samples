@@ -13,8 +13,6 @@
                     {invoiceDate.end} </span>
             </div>
         </div>
-
- 
     </div>
  <BPUI.FormLayout submitAction={WIDGET_MODE === 'insert'?doSave:doUpdate} cancelAction={cancel}>
     {WIDGET_MODE === 'insert'?
@@ -85,8 +83,6 @@
 </div>
 </BPUI.FormLayout>
 </div>
-
-
 </BPUI.Page>
 ___________________________________________________________________________________________________
 .disabled{pointer-events:none}
@@ -168,7 +164,8 @@ const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Da
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
 
 async function init() {
-const res = await BPConnection.BrmAggregate.query("select a.AccountId, a.InvoiceId from Activity a where a.Id = "+activityId).single();    
+const res = await BPConnection.BrmAggregate.query("select a.AccountId, a.InvoiceId from Activity a where a.Id = "+activityId).single();  
+    //change to invoice_id = await BPSystem.getSelectedEntityAsync("BILLING_INVOICE")
 const [res2,res3] = await Promise.all([//get data results in parallel
       BPConnection.BrmAggregate.query("select a.Id, a.Name from Account a where a.Id = "+res.AccountId).single(),
       BPConnection.Invoice.retrieveFiltered('Id='+res.InvoiceId).single()
@@ -205,11 +202,7 @@ const [res2,res3] = await Promise.all([//get data results in parallel
 init();
 
 function cancel() {
-    if (BPSystem.nodeName == 'ACCOUNT')
-        recordId = BPSystem.getSelectedEntityId("Account");
-    else
-        BPSystem.getSelectedEntityId("Invoice");
-    BPSystem.cancel();
+	window.add_attr_submit('SET_FORM_VIEW', 'form_type_in', 'FL')
 }
 
 const doSave = async()=> {
@@ -233,7 +226,7 @@ const resultActivity = await BPSystem.toBPCollection(newActivities, BPConnection
     if (resultActivity[0].ErrorCode == "0"){
         window.onbeforeunload = true;
         document.querySelector('#msg-succ').classList.remove('hide');
-      //  window.location = "admin.jsp?name=BILLING_INVOICE&key=" + resultActivity[0].Id + "&mode=R"
+        window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resultActivity[0].Id + "&mode=L";
     }else{
         document.querySelector('#msg-fail').classList.remove('hide');
         console.error("Fail", resultActivity); 
@@ -249,7 +242,7 @@ const doUpdate = async () => {
 		if (resultActivity[0].ErrorCode == "0"){
 			window.onbeforeunload = true;
 			document.querySelector('#msg-succ_').classList.remove('hide');
-		  //  window.location = "admin.jsp?name=BILLING_INVOICE&key=" + resultActivity[0].Id + "&mode=R"
+		    window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resultActivity[0].Id + "&mode=L";
 		}else{
 			document.querySelector('#msg-fail_').classList.remove('hide');
 			console.error("Fail", resultActivity); 
