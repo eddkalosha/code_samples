@@ -264,37 +264,6 @@ function calculateRate_(row, column, event, scope) {
         }
 }
  
-function calculateRate(row, column, event, scope) {
-    var activityCollection = WIDGET_MODE==='insert'? activities.get():lastactivities.get();
-    var rowElement = activityCollection.elements[row];
-    if ([1,2,3,4,6].includes(column) ) {
-        if (column == 1 || column == 2) {
-            if (rowElement.ProductId != null && rowElement.Quantity != null) {
-                try {
-                    var whereClause = "AccountId =" + billingProfile.get().AccountId
-                        + " and ProductId =" + rowElement.ProductId
-                        + " and Quantity =" + rowElement.Quantity;
-                    BPConnection.AccountProductQuote.retrieveFilteredAsync(whereClause).single()
-                        .done(function (res) {
-                            var rateDetails = $.parseXML(res.RateDetails);
-                            rowElement.Rate = formatAmount($(rateDetails).find('RateDetailsRow > Rate').text());
-                            rowElement.RatedAmount = formatAmount($(rateDetails).find('RateDetailsRow > RatedAmount').text());
-                        })
-                        .fail(function (fail) {
-                            console.error('calc rate ... ',fail.message);
-                        });
-                } catch (e) {
-                    console.error(e);
-                }
-            }
-        }
-        else if (rowElement.Quantity && rowElement.Rate   && ([3,4,6].includes(column))) {
-            rowElement.RatedAmount = (rowElement.Rate * rowElement.Quantity).toFixed(2);
-            rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost)).toFixed(2);     
-        }
-    }
-}
- 
 const checkAccount = () =>(account && account.get() && account.get().Id);
 
 function addActivity(index) {
