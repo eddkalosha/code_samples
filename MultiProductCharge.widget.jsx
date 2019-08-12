@@ -13,13 +13,15 @@
                     {invoiceDate.end} </span>
             </div>
         </div>
+
+ 
     </div>
  <BPUI.FormLayout submitAction={WIDGET_MODE === 'insert'?doSave:doUpdate} cancelAction={cancel}>
     {WIDGET_MODE === 'insert'?
     <div className="div-flex main-div">
         <div className="div-flex-inner basis100">
             <BPUI.EmbeddedList  variable={activities} name="activities" width="100%"
-                onCellBlur={calculateRate} onAdd={addActivity}>
+                onCellBlur={calculateRate_} onAdd={addActivity}>
                 <BPUI.TableColumn name="ProductId" index="2" label="Product Name" />
                 <BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1"
                     displayTransform={formatDateUI} label="From Date" />
@@ -49,7 +51,7 @@
     <div className="div-flex main-div">
         <div className="div-flex-inner basis100">
             <BPUI.EmbeddedList canAdd={false} variable={lastactivities} name="activities" width="100%"
-                onCellBlur={calculateRate}>
+                onCellBlur={calculateRate_}>
                 <BPUI.TableColumn className={"disabled"} name="ProductId" index="2" label="Product Name" />
                 <BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1"
                     displayTransform={formatDateUI} label="From Date" />
@@ -83,6 +85,8 @@
 </div>
 </BPUI.FormLayout>
 </div>
+
+
 </BPUI.Page>
 ___________________________________________________________________________________________________
 .disabled{pointer-events:none}
@@ -164,25 +168,27 @@ const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Da
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
 
 async function init() {
-const res = await BPConnection.BrmAggregate.query("select a.AccountId, a.InvoiceId from Activity a where a.Id = "+activityId).single();  
-    //change to invoice_id = await BPSystem.getSelectedEntityAsync("BILLING_INVOICE")
-const [res2,res3] = await Promise.all([//get data results in parallel
-      BPConnection.BrmAggregate.query("select a.Id, a.Name from Account a where a.Id = "+res.AccountId).single(),
-      BPConnection.Invoice.retrieveFiltered('Id='+res.InvoiceId).single()
-    ]);
-      window.lastactivities.set(BPConnection.Activity.retrieveFiltered('AccountId='+res2.Id+' AND InvoiceId='+res.InvoiceId).collection());
-      accountInfo={Name:res2.Name, Id:res2.Id}; 
-    	INVOICE_STATUS = res3.Status;
-      invoiceDate = {start: formatDateUI(formatDateDB(res3.BillingCycleStartDate)), end: formatDateUI(formatDateDB(res3.BillingCycleEndDate))};
-      document.querySelector('#account-info-name').innerHTML = res2.Name;  
-      document.querySelector('#account-info-period').innerHTML = `${invoiceDate.start} - ${invoiceDate.end}`;
-    console.log(INVOICE_STATUS);
-    if (!(INVOICE_STATUS=='OPEN' || INVOICE_STATUS=='CURRENT')){
+const invoiceId_ = 414103;//await BPSystem.getSelectedEntityAsync("BILLING_INVOICE");
+const invoice_ = await BPConnection.Invoice.retrieveFilteredAsync('Id='+invoiceId_).single();
+const billingProfile_ = await BPConnection.BillingProfile.retrieveFilteredAsync('Id='+invoice_.BillingProfileId).single();
+const account_ = await BPConnection.Account.retrieveFilteredAsync('Id='+billingProfile_.AccountId).single()
+accountInfo = {Name:account_.Name, Id:account_.Id};
+INVOICE_STATUS = invoice_.Status;
+invoiceDate = {
+    start: formatDateUI(formatDateDB(invoice_.BillingCycleStartDate)), 
+    end: formatDateUI(formatDateDB(invoice_.BillingCycleEndDate))
+};
+document.querySelector('#account-info-name').innerHTML = account_.Name;  
+document.querySelector('#account-info-period').innerHTML = `${invoiceDate.start} - ${invoiceDate.end}`;
+if (!(INVOICE_STATUS=='OPEN' || INVOICE_STATUS=='CURRENT')){
        document.querySelector('.process-error').classList.remove('hide');
        document.querySelector('.main-div').classList.add('disabled-grayfilter');
        const submitBtns = document.querySelectorAll('.main-div-page a[name="submitForm"]');
        for (let btn of submitBtns) btn.classList.add('hide'); 
-    }
+}
+WIDGET_MODE==='update' ?
+window.lastactivities.set(BPConnection.Activity.retrieveFiltered('AccountId='+account_.Id+' AND InvoiceId='+invoice_.Id).collection()):null;
+
     //init new activity by default
     activities.set(new BPConnection.BPCollection([{}], new Activity()));
     //default the activity dates to today
@@ -196,7 +202,7 @@ const [res2,res3] = await Promise.all([//get data results in parallel
     account.get().Id = accountInfo.Id;
     billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountInfo.Id).single());
     //init selected invoice
-    invoice.set(res3);
+    invoice.set(invoice_);
 }
 
 init();
@@ -249,6 +255,16 @@ const doUpdate = async () => {
 		} 
 	document.querySelector('#msg-info_').classList.add('hide');
 }
+    
+function calculateRate_(row, column, event, scope) {
+	let activityCollection = WIDGET_MODE==='insert'? activities.get():lastactivities.get();
+    const columnsCalc = [3,4,6];
+    let rowElement = activityCollection.elements[row];
+    if (rowElement.Quantity && rowElement.Rate   && (columnsCalc.includes(column))) {
+            rowElement.RatedAmount = (rowElement.Rate * rowElement.Quantity).toFixed(2);
+            rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost)).toFixed(2);     
+        }
+}
  
 function calculateRate(row, column, event, scope) {
     var activityCollection = WIDGET_MODE==='insert'? activities.get():lastactivities.get();
@@ -257,9 +273,9 @@ function calculateRate(row, column, event, scope) {
         if (column == 1 || column == 2) {
             if (rowElement.ProductId != null && rowElement.Quantity != null) {
                 try {
-                    var whereClause = "account_id =" + billingProfile.get().AccountId
-                        + " and product_id =" + rowElement.ProductId
-                        + " and quantity =" + rowElement.Quantity;
+                    var whereClause = "AccountId =" + billingProfile.get().AccountId
+                        + " and ProductId =" + rowElement.ProductId
+                        + " and Quantity =" + rowElement.Quantity;
                     BPConnection.AccountProductQuote.retrieveFilteredAsync(whereClause).single()
                         .done(function (res) {
                             var rateDetails = $.parseXML(res.RateDetails);
@@ -267,7 +283,7 @@ function calculateRate(row, column, event, scope) {
                             rowElement.RatedAmount = formatAmount($(rateDetails).find('RateDetailsRow > RatedAmount').text());
                         })
                         .fail(function (fail) {
-                            console.error(fail.message);
+                            console.error('calc rate ... ',fail.message);
                         });
                 } catch (e) {
                     console.error(e);
