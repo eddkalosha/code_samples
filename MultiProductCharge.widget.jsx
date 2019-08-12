@@ -13,8 +13,6 @@
                     {invoiceDate.end} </span>
             </div>
         </div>
-
- 
     </div>
  <BPUI.FormLayout submitAction={WIDGET_MODE === 'insert'?doSave:doUpdate} cancelAction={cancel}>
     {WIDGET_MODE === 'insert'?
@@ -85,8 +83,6 @@
 </div>
 </BPUI.FormLayout>
 </div>
-
-
 </BPUI.Page>
 ___________________________________________________________________________________________________
 .disabled{pointer-events:none}
@@ -186,8 +182,8 @@ if (!(INVOICE_STATUS=='OPEN' || INVOICE_STATUS=='CURRENT')){
        const submitBtns = document.querySelectorAll('.main-div-page a[name="submitForm"]');
        for (let btn of submitBtns) btn.classList.add('hide'); 
 }
-WIDGET_MODE==='update' ?
-window.lastactivities.set(BPConnection.Activity.retrieveFiltered('AccountId='+account_.Id+' AND InvoiceId='+invoice_.Id).collection()):null;
+WIDGET_MODE==='update' ? 
+window.lastactivities.set(BPConnection.ACTIVITY.query('SELECT Id,ProductId,SubscriptionFromDate,SubscriptionToDate,Quantity,Rate,RatedAmount,TaxCost,TotalCost,ActivityDate from Activity WHERE  AccountId='+account_.Id+' AND InvoiceId='+invoice_.Id+' ORDER BY Updated DESC').collection()):null;
 
     //init new activity by default
     activities.set(new BPConnection.BPCollection([{}], new Activity()));
@@ -232,7 +228,7 @@ const resultActivity = await BPSystem.toBPCollection(newActivities, BPConnection
     if (resultActivity[0].ErrorCode == "0"){
         window.onbeforeunload = true;
         document.querySelector('#msg-succ').classList.remove('hide');
-        window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resultActivity[0].Id + "&mode=L";
+       // window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resultActivity[0].Id + "&mode=L";
     }else{
         document.querySelector('#msg-fail').classList.remove('hide');
         console.error("Fail", resultActivity); 
@@ -248,7 +244,7 @@ const doUpdate = async () => {
 		if (resultActivity[0].ErrorCode == "0"){
 			window.onbeforeunload = true;
 			document.querySelector('#msg-succ_').classList.remove('hide');
-		    window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resultActivity[0].Id + "&mode=L";
+		   // window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resultActivity[0].Id + "&mode=L";
 		}else{
 			document.querySelector('#msg-fail_').classList.remove('hide');
 			console.error("Fail", resultActivity); 
@@ -261,8 +257,10 @@ function calculateRate_(row, column, event, scope) {
     const columnsCalc = [3,4,6];
     let rowElement = activityCollection.elements[row];
     if (rowElement.Quantity && rowElement.Rate   && (columnsCalc.includes(column))) {
-            rowElement.RatedAmount = (rowElement.Rate * rowElement.Quantity).toFixed(2);
-            rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost)).toFixed(2);     
+            rowElement.RatedAmount = (rowElement.Rate * rowElement.Quantity);
+    		rowElement.RateOverride = rowElement.RatedAmount;
+            rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
+    console.log(rowElement);
         }
 }
  
