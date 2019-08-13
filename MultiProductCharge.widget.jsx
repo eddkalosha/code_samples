@@ -51,16 +51,16 @@
             <BPUI.EmbeddedList canAdd={false} variable={lastactivities} name="activities" width="100%"
                 onCellBlur={calculateRate_}>
                 <BPUI.TableColumn className={"disabled"} name="ProductId" index="2" label="Product Name" />
-                <BPUI.TableColumn name="SubscriptionFromDate" type="DATE_SELECTOR" index="1"
+                <BPUI.TableColumn className={"disabled"} name="SubscriptionFromDate" type="DATE_SELECTOR" index="1"
                     displayTransform={formatDateUI} label="From Date" />
-                <BPUI.TableColumn name="SubscriptionToDate" type="DATE_SELECTOR" index="1"
+                <BPUI.TableColumn className={"disabled"} name="SubscriptionToDate" type="DATE_SELECTOR" index="1"
                     displayTransform={formatDateUI} label="To Date" />
                 <BPUI.TableColumn name="Quantity" index="3" label="Quantity" />
                 <BPUI.TableColumn name="Rate" index="4" label="Rate" />
                 <BPUI.TableColumn className={"disabled"} name="RatedAmount" index="5" label="Cost" />
-                <BPUI.TableColumn name="TaxCost" index="6" label="Tax" />
+                <BPUI.TableColumn className={"disabled"} name="TaxCost" index="6" label="Tax" />
                 <BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost" />
-                <BPUI.TableColumn name="ActivityDate" type="DATE_SELECTOR" index="8" displayTransform={formatDateUI}
+                <BPUI.TableColumn className={"disabled"} name="ActivityDate" type="DATE_SELECTOR" index="8" displayTransform={formatDateUI}
                     label="Activity Date" />
             </BPUI.EmbeddedList>
         </div>
@@ -164,7 +164,7 @@ const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Da
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
 
 async function init() {
-const invoiceId_ = 414103;//await BPSystem.getSelectedEntityAsync("BILLING_INVOICE");
+const invoiceId_ =  await BPSystem.getSelectedEntityAsync("BILLING_INVOICE");
 const invoice_ = await BPConnection.Invoice.retrieveFilteredAsync('Id='+invoiceId_).single();
 const billingProfile_ = await BPConnection.BillingProfile.retrieveFilteredAsync('Id='+invoice_.BillingProfileId).single();
 const account_ = await BPConnection.Account.retrieveFilteredAsync('Id='+billingProfile_.AccountId).single()
@@ -228,7 +228,7 @@ const resultActivity = await BPSystem.toBPCollection(newActivities, BPConnection
     if (resultActivity[0].ErrorCode == "0"){
         window.onbeforeunload = true;
         document.querySelector('#msg-succ').classList.remove('hide');
-       // window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resultActivity[0].Id + "&mode=L";
+        window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resultActivity[0].Id + "&mode=L";
     }else{
         document.querySelector('#msg-fail').classList.remove('hide');
         console.error("Fail", resultActivity); 
@@ -242,9 +242,11 @@ const doUpdate = async () => {
 	document.querySelector('#msg-succ_').classList.add('hide');
 	const resultActivity = await lastactivities.get().update();
 		if (resultActivity[0].ErrorCode == "0"){
+    	const res_ = await BPConnection.REPROCESS_QUEUE.create({InvoiceId:resultActivity[0].Id})
+    
 			window.onbeforeunload = true;
 			document.querySelector('#msg-succ_').classList.remove('hide');
-		   // window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resultActivity[0].Id + "&mode=L";
+		    window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resultActivity[0].Id + "&mode=L";
 		}else{
 			document.querySelector('#msg-fail_').classList.remove('hide');
 			console.error("Fail", resultActivity); 
@@ -258,9 +260,9 @@ function calculateRate_(row, column, event, scope) {
     let rowElement = activityCollection.elements[row];
     if (rowElement.Quantity && rowElement.Rate   && (columnsCalc.includes(column))) {
             rowElement.RatedAmount = (rowElement.Rate * rowElement.Quantity);
-    		rowElement.RateOverride = rowElement.RatedAmount;
             rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
-    console.log(rowElement);
+         	rowElement.RateOverride = rowElement.RatedAmount;
+        console.log(rowElement);
         }
 }
  
