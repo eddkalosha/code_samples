@@ -1086,6 +1086,7 @@ const DataGrid = React.createClass({
         this.checkChildren(args[0], checked);
     },
     checkChildren: function(item, checked) {
+        console.log('checkChildren',item,checked)
         if ( !item || !item.children || !item.children.length ) return;
         for ( let i = 0 ; i < item.children.length ; i++ ) {
             const child = item.children[i];
@@ -1161,7 +1162,7 @@ const DataGrid = React.createClass({
                 columns.unshift(
                     <td className={tdClass+' td-check'}>
                         <input type="checkbox" className="bpui-check" ref={this.addReferenceCheckbox.bind(this,item)}
-                               onChange={this.onCheckboxChangeHandler.bind(this,item)}/>
+                               /*onChange={this.onCheckboxChangeHandler.bind(this,item)}*/ />
                     </td>
                 );
             }
@@ -1170,16 +1171,15 @@ const DataGrid = React.createClass({
                 const classNameCheck = 'row-checked';
                 let tdRow = item.target.parentNode;
                 let rowCheckBoxInput  = tdRow.querySelector('input[type="checkbox"]');
-                 
-                debugger;
+
                 let isCheckedNow  = Array.from(tdRow.classList).includes(classNameCheck);
                 if (isCheckedNow){
                     tdRow.classList.remove(classNameCheck)
                 }else{
                     tdRow.classList.add(classNameCheck)
                 }
-                rowCheckBoxInput.checked  = !isCheckedNow; // toggle checkbox
-                this.checkChildren(args[0], !isCheckedNow);
+                if(rowCheckBoxInput) rowCheckBoxInput.checked  = !isCheckedNow; // toggle checkbox
+                this.checkChildren(grid, !isCheckedNow);
                 //this.onCheckboxChangeHandler();
             };
             if ( typeof onClickRow === 'function' ) {
