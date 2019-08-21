@@ -92,7 +92,6 @@
 </BPUI.Page>
 
 _____________________________________________________________________________________________________________________
-
 .body {}
 
 .formButtons.topBar .col-sm-7{
@@ -103,12 +102,13 @@ ________________________________________________________________________________
 .formButtons.topBar .return-btn{
     transform: translateY(0%) !important;
 }
-.embedded-list td {
-padding:0}
+.embedded-list td {padding:0 !important
+vertical-align:middle;
+}
 .embedded-list td span,
 .embedded-list td input,
 .embedded-list td div{
-    height: 36px;
+	height: 36px;
     padding: 10px;
     border: none;
     background: transparent;
@@ -116,6 +116,10 @@ padding:0}
     width: 100%;
     line-height: 1.2em;
     font-size: 13px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    max-width: 300px;
 }
  
 
@@ -145,7 +149,6 @@ padding:0 !important;
     background: initial;
     padding:0 !important;
 }
-
 _____________________________________________________________________________________________________________________
 BPActions = BPActions || window.BPActions;
 //BPConnection.Activity.query for metadata 
