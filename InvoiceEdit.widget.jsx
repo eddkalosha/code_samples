@@ -124,13 +124,14 @@ vertical-align:middle;
  
 
   .embedded-list td  .icon-close.textbox-clear {
-        width: initial;
+    width: initial;
     top: 50%;
     right: 38px;
     padding: 0;
     font-size: initial;
     height: initial;
     /* top: 50%; */
+    background: #f9f9f9;
     transform: translateY(-50%);
     }
 
@@ -140,6 +141,7 @@ vertical-align:middle;
     padding: 0;
     height: initial;
     font-size: initial;
+    width:30px
 }
 
 .embedded-list td .lookup{
