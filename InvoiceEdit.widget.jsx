@@ -189,9 +189,9 @@ function canApprove() {
 // Initialize the Form Objects
 //
 function init() {
-     var invoiceId =  BPSystem.nodeKey;
+      BPSystem.nodeKey;
 
-    //var invoiceId = BPSystem.getSelectedEntityId("INVOICE");
+   // var invoiceId = BPSystem.getSelectedEntityId("INVOICE");
     try {
         var rows = findPageDataSync(invoiceId).elements;
         if (rows.length) {
@@ -370,9 +370,9 @@ function saveAndSendInvoices() {
     applyActions(actions);
 };
 
-function accountIdUpdate() {
+function accountIdUpdate(accountId) {
     //On select billingprofile id. Retrieve account to set it in invoices
-    BPConnection.BillingProfile.retrieveFilteredAsync("AccountId=" + account.get().Id).single().done(function (result) {
+    BPConnection.BillingProfile.retrieveFilteredAsync("AccountId=" + accountId).single().done(function (result) {
         window.billingProfile.set(result);
     });
 };
