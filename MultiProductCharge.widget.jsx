@@ -259,11 +259,33 @@ function calculateRate_(row, column, event, scope) {
     const columnsCalc = [3,4,6];
     let rowElement = activityCollection.elements[row];
     if (rowElement.Quantity && rowElement.Rate   && (columnsCalc.includes(column))) {
-            rowElement.RatedAmount = (rowElement.Rate * rowElement.Quantity);
-            rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
-         	rowElement.RateOverride = rowElement.RatedAmount;
-        console.log(rowElement);
-        }
+
+        try {
+            var whereClause = "AccountId ="+account.get().Id
+                +" and ProductId ="+ rowElement.ProductId
+                +" and Quantity ="+ rowElement.Quantity;
+            BPConnection.AccountProductQuote.retrieveFilteredAsync(whereClause).single()
+                .done(function (res){
+                    console.log('::::::::::::Rate:::::::::::');
+                    console.log(res);
+                    console.log('::::::::::::Rate END:::::::::::');
+                    var rateDetails = $.parseXML(res.RateDetails);
+                    rowElement.Rate = formatAmount($(rateDetails).find('RateDetailsRow > Rate').text());
+                    rowElement.RatedAmount = formatAmount($(rateDetails).find('RateDetailsRow > RatedAmount').text());
+                    if (rowElement.RateOverride) {
+                        rowElement.RateOverride = rowElement.Rate;
+                        rowElement.CostOverride = rowElement.RatedAmount;
+                        rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
+                    }
+                })
+                .fail(function (fail){console.log(fail.message);
+                    alert(fail.message);
+                });
+        } catch (e) {
+            alert('ERROR: '+e);
+            console.log(e);
+        }  
+    }
 }
  
 const checkAccount = () =>(account && account.get() && account.get().Id);
