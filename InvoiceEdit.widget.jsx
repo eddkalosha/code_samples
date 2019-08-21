@@ -184,8 +184,7 @@ function canApprove() {
 // Initialize the Form Objects
 //
 function init() {
-    //var invoiceId = 504318;
-    var invoiceId = 504262;//BPSystem.nodeKey;
+     var invoiceId =  BPSystem.nodeKey;
 
     //var invoiceId = BPSystem.getSelectedEntityId("INVOICE");
     try {
