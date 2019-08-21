@@ -146,6 +146,11 @@ background: #dcf4fc;
 .my-15{
 margin:15px 0;
 }
+ .scrollingContainer table .gridRow div.lookup-clear{
+    float: none;
+    padding: 2px 12px;
+    background-repeat: no-repeat;
+}
 ___________________________________________________________________________________________________
 BPSystem.initialize();
 window.billingProfile = new BPUI.ReferenceObject();
