@@ -95,6 +95,57 @@ ________________________________________________________________________________
 
 .body {}
 
+.formButtons.topBar .col-sm-7{
+    display: flex;
+    align-items: center;
+}
+
+.formButtons.topBar .return-btn{
+    transform: translateY(0%) !important;
+}
+.embedded-list td {
+padding:0}
+.embedded-list td span,
+.embedded-list td input,
+.embedded-list td div{
+    height: 36px;
+    padding: 10px;
+    border: none;
+    background: transparent;
+    outline: none;
+    width: 100%;
+    line-height: 1.2em;
+    font-size: 13px;
+}
+ 
+
+  .embedded-list td  .icon-close.textbox-clear {
+        width: initial;
+    top: 50%;
+    right: 38px;
+    padding: 0;
+    font-size: initial;
+    height: initial;
+    /* top: 50%; */
+    transform: translateY(-50%);
+    }
+
+.embedded-list td .input-group .input-group-btn {
+    line-height: 29px;
+    width: initial;
+    padding: 0;
+    height: initial;
+    font-size: initial;
+}
+
+.embedded-list td .lookup{
+padding:0 !important;
+}
+.embedded-list td .lookup input[type="text"]{
+    background: initial;
+    padding:0 !important;
+}
+
 _____________________________________________________________________________________________________________________
 BPActions = BPActions || window.BPActions;
 //BPConnection.Activity.query for metadata 
