@@ -102,9 +102,12 @@ ________________________________________________________________________________
 .formButtons.topBar .return-btn{
     transform: translateY(0%) !important;
 }
-.embedded-list td {padding:0 !important
-vertical-align:middle;
+table.embedded-list td {
+padding:0 !important
+vertical-align:middle !important;
 }
+
+
 .embedded-list td span,
 .embedded-list td input,
 .embedded-list td div{
