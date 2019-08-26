@@ -277,7 +277,7 @@ function calculateRate_(row, column, event, scope) {
                     var rateDetails = $.parseXML(res.RateDetails);
                     rowElement.Rate = formatAmount($(rateDetails).find('RateDetailsRow > Rate').text());
                     rowElement.RatedAmount = formatAmount($(rateDetails).find('RateDetailsRow > RatedAmount').text());
-                    if (rowElement.RateOverride) {
+                    if (rowElement.Rate && rowElement.RatedAmount) {
                         rowElement.RateOverride = rowElement.Rate;
                         rowElement.CostOverride = rowElement.RatedAmount;
                         rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
