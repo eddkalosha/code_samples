@@ -263,7 +263,7 @@ function calculateRate_(row, column, event, scope) {
 	let activityCollection = WIDGET_MODE==='insert'? activities.get():lastactivities.get();
     const columnsCalc = [3,4,6];
     let rowElement = activityCollection.elements[row];
-    if (rowElement.Quantity && rowElement.Rate   && (columnsCalc.includes(column))) {
+    if (rowElement.Quantity /*&& rowElement.Rate */   && (columnsCalc.includes(column))) {
 
         try {
             var whereClause = "AccountId ="+account.get().Id
