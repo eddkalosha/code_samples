@@ -305,6 +305,9 @@ function addActivity(index) {
     activitiesData.forEach(el=> {
         el.AccountId = accountId;
         el.InvoiceId = invoiceId;
+        el.ActivityDate = formatDateDB(invoiceDate.start);
+        el.SubscriptionFromDate = formatDateDB(invoiceDate.start);
+        el.SubscriptionToDate = formatDateDB(invoiceDate.end);
     });  
     window.BPActions.refreshState("activities");
 }
