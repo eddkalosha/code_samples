@@ -162,8 +162,8 @@ window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 const WIDGET_MODE = localStorage.MultiProductCharge_mode || localStorage.setItem('MultiProductCharge_mode','insert');
-const accountId =  BPSystem.nodeKey; //1
-const activityId =  BPSystem.nodeKey; //1
+const accountId = BPSystem.nodeKey; //1
+const activityId = BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
@@ -247,7 +247,7 @@ const doUpdate = async () => {
 	document.querySelector('#msg-succ_').classList.add('hide');
 	const resultActivity = await lastactivities.get().update();
 		if (resultActivity[0].ErrorCode == "0"){
-    	const res_ = await BPConnection.REPROCESS_QUEUE.create({InvoiceId:resultActivity[0].Id})
+    //const res_ = await BPConnection.REPROCESS_QUEUE.create({InvoiceId:resultActivity[0].Id})
     
 			window.onbeforeunload = true;
 			document.querySelector('#msg-succ_').classList.remove('hide');
@@ -261,13 +261,13 @@ const doUpdate = async () => {
     
 function calculateRate_(row, column, event, scope) {
 	let activityCollection = WIDGET_MODE==='insert'? activities.get():lastactivities.get();
-    const columnsCalc = [3,4,6];
+    const columnsCalc = [3/*,4*/,6];
     let rowElement = activityCollection.elements[row];
     if (rowElement.Quantity /*&& rowElement.Rate */   && (columnsCalc.includes(column))) {
 
         try {
             var whereClause = "AccountId ="+account.get().Id
-                +" and ProductId ="+ rowElement.ProductId
+                +" and ProductId =0"+ rowElement.ProductId
                 +" and Quantity ="+ rowElement.Quantity;
             BPConnection.AccountProductQuote.retrieveFilteredAsync(whereClause).single()
                 .done(function (res){
@@ -276,20 +276,29 @@ function calculateRate_(row, column, event, scope) {
                     console.log('::::::::::::Rate END:::::::::::');
                     var rateDetails = $.parseXML(res.RateDetails);
                     rowElement.Rate = formatAmount($(rateDetails).find('RateDetailsRow > Rate').text());
-                    rowElement.RatedAmount = formatAmount($(rateDetails).find('RateDetailsRow > RatedAmount').text());
-                    if (rowElement.Rate && rowElement.RatedAmount) {
+                    //rowElement.RatedAmount = formatAmount($(rateDetails).find('RateDetailsRow > RatedAmount').text());
+                    rowElement.TaxCost = res.TaxAmount;
+                    if (rowElement.Rate && rowElement.Quantity) {
+                        rowElement.RatedAmount = rowElement.Quantity * rowElement.Rate;
                         rowElement.RateOverride = rowElement.Rate;
                         rowElement.CostOverride = rowElement.RatedAmount;
                         rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
                     }
                 })
                 .fail(function (fail){console.log(fail.message);
-                    alert(fail.message);
+                    //alert(fail.message);
                 });
         } catch (e) {
             alert('ERROR: '+e);
             console.log(e);
-        }  
+        }
+    }
+    //if user change cells manually
+    if (rowElement.Rate && rowElement.Quantity) {
+        rowElement.RatedAmount = rowElement.Quantity * rowElement.Rate;
+        rowElement.RateOverride = rowElement.Rate;
+        rowElement.CostOverride = rowElement.RatedAmount;
+        rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
     }
 }
  
