@@ -7,12 +7,12 @@
 <br /><br />
 <BPUI.InputField key="01113"  label="Invoice period " disabled variable={new BPUI.ReferenceObject('- Not selected -')} /> */}
             <div className="text-big">
-                Account Name: <span className="text-black" id="account-info-name"> {accountInfo.Name} </span>
+                Account Name: <span className="text-black_" id="account-info-name"> {accountInfo.Name} </span>
                 <br /><br />
-                Invoice period: <span  className="text-black"  id="account-info-period"> {invoiceDate.start} -
+                Invoice period: <span  className="text-black_"  id="account-info-period"> {invoiceDate.start} -
                     {invoiceDate.end}</span>
 				<br /><br />
-                Invoice ID: <span  className="text-black" id="account-info-invoiceid"> - Not selected - </span>
+                Invoice ID: <span  className="text-black_" id="account-info-invoiceid"> - Not selected - </span>
             </div>
         </div>
     </div>
@@ -284,12 +284,12 @@ function calculateRate_(row, column, event, scope) {
                     var rateDetails = $.parseXML(res.RateDetails);
                     rowElement.Rate = formatAmount($(rateDetails).find('RateDetailsRow > Rate').text());
                     //rowElement.RatedAmount = formatAmount($(rateDetails).find('RateDetailsRow > RatedAmount').text());
-                    rowElement.TaxCost = res.TaxAmount;
+                    rowElement.TaxCost = formatAmount(res.TaxAmount);
                     if (rowElement.Rate && rowElement.Quantity) {
-                        rowElement.RatedAmount = rowElement.Quantity * rowElement.Rate;
+                        rowElement.RatedAmount = formatAmount(rowElement.Quantity * rowElement.Rate);
                         rowElement.RateOverride = rowElement.Rate;
                         rowElement.CostOverride = rowElement.RatedAmount;
-                        rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
+                        rowElement.TotalCost = formatAmount(+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
     					return;
                     }
                 })
@@ -303,10 +303,10 @@ function calculateRate_(row, column, event, scope) {
     }
     //if user change cells manually
     if (rowElement.Rate && rowElement.Quantity) {
-        rowElement.RatedAmount = rowElement.Quantity * rowElement.Rate;
-        rowElement.RateOverride = rowElement.Rate;
-        rowElement.CostOverride = rowElement.RatedAmount;
-        rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
+       rowElement.RatedAmount = formatAmount(rowElement.Quantity * rowElement.Rate);
+       rowElement.RateOverride = rowElement.Rate;
+       rowElement.CostOverride = rowElement.RatedAmount;
+       rowElement.TotalCost = formatAmount(+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
     }
 }
  
