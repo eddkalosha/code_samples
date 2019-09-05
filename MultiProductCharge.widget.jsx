@@ -7,10 +7,12 @@
 <br /><br />
 <BPUI.InputField key="01113"  label="Invoice period " disabled variable={new BPUI.ReferenceObject('- Not selected -')} /> */}
             <div className="text-big">
-                Account Name: <span className="text-blue" id="account-info-name"> {accountInfo.Name} </span>
+                Account Name: <span className="text-black" id="account-info-name"> {accountInfo.Name} </span>
                 <br /><br />
-                Invoice period: <span className="text-blue" id="account-info-period"> {invoiceDate.start} -
-                    {invoiceDate.end} </span>
+                Invoice period: <span  className="text-black"  id="account-info-period"> {invoiceDate.start} -
+                    {invoiceDate.end}</span>
+				<br /><br />
+                Invoice ID: <span  className="text-black" id="account-info-invoiceid"> - Not selected - </span>
             </div>
         </div>
     </div>
@@ -58,7 +60,7 @@
                 <BPUI.TableColumn name="Quantity" index="3" label="Quantity" />
                 <BPUI.TableColumn name="Rate" index="4" label="Rate" />
                 <BPUI.TableColumn className={"disabled"} name="RatedAmount" index="5" label="Cost" />
-                <BPUI.TableColumn className={"disabled"} name="TaxCost" index="6" label="Tax" />
+                <BPUI.TableColumn name="TaxCost" index="6" label="Tax" />
                 <BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost" />
                 <BPUI.TableColumn className={"disabled"} name="ActivityDate" type="DATE_SELECTOR" index="8" displayTransform={formatDateUI}
                     label="Activity Date" />
@@ -151,6 +153,9 @@ margin:15px 0;
     padding: 2px 12px;
     background-repeat: no-repeat;
 }
+.text-black{
+color:#000
+}
 ___________________________________________________________________________________________________
 BPSystem.initialize();
 window.billingProfile = new BPUI.ReferenceObject();
@@ -181,6 +186,8 @@ invoiceDate = {
 };
 document.querySelector('#account-info-name').innerHTML = account_.Name;  
 document.querySelector('#account-info-period').innerHTML = `${invoiceDate.start} - ${invoiceDate.end}`;
+document.querySelector('#account-info-invoiceid').innerHTML = invoiceId_;
+    
 if (!(INVOICE_STATUS=='OPEN' || INVOICE_STATUS=='CURRENT')){
        document.querySelector('.process-error').classList.remove('hide');
        document.querySelector('.main-div').classList.add('disabled-grayfilter');
@@ -261,7 +268,7 @@ const doUpdate = async () => {
     
 function calculateRate_(row, column, event, scope) {
 	let activityCollection = WIDGET_MODE==='insert'? activities.get():lastactivities.get();
-    const columnsCalc = [3/*,4*/,6];
+    const columnsCalc = [0,3/*,4,6*/];
     let rowElement = activityCollection.elements[row];
     if (rowElement.Quantity /*&& rowElement.Rate */   && (columnsCalc.includes(column))) {
 
@@ -283,6 +290,7 @@ function calculateRate_(row, column, event, scope) {
                         rowElement.RateOverride = rowElement.Rate;
                         rowElement.CostOverride = rowElement.RatedAmount;
                         rowElement.TotalCost = (+rowElement.RatedAmount + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
+    					return;
                     }
                 })
                 .fail(function (fail){console.log(fail.message);
