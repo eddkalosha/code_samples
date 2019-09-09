@@ -220,7 +220,7 @@ window.noCharges = false;
     billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountInfo.Id).single());
     //init selected invoice
     invoice.set(invoice_);
-    document.querySelector('.main-div-page').classList.remove('hide');
+    document.querySelector('.main-div-page').classList.add('hide');
 }
 
 
