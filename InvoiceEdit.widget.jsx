@@ -204,7 +204,8 @@ function init() {
                 BillingCycleStartDate: rows[0].BillingCycleStartDate,
                 BillingCycleEndDate: rows[0].BillingCycleEndDate,
                 Status: rows[0].InvoiceStatus,
-                ApprovalStatus: rows[0].ApprovalStatus
+                ApprovalStatus: rows[0].ApprovalStatus,
+                EventInvoiceCycleId: rows[0].EventInvoiceCycleId
             }, new Invoice()));
             billingProfile.set(BPSystem.toBPObject({
                 Id: rows[0].BillingProfileId,
@@ -469,6 +470,7 @@ function getPageDataQuery(invoiceId) {
         + "ActivityDate, "
         + "Quantity, "
         + "Rate, "
+        + "EventInvoiceCycleId, "
         + "RateOverride, "
         + "CostOverride "
         + "from Activity.InvoiceObj "
@@ -482,6 +484,7 @@ function getPageDataQuery(invoiceId) {
         + "inv.Status as InvoiceStatus, "
         + "inv.ApprovalStatus, "
         + "inv.ManualCloseApprovedFlag, "
+        + "c.name AS EventInvoiceCycleId, "
         + "bp.Email, "
         + "bp.AccountId, "
         + "acc.Name, "
@@ -499,6 +502,7 @@ function getPageDataQuery(invoiceId) {
         + "left join BILLING_PROFILE bp on inv.BillingProfileId=bp.Id "
         + "left join ACCOUNT acc on bp.AccountId=acc.Id "
         + "left join ACTIVITY act on inv.Id=act.InvoiceId "
+        + "LEFT JOIN event_invoice_cycle c ON inv.eventinvoicecycleid = c.id "
         + "where inv.Id=" + invoiceId + " "
         + "and rownum < 1000 "
         + "order by act.ActivityDate";
