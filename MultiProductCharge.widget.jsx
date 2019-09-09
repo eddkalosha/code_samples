@@ -123,6 +123,18 @@ color:#000
 .pr-3{
     padding-left: 15px;
 }
+
+ .div-flex-inner tr{
+   
+ }
+.div-flex-inner tr td, td.recordDtlFont{
+    background-color: #fff;
+    border-bottom: 1px solid #e9e9e9 !important;
+}
+td.recordDtlFont{
+    background-color: #f9f9f9 !important;
+}
+
 .div-flex-inner nobr span:last-child{
       width: 100px !important;
     text-align: right;
@@ -260,7 +272,7 @@ const doSaveAndUpdate = async () => {
     }
     }else
     {
-        alert('You have to change / insert Products and try again.')
+        alert('Please make changes before submitting or click [Cancel] button')
     }
 	document.querySelector('#msg-info_').classList.add('hide');
 }
