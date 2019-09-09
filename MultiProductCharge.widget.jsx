@@ -1,5 +1,6 @@
 <BPUI.Page>
-	<div className="main-div-page">
+	<div className="info-loading text-blue">Loading data...</div>
+	<div className="main-div-page hide">
     <div className="div-flex my-15">
         <div className="div-flex-inner">
         <BPUI.Panel style ={{width: 900 + "px"}}>
@@ -219,6 +220,7 @@ window.noCharges = false;
     billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountInfo.Id).single());
     //init selected invoice
     invoice.set(invoice_);
+    document.querySelector('.main-div-page').classList.remove('hide');
 }
 
 
