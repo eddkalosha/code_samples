@@ -2,7 +2,7 @@
 	<div className="info-loading text-blue">Loading data...</div>
 	<div className="main-div-page hide">
     <div className="div-flex my-15">
-        <div className="div-flex-inner">
+        <div className="div-flex-inner  div-flex-iner-menu">
         <BPUI.Panel style ={{width: 900 + "px"}}>
         <BPUI.PanelRow>
 <BPUI.OutputField key="01112" label="Account Name" className='pr-3'  variable={invoiceInfoObj} field={'accountName'}/> 
@@ -50,8 +50,7 @@
 </div>
 </BPUI.FormLayout>
 </div>
-</BPUI.Page>
-___________________________________________________________________________________________________
+</BPUI.Page>________________________________________________________________________________
 .disabled{pointer-events:none}
 .disabled-grayfilter{
     pointer-events:none;
@@ -90,7 +89,7 @@ align-items: center;
 flex-basis:50%;
 }
 .div-flex-inner{
-padding: 10px;
+padding: 10px 0;
 }
 .basis100{
 flex-basis:100%;
@@ -125,10 +124,8 @@ color:#000
     padding-left: 15px;
 }
 
- .div-flex-inner tr{
-   
- }
-.div-flex-inner tr td, td.recordDtlFont{
+ 
+.div-flex-iner-menu tr td,.div-flex-iner-menu td.recordDtlFont{
     background-color: #fff;
     border-bottom: 1px solid #e9e9e9 !important;
 }
@@ -146,6 +143,14 @@ td.recordDtlFont{
 tr.edited td{
     background:#dcf4fc;
 }
+
+.info-loading{
+    display: flex;
+    padding: 40px;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+}
 ___________________________________________________________________________________________________
 BPSystem.initialize();
 window.billingProfile = new BPUI.ReferenceObject();
@@ -162,8 +167,8 @@ window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 window.noCharges = true;
-const accountId = BPSystem.nodeKey; //1
-const activityId = BPSystem.nodeKey; //1
+const accountId = 628876;//BPSystem.nodeKey; //1
+const activityId = 628876;//BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
@@ -220,7 +225,8 @@ window.noCharges = false;
     billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountInfo.Id).single());
     //init selected invoice
     invoice.set(invoice_);
-    document.querySelector('.main-div-page').classList.add('hide');
+    document.querySelector('.main-div-page').classList.remove('hide');
+    document.querySelector('.info-loading').classList.add('hide');
 }
 
 
