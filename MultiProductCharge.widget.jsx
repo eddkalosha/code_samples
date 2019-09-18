@@ -167,8 +167,8 @@ window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 window.noCharges = true;
-const accountId = 628876;//BPSystem.nodeKey; //1
-const activityId = 628876;//BPSystem.nodeKey; //1
+const accountId =  BPSystem.nodeKey; //1
+const activityId =  BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
@@ -353,7 +353,7 @@ function addActivity(index) {
     const accountId = account.get().Id;
     const invoiceId = invoice.get().Id;
     activitiesData.addNew({}, index + 1); // next item
-    activitiesData.forEach(el=> {
+    lastactivities.get().createdelements.map(el=> {
         el.AccountId = accountId;
         el.InvoiceId = invoiceId;
         el.ActivityDate = formatDateDB(invoiceDate.start);
