@@ -16,6 +16,8 @@
                 <BPUI.OutputField name="AccountStatus" field="Status" variable={account} label="Account Status"/>
                 <BPUI.OutputField name="InvoiceStatus" field="Status" variable={invoice} label="Invoice Status"/>
                 <BPUI.OutputField name="ApprovalStatus" field="ApprovalStatus" variable={invoice} label="Approval Status"/>
+				<BPUI.OutputField name="BillingProfileId" field="BillingProfileId" variable={invoice} label="View Ledger"/>
+				<BPUI.OutputField name="cycle_name" field="cycle_name" variable={invoice} label="Cycle Type"/>
                 <BPUI.InputField name="Email" variable={billingProfile}  field="Email"/>
                 <BPUI.InputField variable={invoice}  field="BillingCycleStartDate"/>
                 <BPUI.InputField variable={invoice}  field="BillingCycleEndDate"/>
@@ -90,7 +92,6 @@
                 </BPUI.Panel>
     </BPUI.FormLayout>
 </BPUI.Page>
-
 _____________________________________________________________________________________________________________________
 .body {}
 
@@ -103,7 +104,7 @@ ________________________________________________________________________________
     transform: translateY(0%) !important;
 }
 table.embedded-list td {
-padding:0 !important
+padding:0 !important;
 vertical-align:middle !important;
 }
 
@@ -154,6 +155,7 @@ padding:0 !important;
     background: initial;
     padding:0 !important;
 }
+___
 _____________________________________________________________________________________________________________________
 BPActions = BPActions || window.BPActions;
 //BPConnection.Activity.query for metadata 
@@ -205,7 +207,8 @@ function init() {
                 BillingCycleEndDate: rows[0].BillingCycleEndDate,
                 Status: rows[0].InvoiceStatus,
                 ApprovalStatus: rows[0].ApprovalStatus,
-                EventInvoiceCycleId: rows[0].EventInvoiceCycleId
+                cycle_name: rows[0].cycle_name,
+                
             }, new Invoice()));
             billingProfile.set(BPSystem.toBPObject({
                 Id: rows[0].BillingProfileId,
@@ -470,7 +473,6 @@ function getPageDataQuery(invoiceId) {
         + "ActivityDate, "
         + "Quantity, "
         + "Rate, "
-        + "EventInvoiceCycleId, "
         + "RateOverride, "
         + "CostOverride "
         + "from Activity.InvoiceObj "
@@ -484,7 +486,6 @@ function getPageDataQuery(invoiceId) {
         + "inv.Status as InvoiceStatus, "
         + "inv.ApprovalStatus, "
         + "inv.ManualCloseApprovedFlag, "
-        + "c.name AS EventInvoiceCycleId, "
         + "bp.Email, "
         + "bp.AccountId, "
         + "acc.Name, "
@@ -497,6 +498,7 @@ function getPageDataQuery(invoiceId) {
         + "act.RatedAmount, "
         + "act.Quantity, "
         + "act.Rate, "
+        + "c.name AS cycle_name,"
         + "act.RateOverride "
         + "from INVOICE inv "
         + "left join BILLING_PROFILE bp on inv.BillingProfileId=bp.Id "
