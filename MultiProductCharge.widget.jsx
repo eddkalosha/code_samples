@@ -167,8 +167,8 @@ window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 window.noCharges = true;
-const accountId =  BPSystem.nodeKey; //1
-const activityId = BPSystem.nodeKey; //1
+const accountId =   BPSystem.nodeKey; //1
+const activityId =   BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
@@ -364,6 +364,12 @@ function addActivity(index) {
     });  
     window.BPActions.refreshState("activities");
 }
+   function delActivity(index){
+        if (confirm('Do you really want do delete this product?')) {
+        lastactivities.get().removeFromCollection(index);
+    	window.BPActions.refreshState("activities");
+    }
+ }
 BPUI.afterRender = () => {
 //fix top&bottom menus width
 let menus = document.querySelectorAll('.formButtons');
