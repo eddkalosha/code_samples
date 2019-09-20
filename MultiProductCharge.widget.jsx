@@ -168,7 +168,7 @@ window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 window.noCharges = true;
 const accountId =  BPSystem.nodeKey; //1
-const activityId =  BPSystem.nodeKey; //1
+const activityId = BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
@@ -213,11 +213,11 @@ window.noCharges = false;
         //init new activity by default
         window.lastactivities.set(new BPConnection.BPCollection([{}], new Activity()));
         //default the activity dates to today
-        window.lastactivities.get().forEach(function (element, index, allArray) {
+       /* window.lastactivities.get().forEach(function (element, index, allArray) {
             element.ActivityDate = formatDateDB(invoiceDate.start);
             element.SubscriptionFromDate = formatDateDB(invoiceDate.start);
             element.SubscriptionToDate = formatDateDB(invoiceDate.end);
-        });
+        }); */
 }
     //init account and billing profile of account
     account.set(BPSystem.toBPObject({}, new Account()));
@@ -324,7 +324,8 @@ function calculateRate_(row, column, event, scope) {
                         rowElement.RateOverride = rowElement.Rate;
                         rowElement.CostOverride = rowElement.Cost;
                         rowElement.TotalCost = formatAmount(+rowElement.Cost + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
-    					return;
+    					event.target.parentNode.parentNode.classList.add('edited');
+        				return;
                     }
                 })
                 .fail(function (fail){console.log(fail.message);
@@ -341,6 +342,7 @@ function calculateRate_(row, column, event, scope) {
        rowElement.RateOverride = rowElement.Rate;
        rowElement.CostOverride = rowElement.Cost;
        rowElement.TotalCost = formatAmount(+rowElement.Cost + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
+    	event.target.parentNode.parentNode.classList.add('edited');
     }
 }
  
