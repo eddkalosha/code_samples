@@ -176,8 +176,8 @@ window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 window.noCharges = true;
-const accountId =  534356;// BPSystem.nodeKey; //1
-const activityId = 534356;//  BPSystem.nodeKey; //1
+const accountId =   BPSystem.nodeKey; //1
+const activityId =    BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
@@ -263,16 +263,23 @@ const doSaveAndUpdate = async () => {
         delete el.Rate;
         delete el.Cost;
     });
-    console.log(upsertElements_,upsertElements)
-
+    let deletedElements = lastactivities.get().deletedelements;
+    //console.log(upsertElements_,upsertElements)
    // alert('count upsert = '+upsertElements.length);
    // console.log('upserted',upsertElements);
-    if (upsertElements_.length>0) {
+    if (upsertElements_.length>0 || deletedElements.length>0) {
     try {    
-    const resp = await BPConnection.Activity.upsert(upsertElements_);
+    let itemId = ""; 
+    if (upsertElements_.length>0){
+        const resp = await BPConnection.Activity.upsert(upsertElements_);
+        itemId="" + resp[0].Id + "&";
+    }
+    if (deletedElements.length>0){
+        const resp2 = await BPConnection.Activity.delete(deletedElements);
+    }
     document.querySelector('#msg-succ_').classList.remove('hide');
     window.onbeforeunload = true;
-    window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&key=" + resp[0].Id + "&mode=L";
+    window.location = "admin.jsp?name=BILLING_INVOICE_DETAIL_NEW&"+itemId+"mode=L";
     }catch(e){
         console.log(e);
         document.querySelector('#msg-fail_').classList.remove('hide');  
@@ -301,7 +308,7 @@ const checkFieldsFilled = (objActivities,fieldsArr = ['Quantity','Rate']) => {
 
 const compareObjects = (o1, o2) => { //one-level comparing (not deep)
     const comparedProperties = ['ActivityDate','Cost','Id','ProductId','Quantity','Rate','SubscriptionFromDate','SubscriptionToDate','TaxCost','TotalCost'];
-    console.log('comparing',o1,o2)
+  //  console.log('comparing',o1,o2)
     for(var p in o1){
         if(o1.hasOwnProperty(p) && (comparedProperties.includes(p))){
             if(o1[p] !== o2[p]){
@@ -318,23 +325,22 @@ const compareObjects = (o1, o2) => { //one-level comparing (not deep)
             }
         }
     }
-    console.log('equals');
+   // console.log('equals');
     return true;
 };    
 
 const findChangedRecords = () =>{
-    debugger;
     let changedItemsIndex = [];
     let lastactivities_ = lastactivities.get().elements; 
     for (let i=0;i<lastactivities_.length;i++){
         let lastAct = lastactivities_[i];
         let lastAct_copy = lastactivities_copy[i];
-        console.log(lastAct,lastAct_copy)
+    //    console.log(lastAct,lastAct_copy)
         if (!compareObjects(lastAct,lastAct_copy)){
             changedItemsIndex.push(i)	
         }
     }
-    console.log('findChangedRecords>',changedItemsIndex);
+   // console.log('findChangedRecords>',changedItemsIndex);
     return changedItemsIndex;
 }
 
@@ -350,9 +356,9 @@ const calculateRate_ = (row,column,event,scope) => {
                 +" and Quantity ="+ rowElement.Quantity;
             BPConnection.AccountProductQuote.retrieveFilteredAsync(whereClause).single()
                 .done(function (res){
-                    console.log('::::::::::::Rate:::::::::::');
-                    console.log(res);
-                    console.log('::::::::::::Rate END:::::::::::');
+                   // console.log('::::::::::::Rate:::::::::::');
+                   // console.log(res);
+                   // console.log('::::::::::::Rate END:::::::::::');
                     var rateDetails = $.parseXML(res.RateDetails);
                     rowElement.Rate = formatAmount($(rateDetails).find('RateDetailsRow > Rate').text());
                     //rowElement.RatedAmount = formatAmount($(rateDetails).find('RateDetailsRow > RatedAmount').text());
@@ -373,7 +379,7 @@ const calculateRate_ = (row,column,event,scope) => {
                     //alert(fail.message);
                 });
         } catch (e) {
-            alert('ERROR: '+e);
+          //  alert('ERROR: '+e);
             console.log(e);
         }
     }
@@ -410,7 +416,9 @@ function addActivity(index) {
 }
    function delActivity(index){
         if (confirm('Do you really want do delete this product?')) {
-        lastactivities.get().removeFromCollection(index);
+            debugger;
+        lastactivities.get().removeFromCollection(index); 
+        lastactivities_copy.splice(index, 1);
     	window.BPActions.refreshState("activities");
     }
  }
