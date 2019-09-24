@@ -176,7 +176,7 @@ window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 window.noCharges = true;
-const accountId =   BPSystem.nodeKey; //1
+const accountId =    BPSystem.nodeKey; //1
 const activityId =    BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
@@ -210,7 +210,8 @@ try{
 const lastactivities__ = await BPConnection.ACTIVITY.query(`
 SELECT Id,ProductId,SubscriptionFromDate,SubscriptionToDate,
 Quantity,to_char(Rate, 'FM999999990.00') as Rate, to_char(Cost, 'FM999999990.00') as Cost,
-to_char(TaxCost, 'FM999999990.00') as TaxCost,to_char(TotalCost, 'FM999999990.00') as TotalCost,ActivityDate 
+to_char(TaxCost, 'FM999999990.00') as TaxCost,to_char(TotalCost, 'FM999999990.00') as TotalCost,
+to_char(ActivityDate,'MM/DD/YYYY') as ActivityDate 
 FROM Activity 
 WHERE  AccountId=${account_.Id} 
 AND InvoiceId=${invoice_.Id} 
