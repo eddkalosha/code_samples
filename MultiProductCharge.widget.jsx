@@ -143,6 +143,14 @@ td.recordDtlFont{
 tr.edited td{
     background:#dcf4fc;
 }
+tr.edited td:nth-child(2) div:before{
+  	content: '✎';
+    color: #5cc3ff;
+    margin-left: -5px;
+    margin-top: 0px;
+    font-weight: bold;
+    margin-right: 5px;
+}
 
 .info-loading{
     display: flex;
@@ -163,12 +171,13 @@ invoiceInfoObj.get().invoicePeriod = ' - Not selected -';
 invoiceInfoObj.get().invoiceId = ' - Not selected -';
 
 window.lastactivities = new BPUI.ReferenceObject();
+window.lastactivities_copy = new BPUI.ReferenceObject();
 window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 window.noCharges = true;
-const accountId =   BPSystem.nodeKey; //1
-const activityId =   BPSystem.nodeKey; //1
+const accountId =  534356;// BPSystem.nodeKey; //1
+const activityId = 534356;//  BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
@@ -211,31 +220,21 @@ window.noCharges = false;
 }catch(e){
     window.noCharges = true;
         //init new activity by default
-        window.lastactivities.set(new BPConnection.BPCollection([{}], new Activity()));
-        //default the activity dates to today
-       /* window.lastactivities.get().forEach(function (element, index, allArray) {
-            element.ActivityDate = formatDateDB(invoiceDate.start);
-            element.SubscriptionFromDate = formatDateDB(invoiceDate.start);
-            element.SubscriptionToDate = formatDateDB(invoiceDate.end);
-        }); */
+        window.lastactivities.set(new BPConnection.BPCollection([{}], new Activity())); 
 }
     //init account and billing profile of account
     account.set(BPSystem.toBPObject({}, new Account()));
     account.get().Id = accountInfo.Id;
     billingProfile.set(BPConnection.BillingProfile.retrieveFiltered("AccountId=" + accountInfo.Id).single());
+    window.lastactivities_copy = BPSystem.toBPCollection(JSON.parse(JSON.stringify(window.lastactivities.get().elements))).elements
     //init selected invoice
     invoice.set(invoice_);
     document.querySelector('.main-div-page').classList.remove('hide');
     document.querySelector('.info-loading').classList.add('hide');
 }
 
+const cancel = () => window.add_attr_submit('SET_FORM_VIEW', 'form_type_in', 'FL');
 
-
-function cancel() {
-	window.add_attr_submit('SET_FORM_VIEW', 'form_type_in', 'FL')
-}
-
-   
 const doSaveAndUpdate = async () => {
 	document.querySelector('#msg-info_').classList.remove('hide');
 	document.querySelector('#msg-fail_').classList.add('hide');
@@ -300,12 +299,51 @@ const checkFieldsFilled = (objActivities,fieldsArr = ['Quantity','Rate']) => {
     return true;
 }
 
-function calculateRate_(row, column, event, scope) {
-    let activityCollection =  lastactivities.get();
+const compareObjects = (o1, o2) => { //one-level comparing (not deep)
+    const comparedProperties = ['ActivityDate','Cost','Id','ProductId','Quantity','Rate','SubscriptionFromDate','SubscriptionToDate','TaxCost','TotalCost'];
+    console.log('comparing',o1,o2)
+    for(var p in o1){
+        if(o1.hasOwnProperty(p) && (comparedProperties.includes(p))){
+            if(o1[p] !== o2[p]){
+                console.error('comp',p);
+                return false;
+            }
+        }
+    }
+    for(var p in o2){
+        if(o2.hasOwnProperty(p) && (comparedProperties.includes(p))){
+            if(o1[p] !== o2[p]){
+                console.error('comp',p);
+                return false;
+            }
+        }
+    }
+    console.log('equals');
+    return true;
+};    
+
+const findChangedRecords = () =>{
+    debugger;
+    let changedItemsIndex = [];
+    let lastactivities_ = lastactivities.get().elements; 
+    for (let i=0;i<lastactivities_.length;i++){
+        let lastAct = lastactivities_[i];
+        let lastAct_copy = lastactivities_copy[i];
+        console.log(lastAct,lastAct_copy)
+        if (!compareObjects(lastAct,lastAct_copy)){
+            changedItemsIndex.push(i)	
+        }
+    }
+    console.log('findChangedRecords>',changedItemsIndex);
+    return changedItemsIndex;
+}
+
+const calculateRate_ = (row,column,event,scope) => {
+    let activityCollection = lastactivities.get();
     const columnsCalc = [4/*,4,6*/];
     let rowElement = activityCollection.elements[row];
-    if (rowElement.Quantity /*&& rowElement.Rate */   && (columnsCalc.includes(column))) {
-
+    const changedRecords = findChangedRecords();
+    if (rowElement.Quantity /*&& rowElement.Rate*/ && (columnsCalc.includes(column)) &&changedRecords.length>0 ) {
         try {
             var whereClause = "AccountId ="+account.get().Id
                 +" and ProductId =0"+ rowElement.ProductId
@@ -323,8 +361,11 @@ function calculateRate_(row, column, event, scope) {
                         rowElement.Cost = formatAmount(rowElement.Quantity * rowElement.Rate);
                         rowElement.RateOverride = rowElement.Rate;
                         rowElement.CostOverride = rowElement.Cost;
-                        rowElement.TotalCost = formatAmount(+rowElement.Cost + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
-    					event.target.parentNode.parentNode.classList.add('edited');
+                        rowElement.TotalCost = formatAmount(+rowElement.Cost + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost)); 
+                        for (let indexRow of changedRecords){
+                            const trArr = event.target.parentNode.parentNode.parentNode.querySelectorAll('tr');
+                            trArr[indexRow].classList.add('edited'); 
+                        }
         				return;
                     }
                 })
@@ -342,7 +383,10 @@ function calculateRate_(row, column, event, scope) {
        rowElement.RateOverride = rowElement.Rate;
        rowElement.CostOverride = rowElement.Cost;
        rowElement.TotalCost = formatAmount(+rowElement.Cost + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
-    	event.target.parentNode.parentNode.classList.add('edited');
+       for (let indexRow of changedRecords){
+        const trArr = event.target.parentNode.parentNode.parentNode.querySelectorAll('tr');
+        trArr[indexRow].classList.add('edited'); 
+        }
     }
 }
  
