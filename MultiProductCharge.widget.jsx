@@ -176,8 +176,8 @@ window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 window.noCharges = true;
-const accountId =    BPSystem.nodeKey; //1
-const activityId =    BPSystem.nodeKey; //1
+const accountId =  534356;//  BPSystem.nodeKey; //1
+const activityId =  534356;//  BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
@@ -313,7 +313,7 @@ const compareObjects = (o1, o2) => { //one-level comparing (not deep)
     for(var p in o1){
         if(o1.hasOwnProperty(p) && (comparedProperties.includes(p))){
             if(o1[p] !== o2[p]){
-                console.error('comp',p);
+                console.warn('comp',p);
                 return false;
             }
         }
@@ -321,7 +321,7 @@ const compareObjects = (o1, o2) => { //one-level comparing (not deep)
     for(var p in o2){
         if(o2.hasOwnProperty(p) && (comparedProperties.includes(p))){
             if(o1[p] !== o2[p]){
-                console.error('comp',p);
+                console.warn('comp',p);
                 return false;
             }
         }
@@ -341,7 +341,7 @@ const findChangedRecords = () =>{
             changedItemsIndex.push(i)	
         }
     }
-   // console.log('findChangedRecords>',changedItemsIndex);
+    console.log('findChangedRecords>',changedItemsIndex);
     return changedItemsIndex;
 }
 
@@ -350,7 +350,11 @@ const calculateRate_ = (row,column,event,scope) => {
     const columnsCalc = [4/*,4,6*/];
     let rowElement = activityCollection.elements[row];
     const changedRecords = findChangedRecords();
-    if (rowElement.Quantity /*&& rowElement.Rate*/ && (columnsCalc.includes(column)) &&changedRecords.length>0 ) {
+    const trArr = document.querySelector('.customEmbeddedEditable').querySelectorAll('tbody>tr');    
+    for (let indexRow of changedRecords){
+       trArr[indexRow].classList.add('edited'); 
+    } 
+    if (rowElement.Quantity /*&& rowElement.Rate*/ && (columnsCalc.includes(column))) {
         try {
             var whereClause = "AccountId ="+account.get().Id
                 +" and ProductId =0"+ rowElement.ProductId
@@ -368,11 +372,7 @@ const calculateRate_ = (row,column,event,scope) => {
                         rowElement.Cost = formatAmount(rowElement.Quantity * rowElement.Rate);
                         rowElement.RateOverride = rowElement.Rate;
                         rowElement.CostOverride = rowElement.Cost;
-                        rowElement.TotalCost = formatAmount(+rowElement.Cost + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost)); 
-                        for (let indexRow of changedRecords){
-                            const trArr = event.target.parentNode.parentNode.parentNode.querySelectorAll('tr');
-                            trArr[indexRow].classList.add('edited'); 
-                        }
+                        rowElement.TotalCost = formatAmount(+rowElement.Cost + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));  
         				return;
                     }
                 })
@@ -390,10 +390,6 @@ const calculateRate_ = (row,column,event,scope) => {
        rowElement.RateOverride = rowElement.Rate;
        rowElement.CostOverride = rowElement.Cost;
        rowElement.TotalCost = formatAmount(+rowElement.Cost + (Number.isNaN(+rowElement.TaxCost)?0:+rowElement.TaxCost));
-       for (let indexRow of changedRecords){
-        const trArr = event.target.parentNode.parentNode.parentNode.querySelectorAll('tr');
-        trArr[indexRow].classList.add('edited'); 
-        }
     }
 }
  
