@@ -1321,7 +1321,7 @@ const SearchForm = React.createClass({
         return {values: {}, show: !!this.props.showAlways};
     },
     componentDidMount: function() {
-        this.initSearchButton();
+      //  this.initSearchButton();
     },
     componentWillUnmount: function() {
         this.disableSearchButton();
