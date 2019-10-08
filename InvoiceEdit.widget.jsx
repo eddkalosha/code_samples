@@ -579,4 +579,13 @@ init();
 BPUI.afterRender = function () {
     if(invoice.get().Status == 'CLOSED')
         BPActions.changeState("ManualCloseApprovedFlag", {type: "LABEL"});
-};
+    //* * * * fast lookup fix (init text from data). If it crash the widget need to remove it and fix LookUP propertly
+   try{
+     BPDispatcher._callbacks.ID_2({
+         type:BPActions.CONSTANTS.LOAD_DATA,
+         data:{NAME:account.get().Name},
+         NODE_KEY:billingProfile.get().Id})
+     }catch(e){console.error('lookup fix',e)}
+    //* * * * 
+    
+}
