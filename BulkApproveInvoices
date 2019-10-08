@@ -1,0 +1,1297 @@
+<div id="bulkForm">
+    <form name="invoiceSearchForm">
+        <div className="additional-options">
+            <div id="search-box">
+                <div id="searchForm">
+                    <table>
+                        <tr>
+                        </tr>
+                        <tr id="search_form">
+                            <td className="formBody" align="left">
+                                <table cellPadding="1" className="search-form-fields">
+                                  {$.map(SearchDef, function(elem, idx) {
+                                    return <tr className="recordData">
+                                        <td>
+                                            <nobr>
+                                                <span className="text">{elem.label}</span>
+                                              {elem.type && elem.type === "list"
+                                                ? <BPUI.HelpText shortHelp="Invoice ID(s)" longHelp="Enter multiple Invoice IDs separated by new line"/> :
+                                               <div/>}
+                                            </nobr>
+                                        </td>
+                                        <td> {elem.type && elem.type === "day"
+										? <BPUI.Date id={"SearchDef" + idx} className={" control-f"} name={"SearchDef" + idx} />
+                                          : elem.type && elem.type === "list"
+                                                ? <BPUI.TextArea id={"SearchDef" + idx} name={"SearchDef" + idx}/>
+                                                : <input id={"SearchDef" + idx} name={"SearchDef" + idx} className="formText control-f" type="text" defaultValue="" maxLength="256" size="50"/>}
+                                        </td>
+                                    </tr>
+                                  })}
+                                    <tr className="recordData">
+                                        <td></td>
+                                        <td>
+                                            <table align="left">
+                                                <tr>
+                                                    <td>
+                                                        <nobr>
+                                                            <input type="button" value="Search" onClick={searchCtl.onSearch}/>
+                                                            <img src="rnimages/shim.gif" width="5"/>
+                                                            <input type="button" value="Clear" onClick={doClearSearch}/>
+                                                        </nobr>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </td>
+                                    </tr>
+                                </table>
+                            </td>
+                        </tr>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </form>
+    <form name="bulkActionForm" method="POST" action="bulkActionController.do">
+        <nav><div id="mocha"/>
+            <table cellPadding="3">
+                <BPUI.Message name="messages"></BPUI.Message>
+                <tr>
+                    <td colSpan="2"><span className="formInfo">Check the invoices that you want to approve then click "Approve Invoices."</span></td>
+                </tr>
+                <tr>
+                    <td>
+                        <table cellPadding="2" cellSpacing="2">
+                            <tr height="23">
+                                <td align="left">
+                                    <div className="batch-actions">
+                                        <select id="actionsUp">
+                                            <option value="">Batch actions...</option>
+                                            <option value="approve">Approve</option>
+                                        </select>
+                                        <img src="rnimages/shim.gif" width="5"/>
+                                        <input type="button" onClick={doAction("actionsUp")} value="Go!"/>
+                                        <img src="rnimages/shim.gif" width="5"/>
+                                        <SelectionCount name="selection-count"/>
+                                        <ProcessingCount name="processing-count"/>
+                                    </div>
+                                </td>
+                            </tr>
+                        </table>
+                    </td>
+                </tr>
+            </table>
+        </nav>
+
+        <table id="grid"></table>
+        <div id="pager"></div>
+    </form>
+</div>
+
+
+______________________________________________________________________________________________________________
+div#bulkForm table tr td table tr > td {
+    padding-left:5px;
+}
+div .count-label {
+    margin: 0px 0px 0px 10px;
+    padding-left: 8px;
+    font-size: 12px;
+    border-left: 1px solid #ccc;
+    line-height: 20px;
+    display:inline-block;
+    color:#777;
+}
+
+div .count-label span {
+    color:#444
+}
+
+div#bulkForm .batch-actions input[type=checkbox] {
+    top: 1px;
+    position: relative;
+}
+
+div#bulkForm table tr td table tr > td label {
+    font-weight: 400;
+    color: #666;
+    font-size: 12px;
+    padding-right: 5px;
+}
+
+div#bulkForm .bottom-row {
+    margin-top:9px;
+}
+
+div#bulkForm table tr td table tr > td {
+    padding-left:5px;
+}
+div .count-label {
+    margin: 0px 0px 0px 10px;
+    padding-left: 8px;
+    font-size: 12px;
+    border-left: 1px solid #ccc;
+    line-height: 20px;
+    display:inline-block;
+    color:#777;
+}
+
+div .count-label span {
+    color:#444
+}
+
+div .processing-count-label {
+    margin: 0px 0px 0px 10px;
+    padding-left: 8px;
+    font-size: 12px;
+    border-left: 1px solid #ccc;
+    line-height: 20px;
+    display:inline-block;
+    color:#777;
+}
+
+input.control-f{
+width:20em;
+}
+
+div .processing-count-label span {
+    color:#444
+}
+
+div#bulkForm .batch-actions input[type=checkbox] {
+    top: 1px;
+    position: relative;
+}
+
+div#bulkForm table tr td table tr > td label {
+    font-weight: 400;
+    color: #666;
+    font-size: 12px;
+    padding-right: 5px;
+}
+
+div#bulkForm .bottom-row {
+    margin-top:9px;
+}
+
+td[role="gridcell"]:hover, span.gird-edit:hover {
+    text-decoration:none;
+    cursor: default;
+}
+
+.search-form-fields span.help {    display: inline-block;    top: 1px;    margin: 0 -3px 0 5px;}
+
+#mocha ul,
+#mocha li {
+    margin: 0;
+    padding: 0;
+}
+
+#mocha ul {
+    list-style: none;
+}
+
+#mocha h1,
+#mocha h2 {
+    margin: 0;
+}
+
+#mocha h1 {
+    margin-top: 15px;
+    font-size: 1em;
+    font-weight: 200;
+}
+
+#mocha h1 a {
+    text-decoration: none;
+    color: inherit;
+}
+
+#mocha h1 a:hover {
+    text-decoration: underline;
+}
+
+#mocha .suite .suite h1 {
+    margin-top: 0;
+    font-size: .8em;
+}
+
+#mocha .hidden {
+    display: none;
+}
+
+#mocha h2 {
+    font-size: 12px;
+    font-weight: normal;
+    cursor: pointer;
+}
+
+#mocha .suite {
+    margin-left: 15px;
+}
+
+#mocha .test {
+    margin-left: 15px;
+    overflow: hidden;
+}
+
+#mocha .test.pending:hover h2::after {
+    content: '(pending)';
+    font-family: arial, sans-serif;
+}
+
+#mocha .test.pass.medium .duration {
+    background: #c09853;
+}
+
+#mocha .test.pass.slow .duration {
+    background: #b94a48;
+}
+
+#mocha .test.pass::before {
+    content: '+';
+    font-size: 12px;
+    display: block;
+    float: left;
+    margin-right: 5px;
+    color: #00d6b2;
+}
+
+#mocha .test.pass .duration {
+    font-size: 9px;
+    margin-left: 5px;
+    padding: 2px 5px;
+    color: #fff;
+    -webkit-box-shadow: inset 0 1px 1px rgba(0,0,0,.2);
+    -moz-box-shadow: inset 0 1px 1px rgba(0,0,0,.2);
+    box-shadow: inset 0 1px 1px rgba(0,0,0,.2);
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    -ms-border-radius: 5px;
+    -o-border-radius: 5px;
+    border-radius: 5px;
+}
+
+#mocha .test.pass.fast .duration {
+    display: none;
+}
+
+#mocha .test.pending {
+    color: #0b97c4;
+}
+
+#mocha .test.pending::before {
+    content: '?';
+    color: #0b97c4;
+}
+
+#mocha .test.fail {
+    color: #c00;
+}
+
+#mocha .test.fail pre {
+    color: black;
+}
+
+#mocha .test.fail::before {
+    content: '!';
+    font-size: 12px;
+    display: block;
+    float: left;
+    margin-right: 5px;
+    color: #c00;
+}
+
+#mocha .test pre.error {
+    color: #c00;
+    max-height: 300px;
+    overflow: auto;
+}
+
+#mocha .test .html-error {
+    overflow: auto;
+    color: black;
+    line-height: 1.5;
+    display: block;
+    float: left;
+    clear: left;
+    font: 12px/1.5 monaco, monospace;
+    margin: 5px;
+    padding: 15px;
+    border: 1px solid #eee;
+    max-width: 85%; /*(1)*/
+    max-width: -webkit-calc(100% - 42px);
+    max-width: -moz-calc(100% - 42px);
+    max-width: calc(100% - 42px); /*(2)*/
+    max-height: 300px;
+    word-wrap: break-word;
+    border-bottom-color: #ddd;
+    -webkit-box-shadow: 0 1px 3px #eee;
+    -moz-box-shadow: 0 1px 3px #eee;
+    box-shadow: 0 1px 3px #eee;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+#mocha .test .html-error pre.error {
+    border: none;
+    -webkit-border-radius: 0;
+    -moz-border-radius: 0;
+    border-radius: 0;
+    -webkit-box-shadow: 0;
+    -moz-box-shadow: 0;
+    box-shadow: 0;
+    padding: 0;
+    margin: 0;
+    margin-top: 18px;
+    max-height: none;
+}
+
+/**
+ * (1): approximate for browsers not supporting calc
+ * (2): 42 = 2*15 + 2*10 + 2*1 (padding + margin + border)
+ *      ^^ seriously
+ */
+#mocha .test pre {
+    display: block;
+    float: left;
+    clear: left;
+    font: 12px/1.5 monaco, monospace;
+    margin: 5px;
+    padding: 15px;
+    border: 1px solid #eee;
+    max-width: 85%; /*(1)*/
+    max-width: -webkit-calc(100% - 42px);
+    max-width: -moz-calc(100% - 42px);
+    max-width: calc(100% - 42px); /*(2)*/
+    word-wrap: break-word;
+    border-bottom-color: #ddd;
+    -webkit-box-shadow: 0 1px 3px #eee;
+    -moz-box-shadow: 0 1px 3px #eee;
+    box-shadow: 0 1px 3px #eee;
+    -webkit-border-radius: 3px;
+    -moz-border-radius: 3px;
+    border-radius: 3px;
+}
+
+#mocha .test h2 {
+    position: relative;
+}
+
+#mocha .test a.replay {
+    position: absolute;
+    top: 3px;
+    right: 0;
+    text-decoration: none;
+    vertical-align: middle;
+    display: block;
+    width: 15px;
+    height: 15px;
+    line-height: 15px;
+    text-align: center;
+    background: #eee;
+    font-size: 15px;
+    -webkit-border-radius: 15px;
+    -moz-border-radius: 15px;
+    border-radius: 15px;
+    -webkit-transition:opacity 200ms;
+    -moz-transition:opacity 200ms;
+    -o-transition:opacity 200ms;
+    transition: opacity 200ms;
+    opacity: 0.3;
+    color: #888;
+    display: none;
+}
+
+#mocha .test:hover a.replay {
+    opacity: 1;
+}
+
+#mocha-report.pass .test.fail {
+    display: none;
+}
+
+#mocha-report.fail .test.pass {
+    display: none;
+}
+
+#mocha-report.pending .test.pass,
+#mocha-report.pending .test.fail {
+    display: none;
+}
+#mocha-report.pending .test.pass.pending {
+    display: block;
+}
+
+#mocha-error {
+    color: #c00;
+    font-size: 1.5em;
+    font-weight: 100;
+    letter-spacing: 1px;
+}
+
+#mocha-stats {
+    font-size: 12px;
+    margin: 0;
+    color: #888;
+}
+
+#mocha-stats .progress {
+    float: right;
+    padding-top: 0;
+
+    /**
+     * Set safe initial values, so mochas .progress does not inherit these
+     * properties from Bootstrap .progress (which causes .progress height to
+     * equal line height set in Bootstrap).
+     */
+    height: auto;
+    -webkit-box-shadow: none;
+    -moz-box-shadow: none;
+    box-shadow: none;
+    background-color: initial;
+}
+
+#mocha-stats em {
+    color: black;
+}
+
+#mocha-stats a {
+    text-decoration: none;
+    color: inherit;
+}
+
+#mocha-stats a:hover {
+    border-bottom: 1px solid #eee;
+}
+
+#mocha-stats li {
+    display: inline-block;
+    margin: 0 5px;
+    list-style: none;
+    padding-top: 11px;
+}
+
+#mocha-stats canvas {
+    width: 40px;
+    height: 40px;
+}
+
+#mocha code .comment { color: #ddd; }
+#mocha code .init { color: #2f6fad; }
+#mocha code .string { color: #5890ad; }
+#mocha code .keyword { color: #8a6343; }
+#mocha code .number { color: #2f6fad; }
+______________________________________________________________________________________________________________
+BPActions = BPActions || window.BPActions;
+BPDispatcher = BPDispatcher || window.BPDispatcher;
+
+BPSystem.initialize();
+
+var READ_BATCH_SIZE = 5000,
+    WRITE_BATCH_SIZE = 500,
+    INVOICES_TO_CLOSE = 500;
+
+var SearchDef = [
+    { label: "Invoice ID(s)", type:"list", criteria: "inv.Id in (?)" },
+    { label: "Account Name", criteria: "upper(acc.Name) like '%' || upper('?') || '%'" },
+    { label: "Billing Cycle End Date", type: "day", criteria: "trunc(inv.BillingCycleEndDate) = trunc('?')" },
+];
+
+var SelectionCount = React.createClass({
+    getInitialState: function() {
+        return {
+            count: 0,
+            total: 0
+        };
+    },
+    dispatcherIndex: function () {
+        var that = this;
+        this.state.dispatcher =
+            BPDispatcher.register(function (payload) {
+                if (payload.name == that.props.name) {
+                    switch (payload.type) {
+                        case BPActions.CONSTANTS.CHANGE_STATE:
+                            //console.log("Change state ",
+                            // payload);
+                            if (payload && payload.data) {
+                                that.setState(payload.data);
+                            }
+                            break;
+                    }
+                }
+            })
+    },
+    componentDidMount: function() {
+        this.dispatcherIndex();
+    },
+    render: function() {
+        return <div className="count-label">You have selected <b>{this.state.count}</b> of {this.state.total}</div>;
+    }
+});
+
+var ProcessingCount = React.createClass({
+    getInitialState: function() {
+        return {
+            count: 0,
+            total: 0,
+            seconds: 0
+        };
+    },
+    dispatcherIndex: function () {
+        var that = this;
+        this.state.dispatcher =
+            BPDispatcher.register(function (payload) {
+                if (payload.name == that.props.name) {
+                    switch (payload.type) {
+                        case BPActions.CONSTANTS.CHANGE_STATE:
+                            //console.log("Change state ",
+                            // payload);
+                            if (payload && payload.data) {
+                                that.setState(payload.data);
+                            }
+                            break;
+                    }
+                }
+            })
+    },
+    componentDidMount: function() {
+        this.dispatcherIndex();
+    },
+    render: function() {
+        return <div className="processing-count-label"><b>{this.state.count}</b> invoices processed in {this.state.seconds}s</div>;
+    }
+});
+
+function notifyFailure(result) {
+    if (result && result.responseText) {
+        result = JSON.parse(result.responseText);
+        result = (result.errors ? result.errors : result);
+    }
+    if (console.error) {
+        console.error(JSON.stringify(result));
+    }
+    BPActions.handleError(result);
+}
+
+window.onerror = function(message, url, lineNo, colNo, err) {
+    console.error(message);
+    notifyFailure(message, "JavaScript Error");
+};
+
+function findInvoicesQuery() {
+    return "select inv.id as Id, "
+        + " inv.GrandTotalAmount as GrandTotalAmount, "
+        + "to_char(inv.BillingCycleEndDate, 'MM/DD/YYYY') as BillingCycleEndDate, "
+        + "acc.Name as AccountName, "
+        + "inv.Status as Status, "
+        + "bp.TimeZoneId as TimeZoneId "
+        + "from INVOICE inv "
+        + "join QUEUE_EVENT ev on ev.ObjectId = inv.Id and ev.Status = 'PENDING' and ev.QueueId = 6 "
+        + "join billing_profile bp on bp.Id = inv.BillingProfileId "
+        + "join Account acc on acc.Id = bp.AccountId "
+        + "join CURRENCY cur on cur.Id = bp.CurrencyCode "
+        + "where inv.Status = 'CLOSED' "
+        + "and inv.ApprovalStatus = 'NOT APPROVED' "
+        + "and (inv.BillingCycleEndDate <= systimestamp or bp.BillingCycle = 'MANUAL')";
+}
+
+function findInvoicesCountQuery() {
+    return "select count(inv.id) as count, "
+        + "from INVOICE inv "
+        + "join QUEUE_EVENT ev on ev.ObjectId = inv.Id and ev.Status = 'PENDING' and ev.QueueId = 6 "
+        + "join billing_profile bp on bp.Id = inv.BillingProfileId "
+        + "join Account acc on acc.Id = bp.AccountId "
+        + "join CURRENCY cur on cur.Id = bp.CurrencyCode "
+        + "where inv.Status = 'CLOSED' "
+        + "and inv.ApprovalStatus = 'NOT APPROVED' "
+        + "and (inv.BillingCycleEndDate <= systimestamp or bp.BillingCycle = 'MANUAL')";
+}
+
+function enableSearch() {
+    searchExpandState = true;
+    expandCollapseSearch(null, false);
+    $(".searchLink").show();
+}
+
+function doClearSearch() {
+    document.invoiceSearchForm.reset();
+}
+
+function doAction(id) {
+    return function() {
+        var action = $('#'+id).val();
+        switch (action) {
+            case 'reopen':
+                widget.reopenInvoices();
+                break;
+            case 'approve':
+                widget.approveInvoices();
+                break;
+            default:
+                alert('Please select action to perform on invoices.');
+        }
+    }
+}
+
+function renderPdfLink(value) {
+    return '<a style="color:#0B8CDE;" onclick="openPdfPopup(' + value + ')" href="javascript:void(0)">' + value + '</a>';
+}
+
+window.openPdfPopup = function(id) {
+    window.open("fileViewer.do?viewer_type=invoice&attach=inline&invoice_id_in="+id, "", "toolbar=no,location=no,menubar=yes,scrollbars=yes,resizable=yes,width=825,height=600,top=100,left=100");
+}
+
+function doApproveInvoices(invoiceIds) {
+    return BPSystem.toBPCollection($.map(invoiceIds, function(id) {
+        return {
+            Id: id,
+            ApprovalStatus: "APPROVED"
+        };
+    }), BPConnection.Invoice).update(true);
+}
+
+function doReOpenInvoices(invoiceIds) {
+    return BPSystem.toBPCollection($.map(invoiceIds, function(id) {
+        return {
+            Id: id,
+            Status: "CURRENT",
+            ManualCloseApprovedFlag: "0"
+        };
+    }), BPConnection.Invoice).update(true);
+}
+
+function doRemoveFromCloseInvoices(invoiceIds) {
+    return BPSystem.toBPCollection(invoiceIds.map(function(id) {
+        return {
+            Id: id,
+            SuppressBulkCloseFlag: "1"
+        };
+    }), BPConnection.Invoice).update(true);
+}
+
+function LoadingController(selector) {
+    var self = this,
+        depth = 0;
+    this.start = function() {
+        if (depth == 0) {
+            $(selector).show();
+        }
+        depth = depth + 1;
+    };
+
+    this.process = function(req, next) {
+        if (depth > 0) {
+            var completion = $.Deferred();
+            setTimeout(function() { completion.reject(new Error("Processing invoices, please wait")); }, 1);
+            return completion;
+        }
+        self.start();
+        return next(req).always(self.stop);
+    };
+
+    this.stop = function() {
+        depth = depth - 1;
+        if (depth == 0) {
+            $(selector).hide();
+        }
+    }
+};
+
+function ProgressController(emit) {
+    this.start = function() {
+        emit({
+            start: true,
+            stop: false
+        });
+    };
+
+    this.progress = function(count, total) {
+        emit({
+            count: count,
+            total: total
+        });
+    };
+
+    this.stop = function() {
+        emit({
+            start: true,
+            stop: true
+        })
+    };
+};
+
+function SearchController(reload, resetSelection) {
+    var search = [];
+
+    this.process = function(req, next) {
+        req.where = req.where || [];
+        req.where = req.where.concat(search);
+        return next(req);
+    };
+
+    this.onSearch = function() {
+        var quote = new RegExp("'","g"),
+            binding = new RegExp("\\?"),
+            criterias = [],
+            grid = $("#grid");
+
+        SearchDef.forEach(function(elem, idx) {
+            var value = $("#SearchDef" + idx).val();
+            if (value) {
+                value = value.replace(quote, "\"");
+                if (elem.type === 'day') {
+                    value = prepareDate(value);
+                } else if (elem.type === 'list') {
+                    value = prepareList(value);
+                }
+                criterias.push(elem.criteria.replace(binding, value));
+            }
+        });
+
+        if (search.join() !== criterias.join()) {
+            resetSelection();
+        }
+        search = [].concat(criterias);
+        $('#grid').setGridParam({page:1})
+        reload();
+    };
+
+    function prepareDate(str) {
+        if (str) {
+            return moment(str).format("YYYY-MM-DD");
+        }
+        return str;
+    }
+
+    function prepareList(str) {
+        if (str) {
+            var text = str;
+            var re = /(\d+)/;
+            var res = [];
+            var match = re.exec(text);
+            while(match) {
+                res.push(match[1]);
+                text = text.substring(match[0].length);
+                match = re.exec(text);
+            }
+            return res.map(function(el) { return "'" + el + "'" }).join(',');
+        }
+        return str;
+    }
+}
+
+function GridSelectionController(emit) {
+    var self = this,
+        selection = { all: false, but: {}},
+        grid = null;
+
+    this.configure = function(options) {
+        var superSelectRow = options.onSelectRow,
+            superSelectAll = options.onSelectAll,
+            superGridComplete = options.gridComplete;
+        return $.extend(options, {
+            onSelectRow: function() {
+                if (superSelectRow) {
+                    superSelectRow.apply(this, arguments);
+                }
+                self.onSelectRow.apply(self, arguments);
+            },
+            onSelectAll: function() {
+                if (superSelectAll) {
+                    superSelectAll.apply(this, arguments);
+                }
+                self.onSelectAll.apply(self, arguments);
+            },
+            gridComplete: function() {
+                if (superGridComplete) {
+                    superGridComplete.apply(this, arguments);
+                }
+                if (!grid) {
+                    grid = $(this);
+                }
+                self.onGridComplete();
+            }
+        });
+    };
+
+    this.process = function(req, next) {
+        if (req.selection) {
+            selection = req.selection;
+        } else {
+            req.selection = selection;
+        }
+        return next(req);
+    };
+
+    this.clearExclusions = function() {
+        selection = { all: selection.all, but: {} };
+    };
+
+    this.onGridComplete = function() {
+        emit({
+            count: getCount(),
+            total: (grid ? getTotalSize() : 0)
+        });
+        var allIds = grid.getDataIDs();
+        for (var idx = 0, len = allIds.length; idx < len; ++idx) {
+            if ((selection.all && !selection.but[allIds[idx]])
+                || (!selection.all && selection.but[allIds[idx]]))
+
+                grid.jqGrid('setSelection', allIds[idx], true);
+        }
+        if (selection.all && !Object.keys(selection.but).length) {
+            $('#cb_' + grid.prop('id')).prop('checked', true);
+        }
+    };
+
+    this.onSelectRow = function(id, isSelected) {
+        if (selection.all) {
+            if (isSelected) {
+                delete selection.but[id];
+            } else {
+                selection.but[id] = true;
+            }
+        } else {
+            if (isSelected) {
+                selection.but[id] = true;
+            } else {
+                delete selection.but[id];
+            }
+        }
+        if (selection.all && !Object.keys(selection.but).length) {
+            $('#cb_' + grid.prop('id')).prop('checked', true);
+        }
+        emit({ count: getCount() });
+    };
+
+    this.onSelectAll = function(ids, areSelected) {
+        selection.all = areSelected;
+        selection.but = {};
+        emit({
+            count: (selection.all ? getTotalSize() : 0),
+            total: getTotalSize()
+        });
+    };
+
+    function getGridParam(param) {
+        return grid.jqGrid('getGridParam', param);
+    };
+
+    function getTotalSize() {
+        return parseInt(getGridParam('records'));
+    };
+
+    function getCount() {
+        return (selection.all ? getTotalSize() - Object.keys(selection.but).length: Object.keys(selection.but).length)
+    }
+};
+
+function GridPaginationController(reload) {
+    var self = this,
+        grid = null,
+        page = { num: 1, size: 50 };
+    this.configure = function(options) {
+        var superGridComplete = options.gridComplete;
+        return $.extend(options, {
+            datatype: 'local',
+            localReader: {
+                root: function(page) {
+                    return page.data;
+                },
+                page: function(page) {
+                    return page.num;
+                },
+                total: function(page) {
+                    return Math.ceil(page.total / page.size);
+                },
+                records: function(page) {
+                    return page.total;
+                }
+            },
+            onPaging: function() {
+                return self.onPaging();
+            },
+            gridComplete: function() {
+                if (superGridComplete) {
+                    superGridComplete.apply(this, arguments);
+                }
+                if (!grid) {
+                    grid = $(this);
+                }
+            }
+        });
+    };
+
+    this.process = function(req, next) {
+        page.num = getPageNum();
+        page.size = getPageSize();
+        req.page = page;
+        return next(req).then(function(resp) {
+            page.data = resp.data.elements;
+            page.total = resp.count.elements[0].count;
+            setPage(page);
+        }, function(resp) {
+            if (resp.status === 404) {
+                page.data = [];
+                page.total = 0;
+                setPage(page);
+            }
+            return $.Deferred().reject(resp);
+        });
+    };
+
+    this.onPaging = function() {
+        reload();
+        return 'stop';
+    };
+
+    function setPage(page) {
+        grid.clearGridData(true);
+        grid[0].addJSONData(page);
+    };
+
+    function getGridParam(param) {
+        return grid.jqGrid('getGridParam', param);
+    };
+
+    function getTotalSize() {
+        return parseInt(getGridParam('records'));
+    };
+
+    function getPageSize() {
+        return parseInt(getGridParam('rowNum'));
+    };
+
+    function getPageNum() {
+        return parseInt(getGridParam('page'));
+    };
+};
+
+function GridSortingController(reload) {
+    var self = this,
+        grid = null,
+        orderBy = [];
+
+    this.configure = function(options) {
+        var superSortCol = options.onSortCol,
+            superGridComplete = options.gridComplete;
+        if (options.sortname) {
+            orderBy.push({
+                field: options.sortname,
+                order: options.sortorder || 'asc'
+            });
+        }
+        return $.extend(options, {
+            onSortCol: function() {
+                if (superSortCol) {
+                    superSortCol.apply(this, arguments);
+                }
+                return self.onSortCol.apply(self, arguments);
+            },
+            gridComplete: function() {
+                if (superGridComplete) {
+                    superGridComplete.apply(this, arguments);
+                }
+                if (!grid) {
+                    grid = $(this);
+                }
+            }
+        });
+    };
+
+    this.process = function(req, next) {
+        req.orderBy = orderBy;
+        return next(req);
+    };
+
+    this.onSortCol = function(index, colIdx, order) {
+        orderBy = orderBy.filter(function(item) {
+            return item.name != index;
+        });
+        var field = grid.jqGrid('getGridParam', 'colModel')[colIdx].index;
+        orderBy.unshift({
+            name: index,
+            field: field,
+            order: order
+        });
+        reload();
+        return 'stop';
+    };
+
+    function getGridParam(param) {
+        return grid.jqGrid('getGridParam', param);
+    };
+
+    function getSortName() {
+        return getGridParam('sortname');
+    };
+
+    function getSortOrder() {
+        return getGridParam('sortorder');
+    };
+
+    function getSortIndex(sortName) {
+        var model = getGridParam('colModel').filter(function(model) { return model.name === sortName; });
+        if (model && model.length) {
+            return model[0].index;
+        }
+        return null;
+    };
+};
+
+function GridQueryController(entity, query, countQuery) {
+    this.translate = function(req, next) {
+        var dataQuery = query,
+            dataCountQuery = countQuery;
+        if (req.where && req.where.length) {
+            var queryWhere = req.where.reduce(function(q, filter) {
+                return q + " and " + filter;
+            }, "");
+            dataQuery = dataQuery.replace(/(where\s+.*)(\s+group\s+by\s+.+)?$/ig, function(match, where, groupBy) {
+                return where + queryWhere + (groupBy ? groupBy : "");
+            });
+            dataCountQuery = dataCountQuery.replace(/(where\s+.*)$/ig, function(match, where) {
+                return where + queryWhere;
+            });
+        }
+        if (req.orderBy && req.orderBy.length) {
+            var queryOrderBy = " order by " + req.orderBy.map(function(data) { return data.field + " " + data.order; }).join(", ")
+            dataQuery = dataQuery.replace(/(where\s+.*)(\s+group\s+by\s+.+)?$/ig, function(match, where, groupBy) {
+                return where + (groupBy ? groupBy : "") + queryOrderBy;
+            });
+        }
+        if (req.page) {
+            dataQuery = dataQuery + " offset "
+                + ((req.page.num - 1) * req.page.size)
+                + " rows fetch next "
+                + req.page.size + " rows only"
+        }
+        req.queries = req.queries || {};
+        req.queries.data = dataQuery;
+        req.queries.count = dataCountQuery;
+        return next(req);
+    };
+
+    this.execute = function(req) {
+        var queries = req.queries,
+            names = [],
+            futures = [];
+        for (var name in queries) {
+            if (queries.hasOwnProperty(name)) {
+                names.push(name);
+                futures.push(entity.queryAsync(queries[name]).collection().then(null, ignoreNotFoundError));
+            }
+        }
+        var merge = function() {
+            var result = {};
+            for (var idx = 0; idx < arguments.length; ++idx) {
+                result[names[idx]] = arguments[idx];
+            }
+            return result;
+        };
+        return $.when.apply(null, futures).then(merge);
+    };
+
+    function ignoreNotFoundError(resp) {
+        if (resp.status === 404) {
+            return $.Deferred().resolve(BPSystem.toBPCollection([], entity));
+        }
+        return $.Deferred().reject(resp);
+    }
+};
+
+function GridBatchController(executor, progress) {
+    this.execute = function(req, next) {
+        var baseReq = $.extend(true, {}, req);
+        var size = 8192;
+        var mask = size - 1;
+        var buffer = new Array(size);
+        var readerPos = 0;
+        var writerPos = 0;
+        var writerCount = 0;
+        var writersRunning = 0;
+        var readerHasMore = true;
+        var completion = $.Deferred();
+        var startTime = new Date().getTime();
+        var exitNextTick = false;
+        var timer = setInterval(function() {
+            progress({count: writerCount, seconds: Math.ceil((new Date().getTime() - startTime) / 1000)});
+            if (exitNextTick) {
+                clearInterval(timer);
+            }
+        }, 500);
+        completion.always(function() {
+            exitNextTick = true;
+        });
+
+        function readOrWait() {
+            if (completion.state() === 'pending') {
+                if (readerHasMore && readerPos - writerPos < size / 2) {
+                    var readBatchSize = Math.min(READ_BATCH_SIZE, size - (readerPos - writerPos));
+                    var newReq = $.extend(true, {}, baseReq);
+                    newReq.where = newReq.where || [];
+                    if (newReq.selection.but && Object.keys(newReq.selection.but).length) {
+                        newReq.where.push('inv.Id' + (newReq.selection.all ? ' not in (' : ' in (')
+                            + Object.keys(newReq.selection.but).join(',') + ')');
+                    }
+                    newReq.where.push('inv.Id > ' + (buffer[((readerPos - 1) & mask)] || 0));
+                    newReq.orderBy = [{ field: 'inv.Id', order: 'asc' }];
+                    newReq.page = { num: 1, size: readBatchSize };
+                    next(newReq).done(function (response) {
+                        var data = response.data.elements;
+                        for (var idx = 0, len = data.length; idx < len; ++idx, ++readerPos) {
+                            buffer[(readerPos & mask)] = data[idx].Id;
+                        }
+                        readerHasMore = (data.length == readBatchSize);
+                        readOrWait();
+                    }).fail(function (err) {
+                        readerHasMore = false;
+                        completion.reject(err);
+                    })
+                } else if (readerHasMore) {
+                    setTimeout(function () {
+                        readOrWait();
+                    }, 500);
+                }
+            } else {
+                console.log("Reader done at pos: ", readerPos);
+            }
+        }
+
+        function writeOrWait() {
+            if (completion.state() === 'pending') {
+                var writeBatchSize = Math.min(WRITE_BATCH_SIZE, readerPos - writerPos);
+                if (writeBatchSize) {
+                    var writeBatchData = [];
+                    for (var idx = 0; idx < writeBatchSize; ++idx, ++writerPos) {
+                        writeBatchData[idx] = buffer[(writerPos & mask)];
+                    }
+                    executor(writeBatchData)
+                        .done(function () {
+                            writerCount = writerCount + writeBatchSize;
+                            completion.notify(writerCount);
+                            writeOrWait();
+                        })
+                        .fail(function (err) {
+                            completion.reject(err);
+                        });
+
+                } else if (readerHasMore) {
+                    setTimeout(function () {
+                        writeOrWait()
+                    }, 500);
+                } else {
+                    writersRunning = writersRunning - 1;
+                    if (!writersRunning) {
+                        completion.resolve();
+                    }
+                }
+            } else {
+                console.log("Writer done at pos: ", writerPos);
+            }
+        }
+
+        if (baseReq.selection.all || baseReq.selection.but && Object.keys(baseReq.selection.but).length) {
+            readOrWait();
+            for (var count = 5; count > 0; --count, ++writersRunning) {
+                writeOrWait();
+            }
+        } else {
+            setTimeout(function() { completion.reject(new Error("Please select invoices")) }, 1);
+        }
+        return completion;
+    };
+}
+
+function pipeline(steps) {
+    var widget = this,
+        callNext = (function(func, next) {
+            return function(req) {
+                if (!arguments.length) {
+                    req = {};
+                }
+                return func.call(widget, req, next);
+            }
+        }),
+        next = (function(req) { return $.Deferred().resolve(req); });
+    for (var idx = steps.length - 1; idx >= 0; --idx) {
+        next = callNext.call(widget, steps[idx], next);
+    }
+    return next;
+}
+
+function error(req, next) {
+    BPActions.clearError();
+    return next(req).fail(notifyFailure);
+}
+
+var widget = {},
+    reload = function() { return widget.reloadInvoices(); },
+    loadingCtl = new LoadingController('.loading'),
+    progressCtl = new ProgressController(BPActions.changeState.bind(window, "processing-count")),
+    progress = progressCtl.process,
+    selectionCtl = new GridSelectionController(BPActions.changeState.bind(window, "selection-count")),
+    searchCtl = new SearchController(reload, selectionCtl.clearExclusions),
+    search = searchCtl.process,
+    sortingCtl = new GridSortingController(reload),
+    sorting = sortingCtl.process,
+    paginationCtl = new GridPaginationController(reload),
+    pagination = paginationCtl.process,
+    loading = loadingCtl.process,
+    selection = selectionCtl.process,
+    queryCtl = new GridQueryController(BPConnection.Invoice, findInvoicesQuery(), findInvoicesCountQuery()),
+    reopenBatchCtl = new GridBatchController(doReOpenInvoices, BPActions.changeState.bind(window, "processing-count")),
+    reopen = reopenBatchCtl.execute,
+    approveBatchCtl = new GridBatchController(doApproveInvoices, BPActions.changeState.bind(window, "processing-count")),
+    approve = approveBatchCtl.execute;
+
+var reopenInvoices = pipeline([error, loading, search, selection, reopen, queryCtl.translate, queryCtl.execute]);
+var approveInvoices = pipeline([error, loading, search, selection, approve, queryCtl.translate, queryCtl.execute]);
+widget.reloadInvoices = pipeline([error, loading, search, sorting, pagination, selection, queryCtl.translate, queryCtl.execute]);
+widget.reopenInvoices = function() {
+    reopenInvoices().then(function() { selectionCtl.clearExclusions(); widget.reloadInvoices(); })
+};
+widget.approveInvoices = function() {
+    approveInvoices().then(function() { selectionCtl.clearExclusions(); widget.reloadInvoices(); })
+};
+
+function renderGrid2() {
+    var settings = {
+        colModel: [
+            {label: 'Invoice ID', name: 'Id', index: 'inv.Id', sorttype: 'int', sortorder: 'desc', key: true, formatter: renderPdfLink},
+            {label: 'Account', name: 'AccountName', index: 'acc.Name'},
+            {label: 'Total Amount', name: 'GrandTotalAmount', index: 'inv.GrandTotalAmount', sorttype: 'currency'},
+            {label: 'Billing Cycle End Date', name: 'BillingCycleEndDate', index: 'inv.BillingCycleEndDate', sorttype: 'date'},
+        ],
+        rowNum: 50,
+        rowList: [50, 100, 200, 500, 1000],
+        page: 1,
+        datatype: "local",
+        pager: '#pager',
+        autowidth: true,
+        viewrecords: true,
+        emptyrecords: '0',
+        gridview: true,
+        height: '600',
+        sortname: 'inv.Id',
+        sortorder: 'desc',
+        multiselect: true
+    };
+
+    for (var idx = 0; idx < arguments.length; ++idx) {
+        settings = arguments[idx](settings);
+    }
+
+    $('#grid').jqGrid(settings);
+
+    relocatePageSelector();
+    fixColumnsWidth();
+}
+
+BPUI.afterRender = function() {
+    renderGrid2(paginationCtl.configure, selectionCtl.configure, sortingCtl.configure);
+    enableSearch();
+    widget.reloadInvoices();
+};
+
