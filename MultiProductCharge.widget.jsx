@@ -6,9 +6,7 @@
         <BPUI.Panel style ={{width: 900 + "px"}}>
         <BPUI.PanelRow>
 <BPUI.OutputField key="01112" label="Account Name" className='pr-3'  variable={invoiceInfoObj} field={'accountName'}/> 
- 
-<BPUI.OutputField key="01113"  label="Invoice period" className='pr-3'    variable={invoiceInfoObj} field={'invoicePeriod'} />  
- 
+<BPUI.OutputField key="01113"  label="Invoice period" className='pr-3'    variable={invoiceInfoObj} field={'invoicePeriod'} />   
 <BPUI.OutputField key="01114"  label="Invoice ID"  className='pr-3'   variable={invoiceInfoObj} field={'invoiceId'}  />  
 </BPUI.PanelRow>
  </BPUI.Panel>
@@ -18,8 +16,8 @@
     <div className="div-flex main-div">
         <div className="div-flex-inner basis100">
             <BPUI.EmbeddedList variable={lastactivities} name="activities" width="100%"
-                onCellBlur={calculateRate_} onAdd={addActivity}>
-                <BPUI.TableColumn  name="ProductId" index="2" label="Product" />
+				onCellBlur={calculateRate_}  onDel={delActivity} onAdd={addActivity} onRowClick={checkProductType}>
+                <BPUI.TableColumn  name="ProductId" index="2" label="Product" type="LOOKUP" />
                 <BPUI.TableColumn  name="ActivityDate" type="DATE_SELECTOR" index="8" displayTransform={formatDateUI} label="Activity Date" />
                 <BPUI.TableColumn className={"disabled hide"} name="SubscriptionFromDate" type="DATE_SELECTOR" index="1"
                     displayTransform={formatDateUI} label="From Date" />
@@ -28,8 +26,10 @@
                 <BPUI.TableColumn name="Quantity" index="3" label="Quantity" />
                 <BPUI.TableColumn name="Rate" index="4" label="Rate" />
                 <BPUI.TableColumn className={"disabled"} name="Cost" index="5" label="Cost" />
-                <BPUI.TableColumn name="TaxCost" index="6" label="Tax" />
+                <BPUI.TableColumn className={"disabled"} name="TaxCost" index="6" label="Tax" />
                 <BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost" />
+				<BPUI.TableColumn className={"disabled"} name="RatingMethodType" index="7" label="Type" />
+
             </BPUI.EmbeddedList>
         </div>
         <div className="div-flex-inner basis100">
@@ -50,7 +50,8 @@
 </div>
 </BPUI.FormLayout>
 </div>
-</BPUI.Page>________________________________________________________________________________
+</BPUI.Page>
+________________________________________________________________________________
 .disabled{pointer-events:none}
 .disabled-grayfilter{
     pointer-events:none;
@@ -176,8 +177,8 @@ window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 window.noCharges = true;
-const accountId =  534356;//  BPSystem.nodeKey; //1
-const activityId =  534356;//  BPSystem.nodeKey; //1
+const accountId =   BPSystem.nodeKey; //1
+const activityId =   BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
@@ -208,14 +209,16 @@ if (!(INVOICE_STATUS=='OPEN' || INVOICE_STATUS=='CURRENT')){
 
 try{
 const lastactivities__ = await BPConnection.ACTIVITY.query(`
-SELECT Id,ProductId,SubscriptionFromDate,SubscriptionToDate,
-Quantity,to_char(Rate, 'FM999999990.00') as Rate, to_char(Cost, 'FM999999990.00') as Cost,
-to_char(TaxCost, 'FM999999990.00') as TaxCost,to_char(TotalCost, 'FM999999990.00') as TotalCost,
-to_char(ActivityDate,'MM/DD/YYYY') as ActivityDate 
-FROM Activity 
-WHERE  AccountId=${account_.Id} 
-AND InvoiceId=${invoice_.Id} 
-ORDER BY Updated DESC`).collection();
+SELECT a.Id,a.ProductId,a.SubscriptionFromDate,a.SubscriptionToDate,
+a.Quantity,to_char(a.Rate, 'FM999999990.00') as Rate, to_char(a.Cost, 'FM999999990.00') as Cost,
+to_char(a.TaxCost, 'FM999999990.00') as TaxCost,to_char(a.TotalCost, 'FM999999990.00') as TotalCost,
+to_char(a.ActivityDate,'MM/DD/YYYY') as ActivityDate ,
+r.RatingMethodType
+FROM Activity a, Rating_Method r
+WHERE  a.AccountId=${account_.Id} 
+AND a.InvoiceId=${invoice_.Id} 
+AND r.Id = a.RatingMethodId
+ORDER BY a.Updated DESC`).collection();
 window.lastactivities.set(lastactivities__);
 window.noCharges = false;
 }catch(e){
@@ -419,6 +422,19 @@ function addActivity(index) {
     	window.BPActions.refreshState("activities");
     }
  }
+        
+function checkProductType(index,e){
+    const productTypeColumnIndex = 10;
+    const parentTr = e.target.parentNode;
+    const tdArr = parentTr.childNodes;
+    const typeProduct = tdArr[productTypeColumnIndex].childNodes[0].innerHTML;
+    if (String(typeProduct).toLowerCase()==='tax'){
+    for (let td_ of tdArr){
+     td_.classList.add('disabled');
+    }
+}
+ 
+  }
 BPUI.afterRender = () => {
 //fix top&bottom menus width
 let menus = document.querySelectorAll('.formButtons');
