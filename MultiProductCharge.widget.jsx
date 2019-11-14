@@ -17,15 +17,14 @@
         <div className="div-flex-inner basis100">
             <BPUI.EmbeddedList variable={lastactivities} name="activities" width="100%"
 				onCellBlur={calculateRate_}  onDel={delActivity} onAdd={addActivity} onRowClick={checkProductType}>
-				<BPUI.TableColumn  name="ProductId" index="2" onUpdate={checkProductRatig} label="Product" type="LOOKUP" />
-                <BPUI.TableColumn  name="ActivityDate" type="DATE_SELECTOR" index="8"   label="Activity Date" />
-                <BPUI.TableColumn name="Quantity" index="3" label="Quantity" />
-                <BPUI.TableColumn name="Rate" index="4" label="Rate" />
-                <BPUI.TableColumn className={"disabled"} name="Cost" index="5" label="Cost" />
-                <BPUI.TableColumn className={"disabled"} name="TaxCost" index="6" label="Tax" />
-                <BPUI.TableColumn className={"disabled"} name="TotalCost" index="7" label="Total Cost" />
-				<BPUI.TableColumn className={"disabled"} name="RatingMethodType" index="7" label="Type" />
-
+				<BPUI.TableColumn index={0}  name="ProductId"  onUpdate={checkProductRatig} label="Product" type="LOOKUP" />
+                <BPUI.TableColumn index={1}  name="ActivityDate" type="DATE_SELECTOR"   label="Activity Date" />
+                <BPUI.TableColumn index={2} name="Quantity"   label="Quantity" />
+                <BPUI.TableColumn index={3} name="Rate"  label="Rate" />
+                <BPUI.TableColumn index={4} className={"disabled"} editable={false} name="Cost"  label="Cost" />
+                <BPUI.TableColumn index={5} className={"disabled"} editable={false} name="TaxCost"  label="Tax" />
+                <BPUI.TableColumn index={6} className={"disabled"} editable={false} name="TotalCost"  label="Total Cost" />
+				<BPUI.TableColumn index={7} className={"disabled"} editable={false} name="RatingMethodType"   label="Type" />
             </BPUI.EmbeddedList>
         </div>
         <div className="div-flex-inner basis100">
