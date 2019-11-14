@@ -452,7 +452,7 @@ function addActivity(index) {
    //     return false
     }        
 function checkProductType(index,e){
-    const productTypeColumnIndex = 10;
+    const productTypeColumnIndex = 7;
     const parentTr = e.target.parentNode;
     const tdArr = parentTr.childNodes;
     const typeProduct = tdArr[productTypeColumnIndex].childNodes[0].innerHTML;
