@@ -382,8 +382,8 @@ const calculateRate_ = (row,column,event,scope) => {
     if (rowElement.Quantity /*&& rowElement.Rate*/ && (columnsCalc.includes(column))) {
         try {
             var whereClause = "AccountId ="+account.get().Id
-                +" and ProductId =0"+ rowElement.ProductId
-                +" and Quantity ="+ rowElement.Quantity;
+                +" and ProductId = "+ rowElement.ProductId
+                +" and Quantity = "+ rowElement.Quantity;
             BPConnection.AccountProductQuote.retrieveFilteredAsync(whereClause).single()
                 .done(function (res){
                    // console.log('::::::::::::Rate:::::::::::');
