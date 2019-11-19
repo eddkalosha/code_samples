@@ -1,5 +1,4 @@
 <BPUI.Page>
-
     <SearchForm fields={SearchDef} doSearch={doSearch}/>
         <BPUI.Panel name="bulkActionForm">
             <Line className="iconed arrow-down">
@@ -53,8 +52,16 @@ ________________________________________________________________________________
           color: #41a7ff;
           font-size: 16px; }
     .bpui-data-grid tbody .data-grid-td-expand {
+        position:relative;
       color: #41a7ff;
       padding: 10px; }
+      .bpui-data-grid tbody .data-grid-td-expand i.fa{
+        border-right: 1px dashed #eaeaea;
+    position: absolute;
+    right: 0;
+    height: 100%;
+    top: 0;
+      }
       .bpui-data-grid tbody .data-grid-td-expand .bpui-icon-expanded-row {
         background-image: url(js/images/ui-icons_469bdd_256x240.png);
         background-position: -80px 0;
@@ -197,10 +204,12 @@ ________________________________________________________________________________
           width: 100%; }
 
 /* /BPUI.SearchForm */
-.row-checked td
-{
-  background: #dcf4fc !important;
+
+.bpui-data-grid tbody .bpui-grid-tr.row-checked td.bpui-grid-td,
+.bpui-data-grid tbody .bpui-grid-tr.col-checked td.bpui-grid-td{
+    background:#dcf4fc;
 }
+  
 
 __________________________________________________________________________________________________________________
 BPSystem.initialize();
@@ -601,11 +610,11 @@ class MainGridController extends GridController {
             efileId = item.efileId;
         const invoices = MainGridController.extractInvoicesIds(item);
         if ( checked ) {
-        //    e.target.parentNode.parentNode.classList.add('row-checked');
+            e.target.parentNode.parentNode.classList.add('row-checked');
             this.checkedEfiles.add(efileId);
             if ( invoices && invoices.length ) addInvoicesToSelection(efileId, invoices)
         } else {
-          //  e.target.parentNode.parentNode.classList.remove('row-checked');
+            e.target.parentNode.parentNode.classList.remove('row-checked');
             this.checkedEfiles.delete(item.efileId);
             if ( invoices && invoices.length ) removeInvoicesFromSelection(efileId, invoices)
         }
@@ -624,6 +633,7 @@ class MainGridController extends GridController {
                 invoices = invoices.concat(MainGridController.extractInvoicesIds(child));
             }
         }
+        console.log('extracted selected invoices...',invoices)
         return invoices
     }
 
@@ -732,7 +742,7 @@ class TreeGridController extends GridController {
             + "and AccountId is not null "
             + "and AccountId <> " + this.accountId + " "
             + "and (HasChildAccounts = 1 "
-            + "or AccountHasInvoices = 1)"
+            + "or AccountHasInvoices = 1) "
             + "group by "
             + "Level, "
             + "HasChildAccounts, "
@@ -759,7 +769,7 @@ class TreeGridController extends GridController {
     }
 
     makeTree(items) {
-        console.log(items);
+        console.log('make tree items',items);
         const accounts = items[0].map(account=> {
             account.children = [];
             return account;
@@ -1018,7 +1028,7 @@ const DataGrid = React.createClass({
             data: [],
             getExpanded: (params)=>(<div className="expland-wrapper">Test</div>),
             sortField: void 0,
-            showCheckboxes: false,
+            showCheckboxes: true,
             onCheckboxChange: ()=> {
             },
             defaultExpandTree: false
@@ -1040,7 +1050,7 @@ const DataGrid = React.createClass({
         }
     },
     onRowClick: function(item, i, e) {
-        alert('row clicked')
+    //    alert('row clicked')
         if ( typeof this.props.onClickRow !== 'function' )return;
         let target = e.target;
         const parentTagNames = new Set(['TD', 'A', 'TR']);
@@ -1071,7 +1081,7 @@ const DataGrid = React.createClass({
         }
     },
     onCheckboxChangeHandler: function(...args) {
-        alert('DataGrid > onCheckboxChangeHandler');
+    //    alert('DataGrid > onCheckboxChangeHandler');
         console.log('args...',args)
         if ( typeof this.props.onCheckboxChange === 'function' ) {
             this.props.onCheckboxChange(...args)
@@ -1086,7 +1096,7 @@ const DataGrid = React.createClass({
         this.checkChildren(args[0], checked);
     },
     checkChildren: function(item, checked) {
-        console.log('checkChildren',item,checked)
+        console.log('checkChildren',item,checked, item.childred)
         if ( !item || !item.children || !item.children.length ) return;
         for ( let i = 0 ; i < item.children.length ; i++ ) {
             const child = item.children[i];
@@ -1162,21 +1172,25 @@ const DataGrid = React.createClass({
                 columns.unshift(
                     <td className={tdClass+' td-check'}>
                         <input type="checkbox" className="bpui-check" ref={this.addReferenceCheckbox.bind(this,item)}
-                               /*onChange={this.onCheckboxChangeHandler.bind(this,item)}*/ />
+                             /* onChange={this.onCheckboxChangeHandler.bind(this,item)}*/  />
                     </td>
                 );
             }
-            let onRowClickHandler = (grid,count,item)=> {
-                alert('DataGrid > onRowClickHandler');
+    			let onRowClickHandler = (grid,count,item)=> { 
                 const classNameCheck = 'row-checked';
+                const selectedRow = 'col-checked';
+                debugger;
                 let tdRow = item.target.parentNode;
+                let row = tdRow.parentNode;
                 let rowCheckBoxInput  = tdRow.querySelector('input[type="checkbox"]');
 
                 let isCheckedNow  = Array.from(tdRow.classList).includes(classNameCheck);
                 if (isCheckedNow){
-                    tdRow.classList.remove(classNameCheck)
+                    tdRow.classList.remove(classNameCheck);
+                    row.classList.remove(selectedRow);
                 }else{
-                    tdRow.classList.add(classNameCheck)
+                    tdRow.classList.add(classNameCheck);
+                    row.classList.add(selectedRow);
                 }
                 if(rowCheckBoxInput) rowCheckBoxInput.checked  = !isCheckedNow; // toggle checkbox
                 this.checkChildren(grid, !isCheckedNow);
@@ -1202,7 +1216,7 @@ const DataGrid = React.createClass({
                 console.log(expanded);
                 rows.push(
                     <tr className={trExpandedClass} style={trExpandedStyle}>
-                        <td className="data-grid-td-expand"><i className="fa fa-level-down"/></td>
+                        <td className="data-grid-td-expand"><i className="fa fa-level-down_"/></td>
                         <td colSpan={fields.length+!!showCheckboxes}>
                             {expanded}
                         </td>
