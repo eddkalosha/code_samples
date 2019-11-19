@@ -165,15 +165,12 @@ invoiceInfoObj.set(new Invoice());
 invoiceInfoObj.get().accountName = ' - Not found -';
 invoiceInfoObj.get().invoicePeriod = ' - Not selected -';
 invoiceInfoObj.get().invoiceId = ' - Not selected -';
-
 window.lastactivities = new BPUI.ReferenceObject();
 window.lastactivities_copy = new BPUI.ReferenceObject();
 window.accountInfo = {Name:'- Not found -'};
 window.invoiceDate = {start:'- Not selected '};
 window.INVOICE_STATUS = null;
 window.noCharges = true;
-const accountId = BPSystem.nodeKey; //1
-const activityId = BPSystem.nodeKey; //1
 const formatDateUI = (val) => val?moment(val).format('MM/DD/YYYY'):val;
 const formatDateDB = (val) => val?moment(val).format('YYYY-MM-DD'):moment(new Date()).format('YYYY-MM-DD');
 const formatAmount = (amount) => amount?parseFloat(amount).toFixed(2):"0.00";
@@ -421,8 +418,6 @@ const calculateRate_ = (row,column,event,scope) => {
     }
 }
  
-const checkAccount = () =>(account && account.get() && account.get().Id);
-
 function addActivity(index) {
     window.onbeforeunload = function(){
   return 'Are you sure you want to leave? All Data will be loss.'};
@@ -434,37 +429,36 @@ function addActivity(index) {
         el.AccountId = accountId;
         el.InvoiceId = invoiceId;
         el.ActivityDate = parseDateTimeToUTC(invoiceDate.start);
-        el.SubscriptionFromDate = parseDateTimeToUTC(invoiceDate.start);
-        el.SubscriptionToDate = parseDateTimeToUTC(invoiceDate.end);
+      //  el.SubscriptionFromDate = parseDateTimeToUTC(invoiceDate.start);
+      //  el.SubscriptionToDate = parseDateTimeToUTC(invoiceDate.end);
     });  
     window.BPActions.refreshState("activities");
 }
    function delActivity(index){
         if (confirm('Do you really want do delete this product?')) {
-            debugger;
         lastactivities.get().removeFromCollection(index); 
         lastactivities_copy.splice(index, 1);
     	window.BPActions.refreshState("activities");
     }
  }
-        function checkProductRatig(a,b,entity){
-   //alert(entity.RatingMethodType)
-   //     return false
-    }        
+       
 function checkProductType(index,e){
     const productTypeColumnIndex = 7;
-    const parentTr = e.target.parentNode;
-    const tdArr = parentTr.childNodes;
-    const typeProduct = tdArr[productTypeColumnIndex].childNodes[0].innerHTML;
+    let parentTr = null;
+    let tdArr = null;
+    let typeProduct = null;
+ try{
+    parentTr = e.target.parentNode;
+    tdArr = parentTr.childNodes;
+    typeProduct = tdArr[productTypeColumnIndex].childNodes[0].innerHTML;
+    }catch(ex){console.log(ex); return;}
     if (DISABLED_PRODUCTS.includes(String(typeProduct).toUpperCase())){
     for (let td_ of tdArr){
      td_.classList.add('disabled');
-    }
-}
- 
-  }
-BPUI.afterRender = () => {
-//fix top&bottom menus width
+    } 
+}}
+	
+BPUI.afterRender = () => {//fix top&bottom menus width
 let menus = document.querySelectorAll('.formButtons');
 for (let menu of menus) menu.setAttribute('width','100%');
 }
