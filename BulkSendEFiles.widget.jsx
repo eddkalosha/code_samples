@@ -604,17 +604,21 @@ class MainGridController extends GridController {
         });
     }
 
-    onCheckboxChange(item, e) {
-        console.log(item, e);
-        const checked = e.target.checked,
+    onCheckboxChange(item, classname,e) {
+       // const t = e.currentTarget;
+        console.log('onchchange',item, classname,e);
+        debugger
+        const t = document.querySelector(`#${classname}`)
+        const checked = t.checked,
             efileId = item.efileId;
+
         const invoices = MainGridController.extractInvoicesIds(item);
         if ( checked ) {
-            e.target.parentNode.parentNode.classList.add('row-checked');
+            t.parentNode.parentNode.classList.add('row-checked');
             this.checkedEfiles.add(efileId);
             if ( invoices && invoices.length ) addInvoicesToSelection(efileId, invoices)
         } else {
-            e.target.parentNode.parentNode.classList.remove('row-checked');
+            t.parentNode.parentNode.classList.remove('row-checked');
             this.checkedEfiles.delete(item.efileId);
             if ( invoices && invoices.length ) removeInvoicesFromSelection(efileId, invoices)
         }
@@ -665,7 +669,7 @@ const MainGrid = React.createClass({
     render: function() {
         const {fields, data} = this.state;
         return (
-            <DataGrid fields={fields} data={data} onCheckChange={console.log}
+            <BPUI.DataGrid fields={fields} data={data} onCheckChange={console.log}
                       showCheckboxes={true}
                       onCheckboxChange={mainGridController.onCheckboxChange.bind(mainGridController)}
                       getExpanded={(item)=>(<TreeGrid item={item}/>)} expandable={true}/>
@@ -842,7 +846,7 @@ const TreeGrid = React.createClass({
     render: function() {
         const {fields, data} = this.state;
         return (
-            <DataGrid fields={fields} data={data} tree={true}
+            <BPUI.DataGrid fields={fields} data={data} tree={true}
                       onCheckboxChange={mainGridController.onCheckboxChange.bind(mainGridController)}
                       showCheckboxes={true} treeBaseField="accountId" defaultExpandTree={true}/>
         );
@@ -871,7 +875,7 @@ const Component = ()=>(
                                                     <nobr>{elem.label}</nobr>
                                                 </td>
                                                 <td> {elem.type && elem.type === "date"
-                                                    ? <BPUI.Date id={"SearchDef" + idx} name={"SearchDef" + idx}/>
+                                                    ? <BPUI.Date id={"SearchDef" + idx} type="date" name={"SearchDef" + idx}/>
                                                     : <input id={"SearchDef" + idx} name={"SearchDef" + idx}
                                                              className="formText" type="text" defaultValue=""
                                                              maxLength="256" size="50"/>}
@@ -953,340 +957,7 @@ const Component = ()=>(
     </div>
 );
 
-
-/**
- * @component
- * @description Pure table component for view mode. Shows object-like data in standard table view.
- * @description All rows can be expanded and show any information.
- * @prop tableClass - Override table class
- * @prop tableStyle - Override table style
- * @prop theadClass - Override table header class
- * @prop trClass - Override table row class
- * @prop trStyle - Override table row style
- * @prop tdClass - Override table cell class
- * @prop tdStyle - Override table cell style
- * @prop trExpandedClass - Override table subrow class
- * @prop trExpandedStyle - Override table subrow style
- * @prop fields - Array of fields to show, one item generates one column - [{name:"Id", label:"Identifier"}]
- * @prop data - Array of records. Each record generate one row with {@prop fields} columns connects on dataArrayItem["field.name"]  -  [{"Id":2345}]
- * @prop sortField - {field:"field.name", method:"asc" || "desc} - add asc or desc mark to table header column to indicate sorting.
- * @prop onClickRow - function that will trigger on row click, except clicking on expand button or links with "no-propagination" class.
- * If not a function hover and cursor effects will be disabled.
- * @prop expandable - boolean. If true, will show plus icon button, that will expand additional connected row.
- * @prop getExpanded(rowItem, rowIndex) - function that returns value for additional row.
- * @prop onHeaderClick - function that will be trigger on header item click. Useful for sorting change.
- * @prop showCheckboxes - boolean. If true shows checkboxes on every rows.
- * @prop onCheckboxChange - function(tableItem, checkboxDOMElement). Fires on every chtckbox change
- * @prop tree - boolean. If true, every item with {@property children - [{item}]} will generates child elements with the same columns, that main table.
- * If not a function hover and cursor effects will be disabled.
- *
- * @example Simple list
- * const fields = [{name:'Id', label:'Product Pack ID'}, {name:'Product_Pack_Name', label:'Product Pack Name'}];
- * const data = {[{Id:1, Product_Pack_Name:'Pack 1'}, {Id:2, Product_Pack_Name:"Pack 2"}]}
- * <DataGrid fields={fields} data={data}/>
- *
- * @example Simple list with sorting and linking
- * function onClickRow(item){window.location.search = 'admin.do?key='+item.Id}
- * function sort(field){ [ sorting data array by field.name] [ rerender root component ]}
- * <DataGrid fields={fields} data={data} onHeaderClick={sort} onClickRow={onClickRow}/>
- *
- * @example Expanded
- * function getExpanded(item){ return <div className="grid-detail">Detail Info for Item ${item.Id} [ ... ]</div>}
- * <DataGrid fields={fields} data={data} getExpanded={getExpanded} expandable={true}/>
- *
- * @example Nested Grid
- * const nestedFields = [{name:'Id', label:'Product Id'}, {name:'Product_Name', label:'Product Name'}]
- * const nestedData = [{Id:5, packId:1, Product_Name:"Good 1"}, {Id:6, Product_name:'Good 2', packId:2}]
- * function getNestedGrid(item){ return <DataGrid fields={nestedFields} data={nestedData.filter(item=>item.packId === item.Id)}/>}
- * <DataGrid fields={fields} data={data} getExpanded={getNestedGrid} expandable={true}/>
- *
- * @example Tree Grid
- * const treeData = [{accountId:1, accountName:"Parent Account", children:[{accountId:2, accountName:"Child Account"}]}]
- * const accountFields = [{name:'accountId', label:'Account ID'}, {name:'accountName', label:'Account Name'}];
- * <DataGrid data={treeData} fields={accountFields} tree={true}/>
- *
- * @example List with checkboxes
- * const selectedIds = new Set();
- * function onChangeCheckbox(tableItem, el){
- *      if(el.checked === true){selectedIds.add(tableItem.Id)} else{selectedIds.delete(tableItem.Id)};
- * }
- * <DataGrid fields={fields} data={data} showCheckboxes={true} onCheckboxChange={onChangeCheckbox}/>
- */
-const DataGrid = React.createClass({
-    getDefaultProps: function() {
-        return {
-            tableClass: "bpui-data-grid",
-            tableStyle: {},
-            theadClass: "bpui-grid-head",
-            trClass: "bpui-grid-tr",
-            trStyle: {},
-            tdClass: "bpui-grid-td",
-            tdStyle: {},
-            trExpandedClass: "bpui-grid-expanded",
-            trExpandedStyle: {},
-            fields: [],
-            data: [],
-            getExpanded: (params)=>(<div className="expland-wrapper">Test</div>),
-            sortField: void 0,
-            showCheckboxes: true,
-            onCheckboxChange: ()=> {
-            },
-            defaultExpandTree: false
-        };
-    },
-    onClickExpand: function(i) {
-        const {expandedRows} = this.state;
-        if ( expandedRows.has(i) ) {
-            expandedRows.delete(i);
-        } else {
-            expandedRows.add(i);
-        }
-        this.setState({expandedRows});
-    },
-    getInitialState: function() {
-        return {
-            expandedRows: new Set(),
-            treeMarks: new Set(),
-        }
-    },
-    onRowClick: function(item, i, e) {
-    //    alert('row clicked')
-        if ( typeof this.props.onClickRow !== 'function' )return;
-        let target = e.target;
-        const parentTagNames = new Set(['TD', 'A', 'TR']);
-        while ( !parentTagNames.has(target.nodeName) ) {
-            target = target.parentNode;
-        }
-        if ( target.classList.contains('no-propagation') ) return;
-        this.props.onClickRow(...arguments);
-    },
-    getTreeItem: function(children, level, parent) {
-        if ( !level ) level = 1;
-        return this.getRows(children, level, parent);
-    },
-    onClickExpandTree: function(item) {
-        const {treeBaseField} = this.props;
-        const {treeMarks} = this.state;
-        if ( treeBaseField ) {
-            const baseValue = item[treeBaseField];
-            if ( baseValue === void 0 ) throw new Error('Base field is undefined');
-            if ( treeMarks.has(baseValue) ) {
-                treeMarks.delete(baseValue);
-            } else {
-                treeMarks.add(baseValue);
-            }
-            this.setState({treeMarks});
-        } else {
-            console.error('Custom tree behavior not implemented yet. Use treeBaseField prop');
-        }
-    },
-    onCheckboxChangeHandler: function(...args) {
-    //    alert('DataGrid > onCheckboxChangeHandler');
-        console.log('args...',args)
-        if ( typeof this.props.onCheckboxChange === 'function' ) {
-            this.props.onCheckboxChange(...args)
-        }
-        if(args){ 
-        const checked = args[1].target.checked;
-        const trRow = args[1].target.parentNode.parentNode;
-        if (checked) { trRow.classList.add('row-checked') } else { trRow.classList.remove('row-checked') }}
-        else{
-            
-        }
-        this.checkChildren(args[0], checked);
-    },
-    checkChildren: function(item, checked) {
-        console.log('checkChildren',item,checked, item.childred)
-        if ( !item || !item.children || !item.children.length ) return;
-        for ( let i = 0 ; i < item.children.length ; i++ ) {
-            const child = item.children[i];
-            child[this.refSymbolCheckbox].checked = checked;
-            this.checkChildren(child);
-        }
-    },
-    refSymbolCheckbox: Symbol("reference"),
-    addReferenceCheckbox: function(item, ref) {
-        if ( !item || !ref ) return;
-        console.log(item, ref);
-        item[this.refSymbolCheckbox] = ref;
-    },
-    getRows: function(children, level, parent) {
-        const {
-            fields,
-            getExpanded, expandable,
-            trClass,
-            trStyle,
-            tdClass,
-            tdStyle,
-            trExpandedClass,
-            trExpandedStyle,
-            onClickRow,
-            onCheckboxChange,showCheckboxes,
-            tree, treeBaseField,
-            defaultExpandTree
-        } = this.props;
-        const data = children || this.props.data;
-        console.log(parent, children);
-        const {expandedRows, treeMarks} = this.state;
-        level = level || 0;
-        const rows = [];
-        const isClicable = typeof onClickRow === 'function' || typeof onCheckboxChange === 'function' ? 'clicable' : '';
-        for ( let i = 0 ; i < data.length ; i++ ) {
-            const item = data[i];
-            //Base field columns
-            const columns = fields.map(field=>(
-                <td className={field.tdClass || tdClass} style={field.tdStyle || tdStyle}>{item[field.name]}</td>
-            ));
-
-            // Expand button column
-            const expandClass = expandedRows.has(i) ? 'fa fa-minus-square-o' : 'fa fa-plus-square-o';
-            if ( expandable ) columns.unshift(
-                <td className={tdClass+' expander'} style={tdStyle}>
-                    {item.expandable !== false ? (
-                        <a href="javascript:void(0)" className="bpui-button-expand no-propagation"
-                           onClick={this.onClickExpand.bind(this,i)}>
-                            <i className={expandClass}/>
-                        </a>) : ''}
-                </td>
-            );
-
-            // Expand tree children button
-            const inMarks = treeMarks.has(item[treeBaseField]);
-            const isExpandedTree = defaultExpandTree !== inMarks;
-            const expandClassTree = isExpandedTree ? 'fa fa-minus-square-o' : 'fa fa-plus-square-o';
-            if ( tree ) {
-                columns.unshift(
-                    <td className={tdClass}>
-                        <div className="tree" style={{width:level*16+16}}>
-                            {item.children && item.children.length ? (
-                                <a href="javascript:void(0)" className="bpui-button-expand no-propagation"
-                                   onClick={this.onClickExpandTree.bind(this,item)}>
-                                    <i className={expandClassTree}/>
-                                </a>) : <i className="fa fa-long-arrow-right"/>}
-                        </div>
-                    </td>
-                );
-            }
-            // Checkboxes column
-            if ( showCheckboxes ) {
-                columns.unshift(
-                    <td className={tdClass+' td-check'}>
-                        <input type="checkbox" className="bpui-check" ref={this.addReferenceCheckbox.bind(this,item)}
-                             /* onChange={this.onCheckboxChangeHandler.bind(this,item)}*/  />
-                    </td>
-                );
-            }
-    			let onRowClickHandler = (grid,count,item)=> { 
-                const classNameCheck = 'row-checked';
-                const selectedRow = 'col-checked';
-                debugger;
-                let tdRow = item.target.parentNode;
-                let row = tdRow.parentNode;
-                let rowCheckBoxInput  = tdRow.querySelector('input[type="checkbox"]');
-
-                let isCheckedNow  = Array.from(tdRow.classList).includes(classNameCheck);
-                if (isCheckedNow){
-                    tdRow.classList.remove(classNameCheck);
-                    row.classList.remove(selectedRow);
-                }else{
-                    tdRow.classList.add(classNameCheck);
-                    row.classList.add(selectedRow);
-                }
-                if(rowCheckBoxInput) rowCheckBoxInput.checked  = !isCheckedNow; // toggle checkbox
-                this.checkChildren(grid, !isCheckedNow);
-                //this.onCheckboxChangeHandler();
-            };
-            if ( typeof onClickRow === 'function' ) {
-                onRowClickHandler = this.onRowClick;
-            } else {
-                //if ( typeof onCheckboxChange === 'function' ) {
-                //    onRowClickHandler = this.onCheckboxChangeHandler.bind(this, item);
-                //}
-            }
-            rows.push(
-                <tr className={`${trClass} ${isClicable}`} style={trStyle}
-                    onClick={onRowClickHandler.bind(this,item,i)}>
-                    {columns}
-                </tr>
-            );
-
-            // Additional row if expanded
-            if ( expandedRows.has(i) && typeof getExpanded === 'function' ) {
-                const expanded = getExpanded(item, i);
-                console.log(expanded);
-                rows.push(
-                    <tr className={trExpandedClass} style={trExpandedStyle}>
-                        <td className="data-grid-td-expand"><i className="fa fa-level-down_"/></td>
-                        <td colSpan={fields.length+!!showCheckboxes}>
-                            {expanded}
-                        </td>
-                    </tr>
-                )
-            }
-
-            // Tree children rows
-            if ( tree && item.children && item.children.length && isExpandedTree ) {
-                rows.push.apply(rows, this.getTreeItem(item.children, (level || 0) + 1, item));
-            }
-
-        }
-        return rows;
-    },
-    render: function() {
-        const {
-            fields,
-            tableClass,
-            tableStyle,
-            theadClass,
-            expandable,
-            tdClass,
-            tdStyle,
-            onHeaderClick,
-            sortField,
-            showCheckboxes,
-            tree
-        } = this.props;
-        if ( !fields || !fields.length ) return (<div className="bpui-datagrid-empty">Empty</div>);
-        const rows = this.getRows();
-        let sortClass = void 0;
-        if ( sortField && sortField.method ) {
-            sortClass = 'fa fa-sort-' + sortField.method;
-        }
-        const headerClicableClass = typeof onHeaderClick === 'function' ? ' clicable' : '';
-        const onHeaderClickHandler = typeof onHeaderClick === 'function' ? onHeaderClick : ()=> {
-        };
-        return (
-            <div className="bpui-datagrid-wrapper">
-                <table className={tableClass} style={tableStyle}>
-                    <thead className={theadClass}>
-                    <tr>
-                        {showCheckboxes ? <td className={tdClass+' td-check check-all'}>
-                            <input type="checkbox" className="bpui-check check-all"/>
-                        </td> : ''}
-                        {tree ? <td className={tdClass+' tree'}/> : ''}
-                        {expandable ? <td className={tdClass+' expander'}/> : ''}
-                        {fields.map(field=>(
-                            <td className={(field.tdClass || tdClass)+headerClicableClass}
-                                style={field.tdStyle || tdStyle}
-                                onClick={onHeaderClickHandler.bind(this,field)}>
-                            <span className="header-icon">
-                                {sortField && sortField.field === field.name ? (<i className={sortClass}/>) : ''}
-                            </span>
-                                <span className="header-label">
-                                {field.label}
-                            </span>
-                            </td>
-                        ))}
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {rows}
-                    </tbody>
-                </table>
-            </div>
-        )
-    }
-});
+ 
 
 /**
  * @component Line
@@ -1335,7 +1006,7 @@ const SearchForm = React.createClass({
         return {values: {}, show: !!this.props.showAlways};
     },
     componentDidMount: function() {
-      //  this.initSearchButton();
+        this.initSearchButton();
     },
     componentWillUnmount: function() {
         this.disableSearchButton();
@@ -1349,13 +1020,12 @@ const SearchForm = React.createClass({
         this.setState({values: {}})
     },
     initSearchButton: function() {
-        const searchButton = document.querySelector('#top-tools>.search');
+        const searchButton = document.querySelector('#top-tools>.search') || document.querySelector('a.searchLink');
         if ( !searchButton ) console.error('Search Button not found');
         searchButton.addEventListener('click', this.onClickSearchButton);
     },
     disableSearchButton: function() {
-
-        const searchButton = document.querySelector('#top-tools>.search');
+        const searchButton = document.querySelector('#top-tools>.search') || document.querySelector('a.searchLink');
         if ( !searchButton ) console.error('Search Button not found');
         searchButton.removeEventListener('click', this.onClickSearchButton);
     },
@@ -1373,7 +1043,7 @@ const SearchForm = React.createClass({
                         {fields.map(({code,label, type}, idx)=> {
                             const value = values[code] || '';
                             let input;
-                            if ( type && type === 'day' ) {
+                            if ( type && (type === 'day' || type==='date')) {
                                 input = (
                                     <BPUI.Date id={inputPrefix + idx} name={inputPrefix + idx} value={value}
                                                onChange={this.onInputChange.bind(this,code)}/>
