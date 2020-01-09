@@ -333,6 +333,8 @@ const checkFieldsFilled = (objActivities,fieldsArr = ['Quantity','Rate']) => {
 }
 
 const compareObjects = (o1, o2) => { //one-level comparing (not deep)
+    if (!o1 && !o2) { return true;}
+    if (!o1 || !o2) { return false;}
     const comparedProperties = ['ActivityDate','Cost','Id','ProductId','Quantity','Rate','SubscriptionFromDate','SubscriptionToDate','TaxCost','TotalCost'];
   //  console.log('comparing',o1,o2)
     for(var p in o1){
@@ -442,24 +444,38 @@ function addActivity(index) {
     }
  }
        
-function checkProductType(index,e){
-    const productTypeColumnIndex = 7;
+/*function checkProductType(index,e){
+    const productTypeColumnIndex = 8;
     let parentTr = null;
     let tdArr = null;
     let typeProduct = null;
- try{
+ //try{
     parentTr = e.target.parentNode;
     tdArr = parentTr.childNodes;
-    typeProduct = tdArr[productTypeColumnIndex].childNodes[0].innerHTML;
-    }catch(ex){console.log(ex); return;}
+        debugger;
+    typeProduct = tdArr[productTypeColumnIndex].innerText;
+   // }catch(ex){console.log(ex); return;}
     if (DISABLED_PRODUCTS.includes(String(typeProduct).toUpperCase())){
     for (let td_ of tdArr){
-     td_.classList.add('disabled');
+     td_.classList.add('disabled'); 
     } 
-}}
+}}*/
+        
+ function checkProductType(index,e){   
+	const productTypeColumnIndex = 8; 
+    const trArr1 = document.querySelectorAll('#activities_tableId tbody tr');
+	for (let tr of trArr1){
+	const typeProduct = tr.childNodes[productTypeColumnIndex].innerText;
+        console.log(typeProduct);
+        if (DISABLED_PRODUCTS.includes(String(typeProduct).toUpperCase())){
+        for(let i=1;i<tr.childNodes.length-1;i++){
+    	tr.childNodes[i].classList.add('disabled');
+    }
+}}}
 	
 BPUI.afterRender = () => {//fix top&bottom menus width
 let menus = document.querySelectorAll('.formButtons');
 for (let menu of menus) menu.setAttribute('width','100%');
 }
+ 
 init();
