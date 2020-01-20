@@ -336,8 +336,7 @@ function getSelectedSubscriptions() {
 
 function doAction() {
     return function() {
-        var efileIds = mainGridController.efileIds;
-        console.log(efileIds);
+        var efileIds = mainGridController.checkedEfiles; 
         doSendEFiles(efileIds);
     }
 }
@@ -394,9 +393,8 @@ function doSendEFiles(efileIds) {
             : $.Deferred().resolve([]));
     }).then(function() {
         return eventsCollection.update(true);
-    }).done(function() {
-        console.log("admin.jsp?name=ELECTRONIC_FILES&key=" + eventsCollection.elements[0].Id + "&mode=R");
-        //window.location = "admin.jsp?name=ELECTRONIC_FILES&key=" + eventsCollection.elements[0].Id + "&mode=R";
+    }).done(function() { 
+         window.location = "admin.jsp?name=ELECTRONIC_FILES&key=" + eventsCollection.elements[0].Id + "&mode=R";
     }).fail(function(responses) {
         alert("Error while sending Electronic Files");
     }).always(stopLoading);
@@ -426,8 +424,7 @@ class GridController {
         this.mainGridData = {fields: [], data: []};
         this.updateHandlers = [];
         this.sortField = void 0;
-        this.pagination = {offset: 0, elementsPerPage: 50};
-        console.log(params);
+        this.pagination = {offset: 0, elementsPerPage: 50}; 
         this.addUpdateHandler(params.onUpdate);
     }
 
@@ -438,9 +435,7 @@ class GridController {
     update() {
         startLoading();
         this.fetchMainData().then(data=> {
-            this.mainGridData = {data};
-
-            console.log(this);
+            this.mainGridData = {data}; 
             this.refreshGrid();
             stopLoading();
         });
@@ -465,7 +460,6 @@ class GridController {
      */
     addUpdateHandler(handler) {
         if ( typeof handler === 'function' ) {
-            console.log(handler);
             this.updateHandlers.push(handler);
         }
     }
@@ -539,12 +533,10 @@ class MainGridController extends GridController {
     constructor(params) {
         super(params);
         this.update();
-        console.log('constructor end');
     }
 
     findFilteredSubscriptions() {
         const criterias = getFilters() || [];
-        console.log('findFilteredSubscriptions');
         var query = "select "
             + "EfileId, "
             + "count(AccountId) as accountsCount "
@@ -559,7 +551,6 @@ class MainGridController extends GridController {
             BPConnection.EfileManual.queryAsync(query).collection()
                 .then((res) => {
                     const efiles = res.elements.map(efile=>efile.EfileId);
-                    console.log(efiles);
                     resolve(efiles);
                 })
                 .fail(reject);
@@ -567,9 +558,7 @@ class MainGridController extends GridController {
     }
 
     findSubscriptions(efileIds) {
-        console.log(this);
         const {offset, elementsPerPage:size} = this.pagination;
-        console.log(offset + size);
         var query = "select "
             + "AccountObj.Id as accountId, "
             + "AccountObj.Name as accountName, "
@@ -604,11 +593,8 @@ class MainGridController extends GridController {
         });
     }
 
-    onCheckboxChange(item, classname,e) {
-       // const t = e.currentTarget;
-        console.log('onchchange',item, classname,e);
-        debugger
-        const t = document.querySelector(`#${classname}`)
+    onCheckboxChange(item,e,classname) {
+        const t = e.currentTarget; 
         const checked = t.checked,
             efileId = item.efileId;
 
@@ -636,13 +622,11 @@ class MainGridController extends GridController {
                 const child = item.children[i];
                 invoices = invoices.concat(MainGridController.extractInvoicesIds(child));
             }
-        }
-        console.log('extracted selected invoices...',invoices)
+        } 
         return invoices
     }
 
-    fetchMainData() {
-        console.log('fetch main');
+    fetchMainData() { 
 
         this.checkedEfiles = new Set();
         return this.findFilteredSubscriptions([])
@@ -772,14 +756,12 @@ class TreeGridController extends GridController {
         })
     }
 
-    makeTree(items) {
-        console.log('make tree items',items);
+    makeTree(items) { 
         const accounts = items[0].map(account=> {
             account.children = [];
             return account;
         }), invoices = items[1];
-        return new Promise((resolve, reject)=> {
-            console.log(accounts, invoices);
+        return new Promise((resolve, reject)=> { 
             const result = [];
 
             for ( let i = 0 ; i < accounts.length ; i++ ) {
@@ -804,18 +786,12 @@ class TreeGridController extends GridController {
                         parent.children.push(invoice);
                     }
                 }
-            }
-            console.log(result.map(item=>({
-                name: item.accountName,
-                accountId: item.accountId,
-                children: item.children
-            })));
+            } 
             resolve(result);
         });
     }
 
-    fetchMainData() {
-        console.log('fetch tree');
+    fetchMainData() { 
         return Promise.all([this.findSubscriptionAccounts(), this.findFilteredSubscriptionInvoices([])])
             .then(this.makeTree.bind(this));
     }
