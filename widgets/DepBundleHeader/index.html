@@ -1,0 +1,49 @@
+<BPUI.Extension>
+    <HeaderDataWrapper render={data=>(
+        <React.Fragment>
+		<BPUI.Dialog name="previewDialog">
+				<div>
+                    <textarea id="fileContent" value={data.fileContent}/>
+                    <button onClick={data.exportFile} style={{marginTop:10}}><i className="fa fa-download"/> Export file</button>
+				</div>
+		</BPUI.Dialog> 
+            {data.error && <div className="alert alert-danger">{data.error} {data.errorFile}</div>}
+            {data.loading? <div>Loading...</div>:
+            <BPUI.TiledHeader>
+                <BPUI.TiledHeaderItem 
+                        col={25}  
+                        positions={data.tile1.positions} 
+                        colors={data.tile1.colors} 
+                        primary={data.tile1.primary}
+                        secondary={data.tile1.secondary}
+                        icon={data.tile1.icon}  
+                    />
+                <BPUI.TiledHeaderItem 
+                        col={25}  
+                        positions={data.tile2.positions} 
+                        colors={data.tile2.colors} 
+                        primary={data.tile2.primary}
+                        secondary={data.tile2.secondary}  
+                        icon={data.tile2.icon} 
+                    />
+                <BPUI.TiledHeaderItem 
+                        col={25}  
+                        positions={data.tile4.positions} 
+                        colors={data.tile4.colors} 
+                        primary={data.tile4.primary}
+                        secondary={data.tile4.secondary}  
+                        icon={data.tile4.icon}   
+                    />
+                <BPUI.TiledHeaderItem 
+                        col={25}  
+                        positions={data.tile5.positions} 
+                        colors={data.tile5.colors} 
+                        primary={data.tile5.primary}
+                        secondary={data.tile5.secondary}  
+                    />
+            </BPUI.TiledHeader>
+            }
+        </React.Fragment>
+        )} 
+        />
+    </BPUI.Extension>

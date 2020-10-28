@@ -1,0 +1,23 @@
+.bpui-header .bpui-header-item .actionButton{
+    font-size: 13px;
+    background-color:#fcb700;
+    border-color:#fcb700;
+    outline:none;
+    margin:1px;
+}
+
+.download-link-error{
+    text-decoration: underline;
+    color: inherit !important;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+@-moz-keyframes spin { 100% { -moz-transform: rotate(360deg); } }
+@-webkit-keyframes spin { 100% { -webkit-transform: rotate(360deg); } }
+@keyframes spin { 100% { -webkit-transform: rotate(360deg); transform:rotate(360deg); } }
+
+
+.CodeMirror.cm-s-default{
+    height: 60vh;
+}

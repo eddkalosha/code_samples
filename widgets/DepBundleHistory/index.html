@@ -1,0 +1,21 @@
+<BPUI.Extension>
+    <BPUI.Divider>Bundle History </BPUI.Divider>
+    <HeaderDataWrapper render={data=>(
+        <React.Fragment>  
+            {false? <div className="alert alert-danger">Error while loading data</div>:null}
+            <BPUI.DataGrid 
+                key={1111} 
+                data={data.items} 
+                fields={columns} 
+                tree={false} 
+            />
+            <BPUI.PageNavigation 
+                name="page-nav-v" 
+                totalElements={data.pagination.total} 
+                onChangePage={data.pagination.onChangePageData}
+            />  
+        </React.Fragment>)}
+        />
+</BPUI.Extension>
+ 
+

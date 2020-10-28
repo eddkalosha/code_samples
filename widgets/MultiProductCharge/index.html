@@ -1,0 +1,48 @@
+<BPUI.Page>
+    <BPUI.FormLayout submitAction={doSaveAndUpdate} cancelAction={cancel}>
+       <div className="info-loading text-blue">Loading data...</div>
+       <div className="main-div-page hide">
+       <div className="div-flex my-15">
+           <div className="div-flex-inner  div-flex-iner-menu">
+            
+   <BPUI.Panel> <BPUI.PanelRow><BPUI.OutputField key="01112" label="Account Name" className='pr-3'  variable={invoiceInfoObj} field={'accountName'}/> </BPUI.PanelRow> </BPUI.Panel> 
+    
+   <BPUI.Panel> <BPUI.PanelRow><BPUI.OutputField key="01113"  label="Invoice period" className='pr-3'    variable={invoiceInfoObj} field={'invoicePeriod'} />   </BPUI.PanelRow> </BPUI.Panel>
+    
+   <BPUI.Panel> <BPUI.PanelRow><BPUI.OutputField key="01114"  label="Invoice ID"  className='pr-3'   variable={invoiceInfoObj} field={'invoiceId'}  /> </BPUI.PanelRow> </BPUI.Panel>
+    
+           </div>
+       </div>
+       <div className="div-flex main-div">
+           <div className="div-flex-inner basis100">
+                 <BPUI.EmbeddedList variable={lastactivities} name="activities" width="100%"
+                   onCellBlur={calculateRate_}  onDel={delActivity} onAdd={addActivity} onRowClick={checkProductType}>
+                   <BPUI.TableColumn index={0}  name="ProductId"   label="Product" type="LOOKUP" />
+                   <BPUI.TableColumn index={1}  name="ActivityDate" type="DATE_SELECTOR"   label="Activity Date" />
+                   <BPUI.TableColumn index={2} name="Quantity"   label="Quantity" />
+                   <BPUI.TableColumn index={3} name="Rate"  label="Rate" />
+                   <BPUI.TableColumn index={4} className={"disabled"} editable={false} name="Cost"  label="Cost" />
+                   <BPUI.TableColumn index={5} className={"disabled"} editable={false} name="TaxCost"  label="Tax" />
+                   <BPUI.TableColumn index={6} className={"disabled"} editable={false} name="TotalCost"  label="Total Cost" />
+                   <BPUI.TableColumn index={7} className={"disabled"} editable={false} name="RatingMethodType"   label="Type" />
+               </BPUI.EmbeddedList>
+           </div>
+           <div className="div-flex-inner basis100">
+               <div className="footer-buttons">
+                   <span id="msg-info_" className="footer-buttons-label text-blue hide">Updating data in a progress...
+                   </span>
+                   <span id="msg-succ_" className="footer-buttons-label text-success success-msg hide "><i
+                           className="fa fa-check-circle"></i> Data was saved successfully!</span>
+                   <span id="msg-fail_" className="footer-buttons-label text-danger failed-msg hide "><i
+                           className="fa fa-warning"></i> Error occurred while data saving! Check fields values in the table and try again.</span>
+               </div>
+           </div>
+       </div>
+   <div className="div-flex process-error hide">
+   <div className="div-flex-inner basis100 text-danger failed-msg">
+   <i className="fa fa-warning" aria-hidden="true"/> You can't Insert/Update Products on Invoice with status CLOSED or APPROVED.
+   </div> 
+   </div>
+   </div>
+   </BPUI.FormLayout>
+   </BPUI.Page>

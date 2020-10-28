@@ -1,0 +1,196 @@
+.bpui-data-grid {
+	width: 100%; }
+	.bpui-data-grid .bpui-grid-head .bpui-grid-td {
+	  background: #ffffff;
+	  padding: 10px 2px 4px 8px;
+	  font-size: 11px;
+	  color: #666;
+	  font-weight: 600;
+	  text-transform: none;
+	  border-bottom: 1px solid #c5dbec;
+	  white-space: nowrap; }
+	  .bpui-data-grid .bpui-grid-head .bpui-grid-td.clicable {
+		cursor: pointer; }
+	.bpui-data-grid tbody {
+	  height: 600px;
+	  font-size: 13px; }
+	  .bpui-data-grid tbody .bpui-grid-tr {
+		height: 34px; }
+		.bpui-data-grid tbody .bpui-grid-tr.clicable {
+		  cursor: pointer; }
+		  .bpui-data-grid tbody .bpui-grid-tr.clicable:hover td {
+			background: #f0fbff; }
+		.bpui-data-grid tbody .bpui-grid-tr .bpui-grid-td {
+		  padding: 6px 0 4px 8px;
+		  background: #FFFFFF;
+		  border-bottom: 1px solid #eaeaea; }
+		  .bpui-data-grid tbody .bpui-grid-tr .bpui-grid-td.expander, .bpui-data-grid tbody .bpui-grid-tr .bpui-grid-td.td-check {
+			width: 16px; }
+		  .bpui-data-grid tbody .bpui-grid-tr .bpui-grid-td .tree {
+			text-align: right;
+			color: #41a7ff;
+			font-size: 10px; }
+		  .bpui-data-grid tbody .bpui-grid-tr .bpui-grid-td .bpui-button-expand {
+			width: 100%;
+			color: #41a7ff;
+			font-size: 16px; }
+	  .bpui-data-grid tbody .data-grid-td-expand {
+		  position:relative;
+		color: #41a7ff;
+		padding: 10px; }
+		.bpui-data-grid tbody .data-grid-td-expand i.fa{
+		  border-right: 1px dashed #eaeaea;
+	  position: absolute;
+	  right: 0;
+	  height: 100%;
+	  top: 0;
+		}
+		.bpui-data-grid tbody .data-grid-td-expand .bpui-icon-expanded-row {
+		  background-image: url(js/images/ui-icons_469bdd_256x240.png);
+		  background-position: -80px 0;
+		  width: 16px;
+		  height: 16px; }
+  
+  .widget-paginator {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	background: #f5f5f5;
+	width: 100%;
+	font-size: 11px; }
+	.widget-paginator .paginator-flex-wrapper {
+	  flex-basis: 30%; }
+	.widget-paginator .paginator-widget-per-page .paginator-widget-per-page-label {
+	  font-weight: bold;
+	  padding-left: 10px;
+	  font-size: 11px;
+	  color: #666;
+	  margin-right: 3px; }
+	.widget-paginator .paginator-widget-per-page .paginator-widget-per-page-select {
+	  font-size: 0.8em; }
+	.widget-paginator .paginator-page-selector {
+	  display: flex;
+	  justify-content: center;
+	  align-items: stretch; }
+	  .widget-paginator .paginator-page-selector .page-selector-direct {
+		padding: 0 3px;
+		border-left: 2px solid #CCC;
+		border-right: 2px solid #CCC; }
+		.widget-paginator .paginator-page-selector .page-selector-direct .selector-direct-input {
+		  font-size: 0.8em;
+		  height: 20px;
+		  width: 30px; }
+	  .widget-paginator .paginator-page-selector .page-selector-button {
+		position: relative;
+		flex-basis: 16px;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		cursor: pointer; }
+		.widget-paginator .paginator-page-selector .page-selector-button.disabled {
+		  opacity: 0.35;
+		  cursor: default; }
+		  .widget-paginator .paginator-page-selector .page-selector-button.disabled:after {
+			content: ''; }
+		.widget-paginator .paginator-page-selector .page-selector-button:after {
+		  content: ' ';
+		  position: absolute;
+		  top: 0;
+		  right: 0;
+		  bottom: 0;
+		  left: 0;
+		  background: #000;
+		  opacity: 0;
+		  transition: opacity 0.3s ease; }
+		.widget-paginator .paginator-page-selector .page-selector-button:hover:after {
+		  opacity: 0.05; }
+		.widget-paginator .paginator-page-selector .page-selector-button .page-selector-icon {
+		  display: block;
+		  width: 16px;
+		  height: 16px;
+		  background-image: url("./js/jquiery-ui/themes/redmond/images/ui-icons_6da8d5_256x240.png"); }
+		  .widget-paginator .paginator-page-selector .page-selector-button .page-selector-icon.first {
+			background-position: -80px -160px; }
+		  .widget-paginator .paginator-page-selector .page-selector-button .page-selector-icon.prev {
+			background-position: -48px -160px; }
+		  .widget-paginator .paginator-page-selector .page-selector-button .page-selector-icon.next {
+			background-position: -32px -160px; }
+		  .widget-paginator .paginator-page-selector .page-selector-button .page-selector-icon.last {
+			background-position: -64px -160px; }
+	.widget-paginator .paginator-page-total {
+	  text-align: end;
+	  padding-right: 5px; }
+  
+  /* BPUI.Line */
+  .bpui-line {
+	display: flex;
+	width: 100%;
+	padding: 5px;
+	align-items: center; }
+	.bpui-line.buttons-background {
+	  background: #f2f4f6;
+	  background: none; }
+	.bpui-line.left {
+	  justify-content: flex-start; }
+	.bpui-line.right {
+	  justify-content: flex-end; }
+	.bpui-line.center {
+	  justify-content: center; }
+	.bpui-line.arrow-down:before, .bpui-line.arrow-up:before {
+	  content: ' ';
+	  width: 24px;
+	  height: 24px;
+	  flex-shrink: 0; }
+	.bpui-line.arrow-down.arrow-down:before, .bpui-line.arrow-up.arrow-down:before {
+	  background: url(images/batch-arrow.png) 5px 9px no-repeat; }
+	.bpui-line.arrow-down.arrow-up:before, .bpui-line.arrow-up.arrow-up:before {
+	  background: url(images/batch-arrow-up.png) 5px 4px no-repeat; }
+	.bpui-line.info {
+	  border: 1px solid #e1f1ff;
+	  padding-top: 7px;
+	  padding-bottom: 7px;
+	  font-size: 12px; }
+	  .bpui-line.info:before {
+		content: ' ';
+		width: 16px;
+		height: 16px;
+		background: url(images/icon-info-small.png);
+		flex-shrink: 0;
+		margin-right: 8px; }
+	.bpui-line > * {
+	  margin-right: 5px; }
+  
+  /* /BPUI.Line */
+  /* BPUI.SearchForm */
+  .bpui-search-form {
+	max-height: 0;
+	transition: 0.3s ease;
+	overflow: hidden; }
+	.bpui-search-form.show {
+	  max-height: 1000px; }
+	.bpui-search-form .search-form-form .search-form-wrapper {
+	  display: flex;
+	  flex-wrap: wrap; }
+	  .bpui-search-form .search-form-form .search-form-wrapper .search-form-field {
+		min-width: 40%;
+		display: flex;
+		margin: 5px; }
+		.bpui-search-form .search-form-form .search-form-wrapper .search-form-field .form-field-label {
+		  width: 150px;
+		  display: flex;
+		  margin: auto 0; }
+		.bpui-search-form .search-form-form .search-form-wrapper .search-form-field .form-field-value-wrapper {
+		  flex-basis: 60%;
+		  max-width: 200px; }
+		  .bpui-search-form .search-form-form .search-form-wrapper .search-form-field .form-field-value-wrapper .field-value-input {
+			width: 100%; }
+  
+  /* /BPUI.SearchForm */
+  
+  .bpui-data-grid tbody .bpui-grid-tr.row-checked td.bpui-grid-td,
+  .bpui-data-grid tbody .bpui-grid-tr.col-checked td.bpui-grid-td{
+	  background:#dcf4fc;
+  }
+
+  

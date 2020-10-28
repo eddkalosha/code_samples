@@ -1,0 +1,17 @@
+<BPUI.Page>
+    <SearchForm fields={SearchDef} doSearch={doSearch}/>
+        <BPUI.Panel name="bulkActionForm">
+            <a className="return-btn" href="javascript:add_attr_submit('SET_FORM_VIEW', 'form_type_in', 'L')"/>
+            <Line className="iconed arrow-down">
+                <input type="button" onClick={doAction("actionsUp")} value="Submit"/>
+                <input type="button" onClick={doCancel} value="Cancel"
+                       style={{"margin-left": "5px"}}/>
+            </Line>
+            <MainGrid/>
+            <Line className="iconed arrow-up">
+                <input type="button" onClick={doAction("actionsDown")} value="Submit"/>
+                <input type="button" onClick={doCancel} value="Cancel"
+                       style={{"margin-left": "5px"}}/>
+            </Line>
+        </BPUI.Panel>
+</BPUI.Page>

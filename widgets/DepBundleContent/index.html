@@ -1,0 +1,81 @@
+<BPUI.Extension>
+    <BPUI.Divider>Bundle Content </BPUI.Divider>
+    <BPUI.Message name="errorsAddContent" variables={errorsAddContent}/>
+    <HeaderDataWrapper render={data=>(
+        <React.Fragment> 
+            {data.loadingText?<div class="loading-text">{data.loadingText}</div>:null}
+            {data.readOnly?null:( 
+                <BPUI.NavToolBar>
+                    <BPUI.Button  className={`${data.selectedEntities.length===0?'disabled':''} formButton`}   onClick={()=>data.onDelete()} title="Delete"/> 
+                    <BPUI.Button title="Add" onClick={()=>data.showDialog()}/>
+                </BPUI.NavToolBar>)
+            }
+            {false? <div className="alert alert-danger">Error while loading data</div>:null}
+            <BPUI.DataGrid 
+                key={1111} 
+                data={data.items} 
+                fields={columns} 
+                tree={false} 
+                showCheckboxes={!data.readOnly  && data.items && data.items.length>0} 
+                onCheckboxChange={data.onSelectEntities}
+                onCheckAll={data.onSelectAllEntities}
+            />
+            <BPUI.PageNavigation 
+                name="page-nav-v1" 
+                totalElements={data.pagination.total} 
+                onChangePage={(offset,elementsPerPage,currentPage)=>data.pagination.onChangePageData(offset,elementsPerPage,currentPage)}
+            />
+            <BPUI.PureDialog
+                open={data.dlgShow} 
+                title={''} 
+                footer={<BPUI.NavToolBar className="modal-footer"> 
+                    <b style={{paddingRight: '10px'}}>  Selected: {data.selectedObjects.length}</b>
+                    <BPUI.Button title="Submit" className={`${data.selectedObjects.length===0?'disabled':''} formButton`}  onClick={()=>data.onSubmit()}/>
+                    <BPUI.Button title="Cancel" onClick={()=>data.hideDialog()}/>
+                </BPUI.NavToolBar>}
+                content={
+                <React.Fragment>
+                    <div className="search-panel" style={{paddingLeft:0,paddingRight:0,justifyContent: 'flex-start'}}> 
+                        <div>
+                            <h3 class="main-title">Add Bundle content</h3>
+                        </div>
+                        <div id='search-block' className={data.selectedEntityId===-1?'disabled':''}> 
+                            {data.selectedEntityId===-1 && <BPUI.Search placeholderText={'Search records...'}/>}
+                        </div>
+                    </div>
+                    <div className="max-50vh"> 
+                        <div style={{display:'flex',height:'100%'}}> 
+                            <div style={{display:'flex',flexDirection:'column'}}>  
+                            <BPUI.NavToolBar>
+                                <BPUI.Line  className="iconed arrow-down">
+                                    Select Entity
+                                </BPUI.Line>
+                            </BPUI.NavToolBar>
+                                <select style={{height:`calc(100% - ${toolBarHeight}px)`,flexShrink: 0}} multiple={true} className="w-select btn-group bootstrap-select" onChange={(e)=>data.selectEntityId(e.target.value)} value={data.selectedEntityId}>
+                                    <option isselected={`${data.selectedEntityId==-1}`} key={-1}>- Not selected -</option>
+                                    {data.entitiesList.map((el,i)=><option className="entity-item" key={el.Id} isselected={`${data.selectedEntityId==el.Id}`} value={el.Id}>{el.EntityLabel}</option>)}
+                                </select>
+                            </div>
+                       { data.selectedEntityId==-1?
+                        <div className="flex-grow-1" style={{width: 'calc(100% - 220px)'}}>
+                            <BPUI.NavToolBar>
+                                <BPUI.Line  className="iconed arrow-down icon-trasparent"></BPUI.Line>
+                            </BPUI.NavToolBar>
+                            <div style={{height:`calc(100% - ${toolBarHeight}px)`}} class="centered-text-wrapper">No Entity selected...</div>
+                        </div>
+                         : 
+                        <EntityWrapper 
+                            entityId={data.selectedEntityId} 
+                            searchMountTo={'search-block'}
+                            onCheckboxChange={(item,checked,level)=>this.onCheckboxChange(item,checked,level)}
+                            onGetSelectedItems = {(items,checked)=>data.onGetSelectedItems(items,checked)}
+                        />}
+                       </div>
+                    </div>
+                </React.Fragment>}
+                onClose={data.hideDialog}
+                /> 
+        </React.Fragment>)}
+        />
+</BPUI.Extension>
+ 

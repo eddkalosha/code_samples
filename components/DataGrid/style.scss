@@ -1,0 +1,181 @@
+/*BPUI.DataGrid*/
+.bpui-datagrid-wrapper{
+  overflow-x: auto;
+}
+.bpui-data-grid {
+  width: 100%;
+  .bpui-grid-head {
+    .bpui-grid-td {
+      background: #ffffff;
+      padding: 8px 4px;
+      font-size: 12px;
+      color: #666;
+      font-weight: 500;
+      text-transform: none;
+      border-bottom: 1px solid rgb(197, 219, 236);
+      white-space: nowrap;
+      &.clicable {
+        cursor: pointer;
+      }
+      .header-icon{
+        margin-right: 5px;
+      }
+      &.right-align{
+        text-align: right;
+      }
+    }
+  }
+  tbody {
+    height: 600px;
+    font-size: 13px;
+    .bpui-grid-tr {
+      height: 34px;
+      &.clicable {
+        cursor: pointer;
+        &:hover td {
+          background: #f0fbff;
+        }
+      }
+      .bpui-grid-td {
+        &.right-align{
+          text-align: right;
+        }
+        &.expander,
+        &.expander,
+        &.td-check,
+        &.td-radio,
+        &.right-align{
+          text-align: right;
+        }
+        &.expander,
+        &.td-check,
+        &.td-radio {
+          width: 16px;
+        }
+        .tree {
+          display: flex;
+          align-items: center;
+          text-align: right;
+          color: #41a7ff;
+          font-size: 10px;
+        }
+        .bpui-button-expand {
+          width: auto;
+          color: #41a7ff;
+          font-size: 16px;
+          .expand-icon {
+            width: 16px;
+            background-position: center;
+            height: 16px;
+            display: block;
+            &.expand-minus {
+
+              background: url(../../../../../images/tree/minus.svg) no-repeat left center;
+            }
+            &.expand-plus {
+              background: url(../../../../../images/tree/plus1.svg) no-repeat left center;
+            }
+          }
+        }
+        padding: 6px 4px 4px 8px;
+        background: #FFFFFF;
+        border-bottom: 1px solid #eaeaea;
+      }
+    }
+
+    .data-grid-td-expand {
+      color: #41a7ff;
+      padding: 10px;
+      .bpui-icon-expanded-row {
+        background-image: url(../../../../../css/old/images/ui-icons_469bdd_256x240.png);
+        background-position: -80px 0;
+        width: 16px;
+        height: 16px;
+      }
+    }
+  }
+
+  .bpui-check,
+  .bpui-radio {
+    font-size: 15px;
+    margin: 0;
+  }
+
+  .bpui-grid-td.thin  {
+    width: 1px;
+  }
+
+  .tree.icon {
+    padding-left: 0;
+  }
+
+  .tree i[class*="arrow"] {
+    font-size: 14px;
+    color: #ccc;
+    margin-left: auto;
+  }
+
+  .children i[class*=arrow] {
+    margin-left: 5px;
+  }
+
+  .bpui-grid-submenu{
+    position: relative;
+    .menu-btn{	
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      cursor: pointer;
+      padding: 0;
+    }
+    .menu{
+      position: absolute;
+      padding: 0;
+      background: #f2f4f6;
+      top: 7px;
+      left: 7px;
+      z-index: 9;
+      border-radius: 3px;
+      border-top-left-radius: 0px;
+      overflow: hidden;
+      -webkit-box-shadow: 1.5px 2px 3px 0px #c5c5c5;
+      -moz-box-shadow: 1.5px 2px 3px 0px #c5c5c5;
+      box-shadow: 1.5px 2px 3px 0px #c5c5c5;	
+      white-space: initial !important;
+      min-width: 150px;
+      overflow: hidden;
+      max-width: 500px;
+      &>li{
+        padding: 0;
+      }
+      &>li:not(:first-child){
+        white-space: initial !important;
+        display: inherit !important;
+        border-top: 1px solid #eaeaea;
+      }
+      &>li a{ 
+        padding: 13px 20px;
+        display: block;
+        color: #777;
+        white-space: nowrap; 
+      }
+      &>li a::before{
+        font: normal normal normal 14px/1 FontAwesome;
+        content: "\f178";
+        font-size: 10px;
+        padding-right: 5px;
+        margin-left: -5px;
+      }
+      &>li:hover a{
+        background: #eaeaea;
+        color: #424242;  
+      }
+      &>li + &>li{
+        content: initial !important;
+      } 
+    }
+  }  
+}
+
+/*/BPUI.DataGrid*/

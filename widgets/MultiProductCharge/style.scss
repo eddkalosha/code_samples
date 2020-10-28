@@ -1,0 +1,126 @@
+.disabled {
+    pointer-events: none
+}
+
+.disabled input {
+    display: none
+}
+
+.disabled-grayfilter {
+    pointer-events: none;
+    opacity: 0.7;
+    filter: url(filters.svg#grayscale);
+    /* Firefox 3.5+ */
+    filter: gray;
+    /* IE5+ */
+    -webkit-filter: grayscale(1);
+    /* Webkit Nightlies & Chrome Canary */
+    -webkit-filter: grayscale(100%);
+    /* Safari 6.0 - 9.0 */
+    filter: grayscale(100%);
+}
+
+input[type="text"] {
+    padding: 0 !important;
+    margin: 0 !important;
+    background: transparent !important;
+}
+
+.text-blue {
+    color: #5cc3ff;
+}
+
+.return-btn {
+    transform: translateY(20%) !important;
+}
+
+.footer-buttons {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+.div-flex {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.basis50 {
+    flex-basis: 50%;
+}
+
+.div-flex-inner {
+    padding: 10px 0;
+    flex-basis: 100%;
+}
+
+.basis100 {
+    flex-basis: 100%;
+}
+
+.text-big {
+    font-size: 150%;
+}
+
+.success-msg {
+    padding: 6px;
+    background: #aaff5c29;
+}
+
+.failed-msg {
+    padding: 6px;
+    background: #ff5c5c29;
+}
+
+.bg-semiblue {
+    background: #dcf4fc;
+}
+
+.my-15 {
+    margin: 15px 0;
+}
+
+.scrollingContainer table .gridRow div.lookup-clear {
+    float: none;
+    padding: 2px 12px;
+    background-repeat: no-repeat;
+}
+
+.text-black {
+    color: #000
+}
+
+.hide {
+    display: none;
+}
+
+tr.edited td {
+    background: #dcf4fc;
+}
+
+.info-loading {
+    display: flex;
+    padding: 40px;
+    text-align: center;
+    align-items: center;
+    justify-content: center;
+}
+
+div.div-flex-iner-menu .panel,
+div.div-flex-iner-menu .panel-body {
+    margin: 0 !important;
+    padding: 0 !important;
+}
+
+.lookup .input-group-btn {
+    line-height: 0 !important;
+}
+
+.lookup .textbox-clear {
+    right: 33px;
+}
+
+div.table-responsive {
+    overflow-x: initial;
+}

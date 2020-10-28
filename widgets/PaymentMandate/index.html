@@ -1,0 +1,9 @@
+<BPUI.Extension id="bpui-gcpm-extension">
+  <BPUI.Divider>Mandate</BPUI.Divider>
+  <BPUI.DataProxy
+    eventName="submitMandate"
+    listener={onMandateSubmit} 
+    render={paymentMandateRender}
+    onStateChange={onMandateChange}
+  />
+</BPUI.Extension>

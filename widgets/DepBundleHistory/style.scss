@@ -1,0 +1,59 @@
+ $iconSize:19; //px
+
+$white_color:#FFF;
+$bg_white_color:#FFF;
+
+$success_color:#84c838;
+$bg_success_color:#84c838;
+
+$fail_color:#fa9581;
+$bg_fail_color:#fa9581;
+
+$warning_color:yellow;
+$bg_warning_color:yellow;
+
+$transparent_color:transparent;
+$bg_transparent_color:transparent;
+
+
+@mixin icon($color:$fail_color,$bg_color:$bg_transparent_color,$size:$iconSize,$isRounded:false) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: $size+px;
+    height: $size+px; 
+    background: $bg_color; 
+    color:$color;
+    @if ($isRounded){
+        border-radius: 50%;
+    }
+}
+
+.success-icon-circle{
+    @include icon($white_color,$bg_success_color,$iconSize,$isRounded:true);
+}
+
+.success-icon-transparent{
+    @include icon($success_color,$bg_transparent_color,$iconSize,$isRounded:false);
+}
+
+.fail-icon-circle{
+    @include icon($white_color,$bg_fail_color,$iconSize,$isRounded:true);
+}
+
+.fail-icon-transparent{
+    @include icon($fail_color,$bg_transparent_color,$iconSize,$isRounded:false);
+}
+
+.warning-icon-circle{
+    @include icon($white_color,$bg_warning_color$iconSize,$isRounded:true);
+}
+
+.warning-icon-transparent{
+    @include icon($warning_color,$bg_transparent_color,$iconSize,$isRounded:false);
+}
+
+.disabled{
+    pointer-events: none;
+    opacity: 0.5;
+}

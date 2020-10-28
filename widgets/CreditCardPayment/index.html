@@ -1,0 +1,22 @@
+<BPUI.Extension>
+    <div>
+        <div className="pay-header">
+            <BPUI.Divider>Payment Details</BPUI.Divider>
+        </div>
+        <PaymentForm name="cybersource" />
+        <BPUI.Divider>Invoice Payments</BPUI.Divider>
+        <BPUI.EmbeddedList variable={invoices} canAdd={false} canDel={false} editable={false}>
+            <BPUI.TableColumn name="DueDate" label="Due Date" />
+            <BPUI.TableColumn name="Id" label="Invoice Number" />
+            <BPUI.TableColumn name="GrandTotalAmount" label="Grand Total" />
+            <BPUI.TableColumn name="PaymentAmount" label="Amount Paid" />
+            <BPUI.TableColumn name="CreditAmount" label="Credits" />
+            <BPUI.TableColumn name="BalanceDue" label="Balance Due" inputMode="showOnClick" readOnly={true} editable={false} />
+            <BPUI.TableColumn name="CurrentPaymentAllocationAmount" label="Payment Amount" inputMode="showOnClick" readOnly={false} editable={true}/>
+        </BPUI.EmbeddedList>
+        <BPUI.Panel>
+            <BPUI.PanelRow style={{height: "30px"}} />
+        </BPUI.Panel>
+    </div>
+    {hideInterface?(<Preloader/>):''}
+</BPUI.Extension>
