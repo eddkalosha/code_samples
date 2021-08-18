@@ -17,7 +17,6 @@ const twoNearestSubways = (x=0, y=0, stations=[]) =>{
   }
 
   return [current,next];
-
 }
 
 /*let stations =  [
