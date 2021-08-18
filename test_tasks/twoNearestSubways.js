@@ -5,7 +5,7 @@ const twoNearestSubways = (x=0, y=0, stations=[]) =>{
 
   let [current, next] = stations.splice(0,2);
 
-  for (let i=0;i<stations.length-1; i++){
+  for (let i=0; i<stations.length-1; i++){
        if (calcDistance(current)>calcDistance(stations[i])) {
           next = current;
           current = stations[i]
@@ -19,7 +19,7 @@ const twoNearestSubways = (x=0, y=0, stations=[]) =>{
   return [current,next];
 }
 
-/*let stations =  [
+/*let stations = [
         {x: 20, y: 20, name: 'Stamford Brook'}, 
         {x: 103, y: 243, name: 'Covent Garden'}, 
         {x: 143, y: 343, name: 'Piccadilly Circus'},
